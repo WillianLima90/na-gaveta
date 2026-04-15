@@ -1,0 +1,100 @@
+/* ============================================================
+   Na Gaveta — Estilos Globais
+   ============================================================ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base ─────────────────────────────────────────────────── */
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply font-sans antialiased;
+    background-color: #0F0F10;
+    color: #E5E7EB;
+  }
+
+  /* Scrollbar estilizada para desktop */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0F0F10;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #3F3F46;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #F97316;
+  }
+}
+
+/* ── Componentes reutilizáveis ────────────────────────────── */
+@layer components {
+  /* Botão primário */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white text-sm
+           bg-brand hover:bg-brand-dark active:scale-95
+           transition-all duration-150 cursor-pointer
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Botão secundário / outline */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-text-primary text-sm
+           border border-border-default bg-bg-card hover:bg-bg-elevated hover:border-brand
+           transition-all duration-150 cursor-pointer
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Card padrão */
+  .card {
+    @apply bg-bg-card border border-border-subtle rounded-2xl p-5 shadow-card;
+  }
+
+  /* Input padrão */
+  .input {
+    @apply w-full px-4 py-3 rounded-xl text-sm text-text-primary
+           bg-bg-elevated border border-border-default
+           placeholder-text-muted
+           focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent
+           transition-all duration-150;
+  }
+
+  /* Badge de status ao vivo */
+  .badge-live {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold
+           bg-live/10 text-live border border-live/20;
+  }
+
+  /* Badge genérico */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
+           bg-bg-elevated text-text-secondary border border-border-subtle;
+  }
+}
+
+/* ── Utilitários customizados ─────────────────────────────── */
+@layer utilities {
+  .text-gradient-brand {
+    background: linear-gradient(to right, #F97316, #FB923C);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

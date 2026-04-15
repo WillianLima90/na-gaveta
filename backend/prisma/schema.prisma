@@ -1,0 +1,272 @@
+// ============================================================
+// Na Gaveta — Prisma Schema v4
+// Banco: PostgreSQL | ORM: Prisma
+// Novidades v4: favoriteTeam em User, modelo RoundWinner
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// USUÁRIO — entidade central da plataforma
+// ============================================================
+model User {
+  id             String   @id @default(uuid())
+  name           String
+  email          String   @unique
+  passwordHash   String   @map("password_hash")
+  avatarUrl      String?  @map("avatar_url")
+  favoriteTeam   String?  @map("favorite_team")  // nome do time do coração
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relações
+  ownedPools   Pool[]        @relation("PoolOwner")
+  poolMembers  PoolMember[]
+  predictions  Prediction[]
+  roundWins    RoundWinner[]
+  notifications Notification[]
+
+  @@map("users")
+}
+
+// ============================================================
+// BOLÃO — grupo de apostas em torno de um campeonato
+// Relação 1:1 com ScoreRule (cada bolão tem sua própria regra)
+// ============================================================
+model Pool {
+  id             String   @id @default(uuid())
+  name           String
+  code           String   @unique // código de convite (ex: BRAS26)
+  description    String?
+  isPublic       Boolean  @default(false) @map("is_public")
+  isActive       Boolean  @default(true)  @map("is_active")
+  maxMembers     Int?     @map("max_members")
+  ownerId        String   @map("owner_id")
+  championshipId String   @map("championship_id")
+  bonusRoundId   String?  @map("bonus_round_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relações
+  owner          User         @relation("PoolOwner", fields: [ownerId], references: [id])
+  championship   Championship @relation(fields: [championshipId], references: [id])
+  bonusRound     Round?       @relation("PoolBonusRound", fields: [bonusRoundId], references: [id])
+  scoreRule      ScoreRule?   // 1:1 — criada junto com o bolão
+  members        PoolMember[]
+  predictions    Prediction[]
+  roundWinners   RoundWinner[]
+  notifications  Notification[]
+
+  @@map("pools")
+}
+
+// ============================================================
+// MEMBRO DO BOLÃO — tabela de junção User <-> Pool
+// score = total de pontos acumulados neste bolão
+// ============================================================
+model PoolMember {
+  id       String   @id @default(uuid())
+  userId   String   @map("user_id")
+  poolId   String   @map("pool_id")
+  joinedAt DateTime @default(now()) @map("joined_at")
+  score    Int      @default(0)
+
+  // Relações
+  user User @relation(fields: [userId], references: [id])
+  pool Pool @relation(fields: [poolId], references: [id])
+
+  @@unique([userId, poolId])
+  @@map("pool_members")
+}
+
+// ============================================================
+// CAMPEONATO — ex: Brasileirão 2026, Copa do Brasil 2026
+// ============================================================
+model Championship {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  season    String   // ex: "2026"
+  country   String?
+  logoUrl   String?  @map("logo_url")
+  isActive  Boolean  @default(true) @map("is_active")
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relações
+  rounds Round[]
+  pools  Pool[]
+
+  @@map("championships")
+}
+
+// ============================================================
+// RODADA — agrupamento de partidas dentro de um campeonato
+// isBonusRound: quando true, aplica bonusRoundMultiplier da ScoreRule
+// ============================================================
+model Round {
+  id             String   @id @default(uuid())
+  championshipId String   @map("championship_id")
+  number         Int
+  name           String   // ex: "Rodada 1", "Oitavas de Final"
+  startDate      DateTime @map("start_date")
+  endDate        DateTime @map("end_date")
+  isOpen         Boolean  @default(false) @map("is_open")       // aberta para palpites
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relações
+  championship   Championship @relation(fields: [championshipId], references: [id])
+  matches        Match[]
+  roundWinners   RoundWinner[]
+  bonusForPools  Pool[]       @relation("PoolBonusRound")
+
+  @@unique([championshipId, number])
+  @@map("rounds")
+}
+
+// ============================================================
+// PARTIDA — jogo entre dois times em uma rodada
+// isJoker: quando true, aplica jokerMultiplier da ScoreRule
+// ============================================================
+model Match {
+  id         String      @id @default(uuid())
+  roundId    String      @map("round_id")
+  homeTeam   String      @map("home_team")
+  awayTeam   String      @map("away_team")
+  homeScore  Int?        @map("home_score")  // null = não realizado
+  awayScore  Int?        @map("away_score")
+  status     MatchStatus @default(SCHEDULED)
+  isJoker    Boolean     @default(false) @map("is_joker") // aplica multiplicador coringa
+  matchDate  DateTime    @map("match_date")
+  venue      String?
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  // Relações
+  round       Round        @relation(fields: [roundId], references: [id])
+  predictions Prediction[]
+
+  @@map("matches")
+}
+
+// ============================================================
+// PALPITE — aposta de um usuário em uma partida dentro de um bolão
+// points: pontos calculados pelo motor de pontuação (0 até ser calculado)
+// scoredAt: timestamp de quando os pontos foram calculados
+// ============================================================
+model Prediction {
+  id             String    @id @default(uuid())
+  userId         String    @map("user_id")
+  matchId        String    @map("match_id")
+  poolId         String    @map("pool_id")
+  homeScoreTip   Int       @map("home_score_tip")
+  awayScoreTip   Int       @map("away_score_tip")
+  isJoker        Boolean   @default(false) @map("is_joker")
+  points         Int       @default(0)          // pontos ganhos neste palpite
+  scoredAt       DateTime? @map("scored_at")    // quando foi calculado
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Relações
+  user  User  @relation(fields: [userId], references: [id])
+  match Match @relation(fields: [matchId], references: [id])
+  pool  Pool  @relation(fields: [poolId], references: [id])
+
+  // Um palpite por usuário por partida por bolão
+  @@unique([userId, matchId, poolId])
+  @@map("predictions")
+}
+
+// ============================================================
+// REGRA DE PONTUAÇÃO — 1:1 com Pool, configurável por bolão
+// Todos os campos têm defaults para facilitar a criação
+// ============================================================
+model ScoreRule {
+  id                   String   @id @default(uuid())
+  poolId               String   @unique @map("pool_id") // 1:1 com Pool
+  pointsForOutcome     Int      @default(10) @map("points_for_outcome")      // acertar V/E/D
+  pointsForHomeGoals   Int      @default(5)  @map("points_for_home_goals")   // acertar gols do mandante
+  pointsForAwayGoals   Int      @default(5)  @map("points_for_away_goals")   // acertar gols do visitante
+  exactScoreBonus      Int      @default(0)  @map("exact_score_bonus")       // bônus por placar exato
+  jokerMultiplier      Float    @default(2)  @map("joker_multiplier")        // multiplicador coringa
+  bonusRoundMultiplier Float    @default(2)  @map("bonus_round_multiplier")  // multiplicador rodada bônus
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  // Relação 1:1 com Pool
+  pool Pool @relation(fields: [poolId], references: [id])
+
+  @@map("score_rules")
+}
+
+// ============================================================
+// VENCEDOR DE RODADA — registra quem venceu cada rodada em cada bolão
+// Persiste após fechamento da rodada para não recalcular
+// Pode haver múltiplos vencedores por rodada (empate)
+// ============================================================
+model RoundWinner {
+  id           String   @id @default(uuid())
+  poolId       String   @map("pool_id")
+  roundId      String   @map("round_id")
+  userId       String   @map("user_id")
+  favoriteTeam String?  @map("favorite_team")  // time do coração no momento da vitória
+  roundPoints  Int      @map("round_points")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relações
+  pool  Pool  @relation(fields: [poolId], references: [id])
+  round Round @relation(fields: [roundId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  // Um usuário pode vencer a mesma rodada apenas uma vez por bolão
+  @@unique([poolId, roundId, userId])
+  @@map("round_winners")
+}
+
+
+// ============================================================
+// NOTIFICAÇÃO — avisos in-app por usuário
+// ============================================================
+model Notification {
+  id          String              @id @default(uuid())
+  userId      String              @map("user_id")
+  poolId      String?             @map("pool_id")
+  type        NotificationType
+  title       String
+  message     String
+  isRead      Boolean             @default(false) @map("is_read")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  readAt      DateTime?           @map("read_at")
+
+  user        User                @relation(fields: [userId], references: [id])
+  pool        Pool?               @relation(fields: [poolId], references: [id])
+
+  @@index([userId, isRead, createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  NEXT_MATCH_REMINDER
+  BONUS_ROUND_ACTIVE
+  ROUND_STARTED
+  ROUND_RESULT
+}
+
+// ============================================================
+// ENUM — status de uma partida
+// ============================================================
+enum MatchStatus {
+  SCHEDULED  // agendada
+  LIVE       // ao vivo
+  FINISHED   // encerrada
+  CANCELLED  // cancelada
+}
