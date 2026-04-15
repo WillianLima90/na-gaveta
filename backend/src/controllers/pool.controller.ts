@@ -4,7 +4,6 @@
 
 import { Response } from 'express';
 import prisma from '../utils/prisma';
-import { checkAndNotifyNextMatch } from '../services/reminder.service';
 import { AuthRequest } from '../types';
 
 // ── Listar bolões públicos ───────────────────────────────────
@@ -63,10 +62,6 @@ export async function getPool(req: AuthRequest, res: Response): Promise<void> {
       });
       isMember = !!membership;
 
-      if (isMember) {
-        console.log('[Reminder] checkAndNotifyNextMatch', { userId, poolId: id });
-        await checkAndNotifyNextMatch(userId, id);
-      }
     }
 
     res.json({ pool: { ...pool, isMember } });

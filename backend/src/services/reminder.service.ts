@@ -15,25 +15,81 @@ export async function notifyUsersAboutNextMatch(
   if (diffMinutes <= 0 || diffMinutes > REMINDER_WINDOW_MINUTES) return;
 
   for (const userId of userIds) {
-    const existing = await prisma.notification.findFirst({
+    const existingPrediction = await prisma.prediction.findUnique({
       where: {
-        userId,
-        poolId,
-        type: 'NEXT_MATCH_REMINDER',
-        message: {
-          contains: String(nextMatchId),
+        userId_matchId_poolId: {
+          userId,
+          matchId: nextMatchId,
+          poolId,
         },
       },
     });
 
-    if (existing) continue;
+    if (!existingPrediction) {
+      const pendingMessage = `Você ainda não palpitou o próximo jogo`;
 
-    await createNotification({
-      userId,
-      poolId,
-      type: 'NEXT_MATCH_REMINDER',
-      title: 'Atenção',
-      message: `Seu próximo jogo fecha em ${diffMinutes} minutos`,
+      const existingPending = await prisma.notification.findFirst({
+        where: {
+          userId,
+          poolId,
+          title: 'Palpite pendente',
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      await prisma.notification.upsert({
+        where: {
+          id: existingPending?.id || 'force-create',
+        },
+        update: {
+          message: pendingMessage,
+          isRead: false,
+          readAt: null,
+        },
+        create: {
+          userId,
+          poolId,
+          type: 'NEXT_MATCH_REMINDER',
+          title: 'Palpite pendente',
+          message: pendingMessage,
+        },
+      });
+
+      continue;
+    }
+
+    const reminderMessage = `Seu próximo jogo fecha em ${diffMinutes} minutos`;
+
+    const existingReminder = await prisma.notification.findFirst({
+      where: {
+        userId,
+        poolId,
+        title: 'Atenção',
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
+
+    if (!existingReminder) {
+      await createNotification({
+        userId,
+        poolId,
+        type: 'NEXT_MATCH_REMINDER',
+        title: 'Atenção',
+        message: reminderMessage,
+      });
+    } else if (existingReminder.message !== reminderMessage || existingReminder.isRead) {
+      await prisma.notification.update({
+        where: { id: existingReminder.id },
+        data: {
+          message: reminderMessage,
+          isRead: false,
+          readAt: null,
+        },
+      });
+    }
   }
 }

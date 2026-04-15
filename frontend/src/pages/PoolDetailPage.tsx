@@ -97,8 +97,9 @@ export default function PoolDetailPage() {
           setSelectedRoundId((prev) => prev ?? (liveRound ?? openRound ?? lastRound).id);
         }
       }
-    } catch {
-      navigate('/pools');
+    } catch (err) {
+      console.error('[PoolDetailPage] loadData error', err);
+      setJoinError('Erro ao carregar o bolão');
     } finally {
       setLoading(false);
     }
@@ -119,6 +120,10 @@ export default function PoolDetailPage() {
     setJoinError(null);
     try {
       await joinPoolById(id!);
+
+      // força estado local imediato
+      setPool((prev) => prev ? { ...prev, isMember: true } : prev);
+
       await loadData();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;

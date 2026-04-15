@@ -9,7 +9,6 @@
 import { Request, Response } from 'express';
 import { MatchStatus } from '@prisma/client';
 import prisma from '../utils/prisma';
-import { checkAndNotifyNextMatch } from '../services/reminder.service';
 import { AuthRequest } from '../types';
 import { recalculatePredictionsForMatch } from '../services/scoring.service';
 
@@ -64,9 +63,6 @@ export async function getPoolMatches(req: AuthRequest, res: Response): Promise<v
       return;
     }
 
-    if (userId) {
-      await checkAndNotifyNextMatch(userId, poolId);
-    }
 
     const rounds = await prisma.round.findMany({
       where: { championshipId: pool.championshipId },
