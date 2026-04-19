@@ -223,7 +223,7 @@ export default function PoolDetailPage() {
 
   // ── Coluna da esquerda: palpites ─────────────────────────────
   const leftColumn = (
-    <div>
+    <div className="max-w-4xl mx-auto">
       {/* ── ENTRAR NO BOLÃO (não-membro) ──────────────────────── */}
       {!isMember && (
         <div className="mb-5">

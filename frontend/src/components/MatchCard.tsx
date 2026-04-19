@@ -195,7 +195,32 @@ export function MatchCard({
   const [minsUntilLock, setMinsUntilLock] = useState<number | null>(null);
 
   const homeRef = useRef<HTMLInputElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const initialRef = useRef({ home: '', away: '', joker: false });
   const canPredict = isAuthenticated && isMember && !locked;
+
+  function startEditing() {
+    initialRef.current = {
+      home: homeInput,
+      away: awayInput,
+      joker: isJokerSelected,
+    };
+    setEditing(true);
+    setTimeout(() => homeRef.current?.focus(), 50);
+  }
+
+  function cancelEditing() {
+    setHomeInput(initialRef.current.home);
+    setAwayInput(initialRef.current.away);
+    setIsJokerSelected(initialRef.current.joker);
+    setEditing(false);
+    setError(null);
+  }
+
+  const hasUnsavedChanges =
+    homeInput !== initialRef.current.home ||
+    awayInput !== initialRef.current.away ||
+    isJokerSelected !== initialRef.current.joker;
 
   // Sincronizar estado local quando o palpite do card mudar
   useEffect(() => {
@@ -204,6 +229,31 @@ export function MatchCard({
     setIsJokerSelected(Boolean(match.myPrediction?.isJoker));
     setSaved(!!match.myPrediction);
   }, [match.myPrediction]);
+
+  // Fechar edição ao clicar fora
+  useEffect(() => {
+    if (!editing) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      const target = event.target as Node | null;
+      if (cardRef.current && target && !cardRef.current.contains(target)) {
+        cancelEditing();
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        cancelEditing();
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [editing]);
 
   // Contagem regressiva
   useEffect(() => {
@@ -251,7 +301,7 @@ export function MatchCard({
   // ── CARD: PALPITE EM ABERTO (sem palpite salvo) ───────────────
   if (canPredict && (!saved || editing)) {
     return (
-      <div className="rounded-2xl border border-zinc-700/60 bg-zinc-900 shadow-lg">
+      <div ref={cardRef} className="max-w-4xl mx-auto rounded-2xl border border-zinc-700/60 bg-zinc-900 shadow-lg">
         {/* Linha principal: times + inputs grandes + salvar */}
         <div className="flex items-center gap-3 px-4 pt-3.5 pb-2">
           <button
@@ -288,10 +338,10 @@ export function MatchCard({
           <span className="flex-1 text-left text-sm font-bold text-white truncate">{match.awayTeam}</span>
           <button
             onClick={handleSave}
-            disabled={saving || homeInput === '' || awayInput === ''}
+            disabled={saving || !hasUnsavedChanges || homeInput === '' || awayInput === ''}
             className="shrink-0 h-11 px-4 rounded-xl font-bold text-sm bg-brand hover:bg-brand-light text-white disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-md"
           >
-            {saving ? <Spinner size="sm" /> : <><Zap size={13} /> Salvar</>}
+            {saving ? <Spinner size="sm" /> : hasUnsavedChanges ? <><Zap size={13} /> Salvar</> : <>Sem alterações</>}
           </button>
         </div>
         {/* Linha secundária: data + prazo + badges */}
@@ -313,17 +363,20 @@ export function MatchCard({
   // ── CARD: PALPITE SALVO (ainda editável) ─────────────────────
   if (canPredict && saved && !editing) {
     return (
-      <div className={`rounded-2xl border shadow-md ${match.myPrediction?.isJoker ? "border-yellow-400/70 bg-brand/8 shadow-lg shadow-yellow-500/20" : "border-brand/40 bg-brand/8"}`}>
+      <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${match.myPrediction?.isJoker ? "border-yellow-400/70 bg-brand/8 shadow-lg shadow-yellow-500/20" : "border-brand/40 bg-brand/8"}`}>
         <div className="flex items-center gap-3 px-4 pt-3.5 pb-2">
           <span className="flex-1 text-right text-sm font-bold text-white truncate">{match.homeTeam}</span>
-          <div className="flex items-center gap-2 shrink-0">
+          <div
+            onClick={startEditing}
+            className="flex items-center gap-2 shrink-0 cursor-pointer"
+          >
             <span className={`w-11 h-11 flex items-center justify-center text-xl font-black text-white bg-transparent border rounded-xl tabular-nums shadow-inner ${match.myPrediction?.isJoker ? "border-yellow-400/60" : "border-brand/40"}`}>{homeInput}</span>
             <span className="text-zinc-500 text-base font-black">×</span>
             <span className={`w-11 h-11 flex items-center justify-center text-xl font-black text-white bg-transparent border rounded-xl tabular-nums shadow-inner ${match.myPrediction?.isJoker ? "border-yellow-400/60" : "border-brand/40"}`}>{awayInput}</span>
           </div>
           <span className="flex-1 text-left text-sm font-bold text-white truncate">{match.awayTeam}</span>
           <button
-            onClick={() => { setEditing(true); setTimeout(() => homeRef.current?.focus(), 50); }}
+            onClick={startEditing}
             className="shrink-0 h-8 px-3 rounded-lg font-semibold text-xs border border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500 transition-all flex items-center gap-1"
           >
             <Edit2 size={11} /> Editar
@@ -347,7 +400,7 @@ export function MatchCard({
   // ── CARD: MODO EDIÇÃO ─────────────────────────────────────────
   if (canPredict && editing) {
     return (
-      <div className="rounded-2xl border border-brand/60 bg-brand/8 shadow-lg">
+      <div className="max-w-4xl mx-auto rounded-2xl border border-brand/60 bg-brand/8 shadow-lg">
         <div className="flex items-center gap-3 px-4 pt-3.5 pb-2">
           <span className="flex-1 text-right text-sm font-bold text-white truncate">{match.homeTeam}</span>
           <div className="flex items-center gap-2 shrink-0">
@@ -379,7 +432,7 @@ export function MatchCard({
   if (locked && hasPrediction && match.status !== 'FINISHED') {
     const isLive = match.status === 'LIVE';
     return (
-      <div className={`rounded-2xl border shadow-md ${isLive ? 'border-green-500/40 bg-green-500/8' : 'border-zinc-700/50 bg-zinc-900/70'}`}>
+      <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${isLive ? 'border-green-500/40 bg-green-500/8' : 'border-zinc-700/50 bg-zinc-900/70'}`}>
         {/* Linha principal: times + palpite grande + pontos */}
         <div className="flex items-center gap-3 px-4 pt-3.5 pb-1.5">
           <span className="flex-1 text-right text-sm font-bold text-zinc-300 truncate">{match.homeTeam}</span>
@@ -441,7 +494,7 @@ export function MatchCard({
   if (locked && hasPrediction && match.status === 'FINISHED') {
     const c = cfg ?? RESULT_CFG.miss;
     return (
-      <div className={`rounded-2xl border shadow-md ${c.cardBorder} ${c.cardBg}`}>
+      <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${c.cardBorder} ${c.cardBg}`}>
         {/* Linha principal: times + PALPITE GRANDE + pontos em destaque */}
         <div className="flex items-center gap-3 px-4 pt-3.5 pb-1.5">
           <span className="flex-1 text-right text-sm font-bold text-zinc-300 truncate">{match.homeTeam}</span>
@@ -497,7 +550,7 @@ export function MatchCard({
     const isLive = match.status === 'LIVE';
     const isFinished = match.status === 'FINISHED';
     return (
-      <div className="rounded-2xl border border-zinc-800/40 bg-zinc-900/30 opacity-55">
+      <div className="max-w-4xl mx-auto rounded-2xl border border-zinc-800/40 bg-zinc-900/30 opacity-55">
         <div className="flex items-center gap-3 px-4 py-3">
           <span className="flex-1 text-right text-sm font-semibold text-zinc-500 truncate">{match.homeTeam}</span>
           <div className="flex items-center gap-2 shrink-0">
@@ -537,7 +590,7 @@ export function MatchCard({
 
   // ── CARD: JOGO FUTURO (não-membro ou não autenticado) ────────
   return (
-    <div className="rounded-2xl border border-zinc-800/40 bg-zinc-900/30">
+    <div className="max-w-4xl mx-auto rounded-2xl border border-zinc-800/40 bg-zinc-900/30">
       <div className="flex items-center gap-3 px-4 py-3">
         <span className="flex-1 text-right text-sm font-semibold text-zinc-400 truncate">{match.homeTeam}</span>
         <div className="flex items-center gap-2 shrink-0 px-2">
