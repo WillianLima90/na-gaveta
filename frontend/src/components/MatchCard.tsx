@@ -33,31 +33,25 @@ export interface MatchCardProps {
 const LOCK_MINUTES_BEFORE = 10;
 const SAO_PAULO_TZ = 'America/Sao_Paulo';
 
-function getNowInSaoPaulo(): Date {
-  return new Date(
-    new Date().toLocaleString('en-US', { timeZone: SAO_PAULO_TZ })
-  );
-}
-
-function getMatchDateInSaoPaulo(matchDate: string): Date {
-  return new Date(
-    new Date(matchDate + 'Z').toLocaleString('en-US', { timeZone: SAO_PAULO_TZ })
-  );
+function parseMatchDate(matchDate: string): Date {
+  return /Z$|[+-]\d{2}:\d{2}$/.test(matchDate)
+    ? new Date(matchDate)
+    : new Date(`${matchDate}Z`);
 }
 
 function getLockTime(matchDate: string): Date {
-  const d = getMatchDateInSaoPaulo(matchDate);
+  const d = parseMatchDate(matchDate);
   d.setMinutes(d.getMinutes() - LOCK_MINUTES_BEFORE);
   return d;
 }
 
 export function isMatchLocked(matchDate: string, status: string): boolean {
   if (status === 'LIVE' || status === 'FINISHED' || status === 'CANCELLED') return true;
-  return getLockTime(matchDate) <= getNowInSaoPaulo();
+  return getLockTime(matchDate).getTime() <= Date.now();
 }
 
 function getMinutesUntilLock(matchDate: string): number {
-  return Math.floor((getLockTime(matchDate).getTime() - getNowInSaoPaulo().getTime()) / 60000);
+  return Math.floor((getLockTime(matchDate).getTime() - Date.now()) / 60000);
 }
 
 function formatCompact(dateStr: string): string {
@@ -200,6 +194,7 @@ export function MatchCard({
   const canPredict = isAuthenticated && isMember && !locked;
 
   function startEditing() {
+    if (locked) return;
     initialRef.current = {
       home: homeInput,
       away: awayInput,
@@ -299,7 +294,7 @@ export function MatchCard({
   }
 
   // ── CARD: PALPITE EM ABERTO (sem palpite salvo) ───────────────
-  if (canPredict && (!saved || editing)) {
+  if (!locked && canPredict && (!saved || editing)) {
     return (
       <div ref={cardRef} className="max-w-4xl mx-auto rounded-2xl border border-zinc-700/60 bg-zinc-900 shadow-lg">
         {/* Linha principal: times + inputs grandes + salvar */}
@@ -338,7 +333,7 @@ export function MatchCard({
           <span className="flex-1 text-left text-sm font-bold text-white truncate">{match.awayTeam}</span>
           <button
             onClick={handleSave}
-            disabled={saving || !hasUnsavedChanges || homeInput === '' || awayInput === ''}
+            disabled={saving || locked || !hasUnsavedChanges || homeInput === '' || awayInput === ''}
             className="shrink-0 h-11 px-4 rounded-xl font-bold text-sm bg-brand hover:bg-brand-light text-white disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-md"
           >
             {saving ? <Spinner size="sm" /> : hasUnsavedChanges ? <><Zap size={13} /> Salvar</> : <>Sem alterações</>}
@@ -361,7 +356,7 @@ export function MatchCard({
   }
 
   // ── CARD: PALPITE SALVO (ainda editável) ─────────────────────
-  if (canPredict && saved && !editing) {
+  if (!locked && canPredict && saved && !editing) {
     return (
       <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${match.myPrediction?.isJoker ? "border-yellow-400/70 bg-brand/8 shadow-lg shadow-yellow-500/20" : "border-brand/40 bg-brand/8"}`}>
         <div className="flex items-center gap-3 px-4 pt-3.5 pb-2">
@@ -398,7 +393,7 @@ export function MatchCard({
   }
 
   // ── CARD: MODO EDIÇÃO ─────────────────────────────────────────
-  if (canPredict && editing) {
+  if (canPredict && editing && !locked) {
     return (
       <div className="max-w-4xl mx-auto rounded-2xl border border-brand/60 bg-brand/8 shadow-lg">
         <div className="flex items-center gap-3 px-4 pt-3.5 pb-2">
