@@ -123,7 +123,11 @@ export async function getPoolMatches(req: AuthRequest, res: Response): Promise<v
 // Registra o resultado real de uma partida.
 // Se status = FINISHED, dispara o motor de pontuação automaticamente.
 // Body: { homeScore: number, awayScore: number, status?: MatchStatus }
-export async function setMatchResult(req: Request, res: Response): Promise<void> {
+export async function setMatchResult(req: AuthRequest, res: Response): Promise<void> {
+  if (!req.user || req.user.role !== 'ADMIN') {
+    res.status(403).json({ error: 'Apenas ADMIN pode atualizar resultados' });
+    return;
+  }
   try {
     const { id } = req.params;
     const { homeScore, awayScore, status } = req.body;

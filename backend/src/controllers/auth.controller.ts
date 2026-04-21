@@ -26,11 +26,11 @@ export async function register(req: Request, res: Response): Promise<void> {
 
     const user = await prisma.user.create({
       data: { name, email, passwordHash },
-      select: { id: true, name: true, email: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, createdAt: true },
     });
 
     // Gerar token JWT
-    const token = generateToken(user.id, user.email);
+    const token = generateToken(user.id, user.email, user.role);
 
     res.status(201).json({
       message: 'Usuário criado com sucesso',
@@ -60,7 +60,7 @@ export async function login(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const token = generateToken(user.id, user.email);
+    const token = generateToken(user.id, user.email, user.role);
 
     res.json({
       token,
@@ -69,6 +69,7 @@ export async function login(req: Request, res: Response): Promise<void> {
         name: user.name,
         email: user.email,
         avatarUrl: user.avatarUrl,
+        role: user.role,
       },
     });
   } catch (err) {
@@ -109,9 +110,9 @@ export async function getProfile(req: AuthRequest, res: Response): Promise<void>
 }
 
 // ── Helper: gerar JWT ────────────────────────────────────────
-function generateToken(userId: string, email: string): string {
+function generateToken(userId: string, email: string, role: string): string {
   const secret = process.env.JWT_SECRET!;
   const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
 
-  return jwt.sign({ userId, email }, secret, { expiresIn } as jwt.SignOptions);
+  return jwt.sign({ userId, email, role }, secret, { expiresIn } as jwt.SignOptions);
 }

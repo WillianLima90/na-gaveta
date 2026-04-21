@@ -25,6 +25,7 @@ import PoolsPage from './pages/PoolsPage';
 import PoolDetailPage from './pages/PoolDetailPage';
 import PoolRankingPage from './pages/PoolRankingPage';
 import ProfilePage from './pages/ProfilePage';
+import { AdminUsersPage } from './pages/AdminUsersPage';
 
 // Configuração do React Query
 const queryClient = new QueryClient({
@@ -63,7 +64,8 @@ export default function App() {
               {/* 404 */}
               <Route path="*" element={<NotFoundPage />} />
             </Route>
-          </Routes>
+            <Route path="/admin/users" element={<AdminUsersPage />} />
+</Routes>
         </AuthProvider>
       </BrowserRouter>
 

@@ -29,7 +29,7 @@ import {
   type MyPrediction,
 } from '../services/match.service';
 import { useAuth } from '../hooks/useAuth';
-import { MatchCard } from '../components/MatchCard';
+import { MatchCard, isMatchLocked } from '../components/MatchCard';
 import { RulesTab } from '../components/RulesTab';
 import { AdminPanel } from '../components/AdminPanel';
 import { RankingBlock } from '../components/RankingBlock';
@@ -84,18 +84,19 @@ export default function PoolDetailPage() {
       setPool(poolData);
       setRounds(roundsData);
 
-      // Priorizar rodada bônus quando existir; senão preservar a atual
+      // Priorizar rodada atual/próxima; não forçar rodada bônus na entrada
       if (roundsData.length > 0) {
-        const bonusRound = roundsData.find((r) => r.id === poolData.bonusRoundId);
         const liveRound = roundsData.find((r) => r.matches.some((m) => m.status === 'LIVE'));
-        const openRound = roundsData.find((r) => r.matches.some((m) => m.status === 'SCHEDULED'));
+        const openRound = roundsData.find((r) =>
+          r.matches.some((m) => !isMatchLocked(m.matchDate, m.status))
+        );
         const lastRound = roundsData[roundsData.length - 1];
 
-        if (poolData.bonusRoundId) {
-          setSelectedRoundId(poolData.bonusRoundId);
-        } else {
-          setSelectedRoundId((prev) => prev ?? (liveRound ?? openRound ?? lastRound).id);
-        }
+        setSelectedRoundId((prev) => {
+          const prevStillExists = prev && roundsData.some((r) => r.id === prev);
+          if (prevStillExists) return prev;
+          return (liveRound ?? openRound ?? lastRound).id;
+        });
       }
     } catch (err) {
       console.error('[PoolDetailPage] loadData error', err);
@@ -179,7 +180,12 @@ export default function PoolDetailPage() {
   const isOwner = user?.id === pool.ownerId;
 
   // Rodada selecionada
-  const currentRound = rounds.find((r) => r.id === selectedRoundId) ?? rounds[0];
+  const fallbackRound =
+    rounds.find((r) => r.matches.some((m) => m.status === 'LIVE')) ||
+    rounds.find((r) => r.matches.some((m) => !isMatchLocked(m.matchDate, m.status))) ||
+    rounds[rounds.length - 1];
+
+  const currentRound = rounds.find((r) => r.id === selectedRoundId) ?? fallbackRound;
   const bonusRound = rounds.find((r) => r.id === pool?.bonusRoundId) ?? null;
 
   // Todos os jogos da rodada ordenados por hora

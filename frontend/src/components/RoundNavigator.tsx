@@ -8,7 +8,7 @@
 //   - Admin: botão de toggle de rodada especial por rodada
 // ============================================================
 
-import { useEffect, useState } from 'react';
+import {useEffect, useState, useRef} from 'react';
 import { Zap, Shuffle } from 'lucide-react';
 import { getUserHistory, toggleMatchJoker, type Round, type UserRoundHistory } from '../services/match.service';
 import { updatePoolRules } from '../services/match.service';
@@ -121,6 +121,18 @@ export function RoundNavigator({
 
   if (rounds.length === 0) return null;
 
+  const selectedRoundRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (!selectedRoundRef.current) return;
+    selectedRoundRef.current.scrollIntoView({
+      behavior: 'smooth',
+      inline: 'center',
+      block: 'nearest',
+    });
+  }, [selectedRoundId, rounds.length]);
+
+
   // Mapa de roundId → histórico do usuário
   const pointsByRound = new Map<string, UserRoundHistory>();
   roundHistory.forEach((rh) => pointsByRound.set(rh.roundId, rh));
@@ -138,13 +150,14 @@ export function RoundNavigator({
 
           return (
             <button
+              ref={isSelected ? selectedRoundRef : null}
               key={r.id}
               onClick={() => onSelectRound(r.id)}
               className={`relative flex flex-col items-center justify-center whitespace-nowrap transition-all flex-shrink-0 min-w-[108px] px-4 py-2.5 rounded-xl ${
-                r.id === bonusRoundId
-                  ? 'bg-zinc-900 text-white border border-purple-500/50'
-                  : isSelected
+                isSelected
                   ? 'bg-brand text-white shadow-lg shadow-brand/30'
+                  : r.id === bonusRoundId
+                  ? 'bg-zinc-900 text-white border border-purple-500/50'
                   : hasLive
                   ? 'bg-zinc-900 text-zinc-200 border border-green-500/45'
                   : 'bg-zinc-800/50 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'

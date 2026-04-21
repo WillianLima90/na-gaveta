@@ -24,6 +24,12 @@ export async function getPoolRules(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    const isOwner = pool.ownerId === userId;
+    if (!isOwner && !isAdmin) {
+      res.status(403).json({ error: 'Sem permissão para alterar rodada bônus.' });
+      return;
+    }
+
     if (!pool.scoreRule) {
       res.status(404).json({ error: 'Este bolão não possui regras de pontuação configuradas.' });
       return;
@@ -69,8 +75,11 @@ export async function updatePoolRules(req: AuthRequest, res: Response): Promise<
       return;
     }
 
-    if (pool.ownerId !== userId) {
-      res.status(403).json({ error: 'Apenas o dono do bolão pode alterar as regras.' });
+    const isOwner = pool.ownerId === userId;
+    const isAdmin = req.user?.role === 'ADMIN';
+
+    if (!isOwner && !isAdmin) {
+      res.status(403).json({ error: 'Sem permissão para alterar regras.' });
       return;
     }
 
@@ -151,7 +160,7 @@ export async function updatePoolRules(req: AuthRequest, res: Response): Promise<
 // ── PATCH /api/rounds/:id/bonus ──────────────────────────────
 // Marca/desmarca a rodada bônus de um bolão específico
 // Body: { isBonusRound: boolean, poolId: string }
-export async function toggleBonusRound(req: Request, res: Response): Promise<void> {
+export async function toggleBonusRound(req: AuthRequest, res: Response): Promise<void> {
   try {
     const { id } = req.params;
     const { isBonusRound, poolId } = req.body;
@@ -166,10 +175,14 @@ export async function toggleBonusRound(req: Request, res: Response): Promise<voi
       return;
     }
 
+    const userId = req.user?.userId;
+    const isAdmin = req.user?.role === 'ADMIN';
+
     const pool = await prisma.pool.findUnique({
       where: { id: poolId },
       select: {
         id: true,
+        ownerId: true,
         championshipId: true,
       },
     });

@@ -545,22 +545,23 @@ export function MatchCard({
     const isLive = match.status === 'LIVE';
     const isFinished = match.status === 'FINISHED';
     return (
-      <div className="max-w-4xl mx-auto rounded-2xl border border-zinc-800/40 bg-zinc-900/30 opacity-55">
-        <div className="flex items-center gap-3 px-4 py-3">
-          <span className="flex-1 text-right text-sm font-semibold text-zinc-500 truncate">{match.homeTeam}</span>
-          <div className="flex items-center gap-2 shrink-0">
-            {(isLive || isFinished) && hasScore ? (
-              <>
-                <span className="w-10 h-10 flex items-center justify-center text-lg font-black text-zinc-500 bg-zinc-800/60 rounded-xl tabular-nums">{match.homeScore}</span>
-                <span className="text-zinc-600 text-base font-bold">×</span>
-                <span className="w-10 h-10 flex items-center justify-center text-lg font-black text-zinc-500 bg-zinc-800/60 rounded-xl tabular-nums">{match.awayScore}</span>
-              </>
-            ) : (
-              <span className="text-xs text-zinc-600 px-3">Sem palpite</span>
-            )}
+      <div className="max-w-4xl mx-auto rounded-2xl border border-amber-400/20 bg-zinc-900/75 shadow-md shadow-black/20 overflow-hidden">
+        <div className="flex items-center justify-center gap-2 text-[11px] text-zinc-500 bg-zinc-800/40 py-1 border-b border-zinc-700/30">
+          <span>🔒</span>
+          <span className="font-medium">Palpites encerrados</span>
+        </div>
+        <div className="px-4 py-3">
+          <div className="flex justify-center mb-2">
+            
           </div>
-          <span className="flex-1 text-left text-sm font-semibold text-zinc-500 truncate">{match.awayTeam}</span>
-          <span className="shrink-0 text-sm font-black text-zinc-700">0</span>
+          <div className="flex items-center gap-3">
+            <span className="flex-1 text-right text-sm font-semibold text-zinc-300 truncate">{match.homeTeam}</span>
+            <div className="flex items-center justify-center shrink-0">
+              <span className="text-zinc-400 text-base font-bold">×</span>
+            </div>
+            <span className="flex-1 text-left text-sm font-semibold text-zinc-300 truncate">{match.awayTeam}</span>
+            <span className="shrink-0 text-sm font-black text-zinc-500">0</span>
+          </div>
         </div>
         <div className="flex items-center justify-between px-4 pb-3 gap-2">
           <span className="text-xs text-zinc-700 flex items-center gap-1">
