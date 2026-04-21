@@ -1,9 +1,10 @@
 import cron from 'node-cron';
 import prisma from '../utils/prisma';
 import { notifyUsersAboutNextMatch, REMINDER_WINDOW_MINUTES } from './reminder.service';
+import { syncResultsFromApi } from './results-sync.service';
 
 export function startReminderCron() {
-  cron.schedule('* * * * *', async () => {
+  cron.schedule('*/15 * * * *', async () => {
     console.log('[CRON] Running reminder job...');
 
     const usersPools = await prisma.poolMember.findMany({
@@ -69,6 +70,33 @@ export function startReminderCron() {
       } catch (err) {
         console.error('[CRON] Error:', err);
       }
+    }
+  });
+}
+
+
+export function startResultsSyncCron() {
+  cron.schedule('* * * * *', async () => {
+    console.log('[CRON] Running results sync...');
+
+    try {
+      const token = process.env.ADMIN_SYNC_TOKEN;
+      if (!token) {
+        console.error('[CRON] ADMIN_SYNC_TOKEN não configurado');
+        return;
+      }
+
+      const summary = await syncResultsFromApi(token);
+
+      console.log('[CRON] Sync summary:', {
+        finishedApi: summary.finishedApi,
+        matchedLocal: summary.matchedLocal,
+        updated: summary.updated,
+        skipped: summary.skipped,
+      });
+
+    } catch (err) {
+      console.error('[CRON] Sync error:', err);
     }
   });
 }

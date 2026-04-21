@@ -145,6 +145,7 @@ model Match {
   awayTeam   String      @map("away_team")
   homeScore  Int?        @map("home_score")  // null = não realizado
   awayScore  Int?        @map("away_score")
+  externalMatchId Int?   @unique @map("external_match_id")
   status     MatchStatus @default(SCHEDULED)
   isJoker    Boolean     @default(false) @map("is_joker") // aplica multiplicador coringa
   matchDate  DateTime    @map("match_date")

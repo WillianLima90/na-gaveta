@@ -37,6 +37,7 @@ export function AdminUsersPage() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [syncLoading, setSyncLoading] = useState(false);
 
   const currentUser = useMemo(() => {
     try {
@@ -86,6 +87,24 @@ export function AdminUsersPage() {
       setError(err?.response?.data?.error || 'Erro ao atualizar status do usuário.');
     } finally {
       setSavingId(null);
+    }
+  }
+
+  async function runSync() {
+    try {
+      setSyncLoading(true)
+      setError('')
+      setMessage('')
+
+      const res = await axios.post('/api/admin/sync-results', {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      setMessage(`Sync concluído: ${res.data.summary.updated} atualizado(s)`)
+    } catch (err: any) {
+      setError(err?.response?.data?.error || 'Erro no sync')
+    } finally {
+      setSyncLoading(false)
     }
   }
 
@@ -147,13 +166,23 @@ export function AdminUsersPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3 mt-4">
-            <div className="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-sm text-zinc-300">
-              <span className="font-bold text-white">{users.length}</span> usuários
+          <div className="flex items-center justify-between flex-wrap gap-3 mt-4">
+            <div className="flex gap-3 flex-wrap">
+              <div className="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-sm text-zinc-300">
+                <span className="font-bold text-white">{users.length}</span> usuários
+              </div>
+              <div className="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-sm text-zinc-300">
+                <span className="font-bold text-green-300">{activeCount}</span> ativos
+              </div>
             </div>
-            <div className="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-sm text-zinc-300">
-              <span className="font-bold text-green-300">{activeCount}</span> ativos
-            </div>
+
+            <button
+              onClick={runSync}
+              disabled={syncLoading}
+              className="h-10 px-4 rounded-xl text-sm font-semibold bg-brand hover:bg-brand/80 transition-colors disabled:opacity-50"
+            >
+              {syncLoading ? 'Sincronizando...' : 'Sincronizar Resultados'}
+            </button>
           </div>
         </div>
 
