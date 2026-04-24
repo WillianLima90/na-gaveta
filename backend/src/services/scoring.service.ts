@@ -215,6 +215,20 @@ export async function recalculatePredictionsForMatch(matchId: string): Promise<v
         where: { id: member.id },
         data: { score: { increment: pointsDiff } },
       });
+
+      // ❤️ Atualizar pontuação do time do coração
+      if (member.favoriteTeam) {
+        const isHeartMatch =
+          match.homeTeam === member.favoriteTeam ||
+          match.awayTeam === member.favoriteTeam;
+
+        if (isHeartMatch) {
+          await prisma.poolMember.update({
+            where: { id: member.id },
+            data: { heartTeamScore: { increment: pointsDiff } },
+          });
+        }
+      }
     }
   }
 }

@@ -14,6 +14,7 @@ export interface UserStats {
   name: string;
   avatarUrl?: string | null;
   favoriteTeam?: string | null;
+  heartTeamScore: number;
   totalPoints: number;
   exactScores: number;       // acertou placar exato
   correctOutcomes: number;   // acertou resultado (V/E/D)
@@ -153,7 +154,8 @@ export async function getMemberStats(
         userId: member.userId,
         name: member.user.name,
         avatarUrl: member.user.avatarUrl,
-        favoriteTeam: member.user.favoriteTeam ?? null,
+        favoriteTeam: member.favoriteTeam ?? null,
+        heartTeamScore: member.heartTeamScore,
         totalPoints: member.score,
         exactScores,
         correctOutcomes,
@@ -165,14 +167,16 @@ export async function getMemberStats(
     })
   );
 
-  // Ordenação com desempate em 4 critérios:
+  // Ordenação com desempate em 5 critérios:
   // 1. Total de pontos (maior primeiro)
   // 2. Acertos exatos (maior primeiro)
-  // 3. Acertos de resultado (maior primeiro)
-  // 4. Menor quantidade de erros totais
+  // 3. Pontos no time do coração (maior primeiro)
+  // 4. Acertos de resultado (maior primeiro)
+  // 5. Menor quantidade de erros totais
   statsPerMember.sort((a, b) => {
     if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
     if (b.exactScores !== a.exactScores) return b.exactScores - a.exactScores;
+    if (b.heartTeamScore !== a.heartTeamScore) return b.heartTeamScore - a.heartTeamScore;
     if (b.correctOutcomes !== a.correctOutcomes) return b.correctOutcomes - a.correctOutcomes;
     return a.missedPredictions - b.missedPredictions;
   });

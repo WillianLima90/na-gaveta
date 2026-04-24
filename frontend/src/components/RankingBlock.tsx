@@ -69,6 +69,8 @@ export function RankingBlock({
   const [highlights, setHighlights] = useState<RoundHighlights | null>(null);
   const [roundWinners, setRoundWinners] = useState<UserRoundWins[]>([]);
   const [selectedRound, setSelectedRound] = useState<string>('geral');
+  const [sortBy, setSortBy] = useState<'pts' | 'exact' | 'heart' | 'rod'>('pts');
+  const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc');
   const [roundDataMap, setRoundDataMap] = useState<Map<string, RoundEntry[]>>(new Map());
   const [roundDataLoading, setRoundDataLoading] = useState(false);
 
@@ -171,6 +173,7 @@ export function RankingBlock({
     name: string;
     favoriteTeam?: string | null;
     pts: number;
+    heart: number;
     exact: number;
     correct: number;
     wonThisRound: boolean;
@@ -183,6 +186,7 @@ export function RankingBlock({
         name: e.name,
         favoriteTeam: e.favoriteTeam ?? null,
         pts: e.totalPoints,
+        heart: e.heartTeamScore ?? 0,
         exact: e.exactScores ?? 0,
         correct: e.correctOutcomes ?? 0,
         wonThisRound: false,
@@ -195,11 +199,65 @@ export function RankingBlock({
       name: e.name,
       favoriteTeam: e.favoriteTeam ?? null,
       pts: e.roundPoints,
+      heart: 0,
       exact: e.exactScores,
       correct: e.correctOutcomes,
       wonThisRound: e.wonRound,
     }));
   }, [selectedRound, ranking, roundDataMap]);
+
+  function handleSort(column: 'pts' | 'exact' | 'heart' | 'rod') {
+    if (sortBy === column) {
+      setSortDir((prev) => (prev === 'desc' ? 'asc' : 'desc'));
+      return;
+    }
+    setSortBy(column);
+    setSortDir('desc');
+  }
+
+  useEffect(() => {
+    if (selectedRound === 'geral') {
+      setSortBy('pts');
+      setSortDir('desc');
+    } else {
+      setSortBy('rod');
+      setSortDir('desc');
+    }
+  }, [selectedRound]);
+
+  const sortedRows = useMemo(() => {
+    const dir = sortDir === 'desc' ? -1 : 1;
+    return [...displayRows].sort((a, b) => {
+      const aValue = sortBy === 'rod' ? a.pts : a[sortBy];
+      const bValue = sortBy === 'rod' ? b.pts : b[sortBy];
+
+      if (aValue !== bValue) return aValue > bValue ? dir : -dir;
+
+      if (b.pts !== a.pts) return b.pts - a.pts;
+      if (b.exact !== a.exact) return b.exact - a.exact;
+      if (b.heart !== a.heart) return b.heart - a.heart;
+      return b.correct - a.correct;
+    });
+  }, [displayRows, sortBy, sortDir]);
+
+  function SortLabel({ column, children, title }: { column: 'pts' | 'exact' | 'heart' | 'rod'; children: React.ReactNode; title: string }) {
+    const active = sortBy === column;
+    return (
+      <button
+        type="button"
+        onClick={() => handleSort(column)}
+        title={title}
+        className={`text-xs font-semibold text-right transition flex items-center justify-end gap-0.5 ${
+          active ? 'text-white' : 'text-zinc-600 hover:text-zinc-300'
+        }`}
+      >
+        <span>{children}</span>
+        <span className={`text-[9px] ${active ? 'opacity-100' : 'opacity-0'}`}>
+          {sortDir === 'desc' ? '↓' : '↑'}
+        </span>
+      </button>
+    );
+  }
 
   const maxWins = useMemo(() => {
     let max = 0;
@@ -232,7 +290,7 @@ export function RankingBlock({
   const userRow = userRankPos >= 0 ? displayRows[userRankPos] : null;
 
   // Grid: # | Jogador | Pts | Rod | Exatos | Resultados
-  const gridCols = '24px 1fr 36px 36px 44px 52px';
+  const gridCols = '24px minmax(120px,1fr) 48px 44px 44px 44px';
 
   // ── Métricas de competição ────────────────────────────────
   const leaderPts = displayRows[0]?.pts ?? 1;
@@ -285,37 +343,26 @@ export function RankingBlock({
 
         {/* Cabeçalho da tabela */}
         <div
-          className="grid items-center px-3 py-1.5 border-b border-zinc-800/60"
+          className="grid items-center gap-x-2 px-3 py-1.5 border-b border-zinc-800/60"
           style={{ gridTemplateColumns: gridCols }}
         >
           <span className="text-xs font-semibold text-zinc-600 text-center">#</span>
           <span className="text-xs font-semibold text-zinc-600 pl-1">Jogador</span>
-          <span
-            className="text-xs font-semibold text-zinc-600 text-right"
-            title="Pontos totais"
-          >
+          <SortLabel column="pts" title="Pontos totais">
             Pts
-          </span>
-          <span
-            className="text-xs font-semibold text-zinc-600 text-right"
-            title="Pontos na rodada mais recente"
-          >
-            Rod
-          </span>
-          <span
-            className="text-xs font-semibold text-zinc-600 text-right flex items-center justify-end gap-0.5"
-            title="Acertos exatos de placar"
-          >
+          </SortLabel>
+          <SortLabel column="exact" title="Acertos exatos de placar">
             <Target size={9} className="text-yellow-500 flex-shrink-0" />
-            <span>Exatos</span>
-          </span>
-          <span
-            className="text-xs font-semibold text-zinc-600 text-right flex items-center justify-end gap-0.5"
-            title="Acertos de resultado (vencedor/empate)"
-          >
-            <CheckCircle size={9} className="text-blue-500 flex-shrink-0" />
-            <span>Resultados</span>
-          </span>
+            <span>Ex</span>
+          </SortLabel>
+          <SortLabel column="heart" title="Pontos nos jogos do time do coração">
+            ❤️
+          </SortLabel>
+          <SortLabel column="rod" title="Pontos da rodada">
+            Rod
+          </SortLabel>
+
+
         </div>
 
         {/* Linhas */}
@@ -325,7 +372,7 @@ export function RankingBlock({
               <Spinner size="sm" />
             </div>
           ) : (
-            displayRows.map((row, i) => {
+            sortedRows.map((row, i) => {
               const isCurrentUser = row.userId === currentUserId;
               const pos = i + 1;
               const medalEmoji = pos <= 3 ? MEDAL_EMOJI[pos - 1] : null;
@@ -352,10 +399,10 @@ export function RankingBlock({
               // Barra de progresso relativa ao líder
               const progressPct = leaderPts > 0 ? Math.round((row.pts / leaderPts) * 100) : 0;
               // Disputa com o jogador acima
-              const prevPts = i > 0 ? displayRows[i - 1].pts : null;
+              const prevPts = i > 0 ? sortedRows[i - 1].pts : null;
               const isDispute = prevPts !== null && (prevPts - row.pts) <= disputeThreshold && (prevPts - row.pts) >= 0;
               // Opacidade por distância
-              const rowOpacity = isCurrentUser ? 1 : opacityForPos(pos, displayRows.length);
+              const rowOpacity = isCurrentUser ? 1 : opacityForPos(pos, sortedRows.length);
               // ShieldBall tamanho proporcional às vitórias
               const userWinCount = userWins?.wins.length ?? 0;
               const shieldSize = maxWins > 0 ? Math.round(13 + (userWinCount / maxWins) * 5) : 15;
@@ -390,7 +437,7 @@ export function RankingBlock({
                     }}
                   >
                     <div
-                      className="grid items-center px-3 pt-2 pb-1"
+                      className="grid items-center gap-x-2 px-3 pt-2 pb-1"
                       style={{ gridTemplateColumns: gridCols }}
                     >
                       {/* Posição */}
@@ -442,45 +489,43 @@ export function RankingBlock({
                         </span>
                       </div>
 
-                    {/* Pontos da rodada */}
-                    <div className="text-right">
-                      {displayRodPts !== null && displayRodPts !== undefined ? (
-                        <span
-                          className="text-xs font-semibold tabular-nums"
-                          style={{
-                            color: displayRodPts > 0 ? '#71717A' : 'transparent',
-                            textShadow: displayRodPts === 0 ? 'none' : undefined,
-                            opacity: displayRodPts === 0 ? 0 : 1,
-                          }}
-                        >
-                          {displayRodPts > 0 ? displayRodPts : '0'}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-zinc-700">—</span>
-                      )}
-                    </div>
+                      {/* Acertos exatos */}
+                      <div className="text-right">
+                        {row.exact > 0 ? (
+                          <span className="text-xs font-bold tabular-nums text-yellow-500">
+                            {row.exact}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-zinc-700">—</span>
+                        )}
+                      </div>
 
-                    {/* Acertos exatos — alinhado à direita como os demais */}
-                    <div className="text-right">
-                      {row.exact > 0 ? (
-                        <span className="text-xs font-bold tabular-nums text-yellow-500">
-                          {row.exact}
+                      {/* ❤️ Pontos do time do coração */}
+                      <div className="text-right">
+                        <span className="text-xs font-bold tabular-nums text-pink-500">
+                          {row.heart}
                         </span>
-                      ) : (
-                        <span className="text-xs text-zinc-700">—</span>
-                      )}
-                    </div>
+                      </div>
 
-                    {/* Acertos de resultado — alinhado à direita */}
-                    <div className="text-right">
-                      {row.correct > 0 ? (
-                        <span className="text-xs font-semibold tabular-nums text-blue-400">
-                          {row.correct}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-zinc-700">—</span>
-                      )}
-                    </div>
+                      {/* Pontos da rodada */}
+                      <div className="text-right">
+                        {displayRodPts !== null && displayRodPts !== undefined ? (
+                          <span
+                            className="text-xs font-semibold tabular-nums"
+                            style={{
+                              color: displayRodPts > 0 ? '#71717A' : 'transparent',
+                              textShadow: displayRodPts === 0 ? 'none' : undefined,
+                              opacity: displayRodPts === 0 ? 0 : 1,
+                            }}
+                          >
+                            {displayRodPts > 0 ? displayRodPts : '0'}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-zinc-700">—</span>
+                        )}
+                      </div>
+
+
                   </div>
                   </div>
                 </div>

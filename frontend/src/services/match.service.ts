@@ -81,6 +81,7 @@ export interface RankingEntry {
   name: string;
   avatarUrl?: string | null;
   favoriteTeam?: string | null;
+  heartTeamScore: number;
   totalPoints: number;
   exactScores: number;
   correctOutcomes: number;
