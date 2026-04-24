@@ -27,6 +27,7 @@ export interface MatchCardProps {
   autoFocusFirst?: boolean;
   onPredictionSaved?: (matchId: string, prediction: MyPrediction) => void;
   onPredictionChange?: (matchId: string, prediction: MyPrediction) => void;
+  onSingleSaveSuccess?: () => void;
   onViewOpponentPredictions?: (matchId: string) => void;
 }
 
@@ -175,7 +176,7 @@ function ModBadge({ type }: { type: 'joker' | 'bonus' }) {
 // ── Componente principal ──────────────────────────────────────
 export function MatchCard({
   match, round, poolId, isAuthenticated, isMember,
-  autoFocusFirst, onPredictionSaved, onPredictionChange, onViewOpponentPredictions,
+  autoFocusFirst, onPredictionSaved, onPredictionChange, onSingleSaveSuccess, onViewOpponentPredictions,
 }: MatchCardProps) {
   const locked = isMatchLocked(match.matchDate, match.status);
   const hasPrediction = !!match.myPrediction;
@@ -296,6 +297,7 @@ export function MatchCard({
       const pred = await savePrediction({ matchId: match.id, poolId, homeScoreTip: home, awayScoreTip: away, isJoker: isJokerSelected });
       setSaved(true); setEditing(false);
       onPredictionSaved?.(match.id, { id: pred.id, homeScoreTip: home, awayScoreTip: away, isJoker: isJokerSelected, points: pred.points, scoredAt: pred.scoredAt, createdAt: pred.createdAt });
+      onSingleSaveSuccess?.();
     } catch (err: unknown) {
       setError((err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Erro ao salvar');
     } finally { setSaving(false); }

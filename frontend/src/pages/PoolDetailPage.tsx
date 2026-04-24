@@ -76,6 +76,7 @@ export default function PoolDetailPage() {
 
   // ── STAGING: salvar tudo ─────────────────────────────
   const [pendingPredictions, setPendingPredictions] = useState<Record<string, any>>({});
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   function handlePredictionStaged(matchId: string, prediction: any) {
     setPendingPredictions(prev => ({
@@ -86,6 +87,7 @@ export default function PoolDetailPage() {
 
   async function handleSaveAll() {
     const entries = Object.entries(pendingPredictions);
+    const total = entries.length;
     if (entries.length === 0) return;
 
     for (const [matchId, pred] of entries) {
@@ -103,6 +105,8 @@ export default function PoolDetailPage() {
     }
 
     setPendingPredictions({});
+    setSaveMessage(`${total} palpite${total > 1 ? 's' : ''} salvo${total > 1 ? 's' : ''} com sucesso`);
+    setTimeout(() => setSaveMessage(null), 3000);
     await loadData();
   }
 
@@ -367,6 +371,10 @@ export default function PoolDetailPage() {
                       autoFocusFirst={idx === 0}
                       onPredictionSaved={handlePredictionStaged}
                       onPredictionChange={handlePredictionStaged}
+                      onSingleSaveSuccess={() => {
+                        setSaveMessage('Palpite salvo com sucesso');
+                        setTimeout(() => setSaveMessage(null), 3000);
+                      }}
                     />
                   ))}
                 </div>
@@ -497,6 +505,11 @@ const rightColumn = (
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
+      {saveMessage && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-green-600 text-white text-sm font-bold px-4 py-2 rounded-xl shadow-lg z-50">
+          {saveMessage}
+        </div>
+      )}
 
       {/* ── Voltar ──────────────────────────────────────────── */}
       <Link
