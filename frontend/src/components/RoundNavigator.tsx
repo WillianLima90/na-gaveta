@@ -126,7 +126,7 @@ export function RoundNavigator({
   useEffect(() => {
     if (!selectedRoundRef.current) return;
     selectedRoundRef.current.scrollIntoView({
-      behavior: 'smooth',
+      behavior: 'auto',
       inline: 'center',
       block: 'nearest',
     });

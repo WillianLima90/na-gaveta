@@ -26,6 +26,7 @@ export interface MatchCardProps {
   isMember: boolean;
   autoFocusFirst?: boolean;
   onPredictionSaved?: (matchId: string, prediction: MyPrediction) => void;
+  onPredictionChange?: (matchId: string, prediction: MyPrediction) => void;
   onViewOpponentPredictions?: (matchId: string) => void;
 }
 
@@ -93,15 +94,15 @@ function calcPoints(_prediction: MyPrediction, match: Match, round: Round, resul
 // Configuração visual por estado — cores fortes, contraste alto
 const RESULT_CFG = {
   exact: {
-    cardBorder: 'border-yellow-400/60',
-    cardBg: 'bg-yellow-400/8',
-    scoreBg: 'bg-yellow-400/15',
-    scoreText: 'text-yellow-300',
-    scoreBorder: 'border-yellow-400/50',
-    ptsText: 'text-yellow-300',
-    ptsBg: 'bg-yellow-400/15',
+    cardBorder: 'border-zinc-800',
+    cardBg: 'bg-zinc-900/80',
+    scoreBg: 'bg-zinc-900/80',
+    scoreText: 'text-white',
+    scoreBorder: 'border-zinc-700',
+    ptsText: 'text-white',
+    ptsBg: 'bg-zinc-800',
     label: '🎯 Exato',
-    labelColor: 'text-yellow-300',
+    labelColor: 'text-white',
   },
   outcome: {
     cardBorder: 'border-green-500/50',
@@ -159,7 +160,7 @@ function ScoreInput({
       onFocus={(e) => e.target.select()}
       placeholder="–"
       maxLength={2}
-      className="w-11 h-11 text-center text-xl font-black rounded-xl bg-zinc-800 border border-zinc-600 text-white focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/40 tabular-nums"
+      className="w-11 h-11 text-center text-base font-black rounded-xl bg-zinc-800 border border-zinc-600 text-white focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/40 tabular-nums"
     />
   );
 }
@@ -174,7 +175,7 @@ function ModBadge({ type }: { type: 'joker' | 'bonus' }) {
 // ── Componente principal ──────────────────────────────────────
 export function MatchCard({
   match, round, poolId, isAuthenticated, isMember,
-  autoFocusFirst, onPredictionSaved, onViewOpponentPredictions,
+  autoFocusFirst, onPredictionSaved, onPredictionChange, onViewOpponentPredictions,
 }: MatchCardProps) {
   const locked = isMatchLocked(match.matchDate, match.status);
   const hasPrediction = !!match.myPrediction;
@@ -224,6 +225,22 @@ export function MatchCard({
     setIsJokerSelected(Boolean(match.myPrediction?.isJoker));
     setSaved(!!match.myPrediction);
   }, [match.myPrediction]);
+  // ── STAGING: enviar mudanças em tempo real ─────────────────
+  useEffect(() => {
+    if (!onPredictionChange) return;
+    if (homeInput === '' || awayInput === '') return;
+
+    onPredictionChange(match.id, {
+      id: match.myPrediction?.id || 'temp',
+      homeScoreTip: Number(homeInput),
+      awayScoreTip: Number(awayInput),
+      isJoker: isJokerSelected,
+      points: match.myPrediction?.points ?? 0,
+      scoredAt: match.myPrediction?.scoredAt ?? null,
+      createdAt: match.myPrediction?.createdAt ?? new Date().toISOString(),
+    });
+  }, [homeInput, awayInput, isJokerSelected]);
+
 
   // Fechar edição ao clicar fora
   useEffect(() => {
@@ -298,13 +315,13 @@ export function MatchCard({
     return (
       <div ref={cardRef} className="max-w-4xl mx-auto rounded-2xl border border-zinc-700/60 bg-zinc-900 shadow-lg">
         {/* Linha principal: times + inputs grandes + salvar */}
-        <div className="flex items-center gap-3 px-4 pt-3.5 pb-2">
+        <div className="flex items-center gap-2 px-4 pt-2.5 pb-1.5">
           <button
             onClick={() => {
               const next = !isJokerSelected;
               setIsJokerSelected(next);
-              if (next && onPredictionSaved) {
-                onPredictionSaved(match.id, {
+              if (next && onPredictionChange) {
+                onPredictionChange(match.id, {
                   ...(match.myPrediction || {}),
                   id: match.myPrediction?.id || 'temp',
                   homeScoreTip: Number(homeInput || 0),
@@ -327,20 +344,23 @@ export function MatchCard({
           <span className="flex-1 text-right text-sm font-bold text-white truncate">{match.homeTeam}</span>
           <div className="flex items-center gap-2 shrink-0">
             <ScoreInput value={homeInput} onChange={setHomeInput} inputRef={homeRef} autoFocus={autoFocusFirst} />
-            <span className="text-zinc-500 text-base font-black">×</span>
+            <span className="text-zinc-500 text-sm font-black">×</span>
             <ScoreInput value={awayInput} onChange={setAwayInput} />
           </div>
+
           <span className="flex-1 text-left text-sm font-bold text-white truncate">{match.awayTeam}</span>
-          <button
-            onClick={handleSave}
-            disabled={saving || locked || !hasUnsavedChanges || homeInput === '' || awayInput === ''}
-            className="shrink-0 h-11 px-4 rounded-xl font-bold text-sm bg-brand hover:bg-brand-light text-white disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-md"
-          >
-            {saving ? <Spinner size="sm" /> : hasUnsavedChanges ? <><Zap size={13} /> Salvar</> : <>Sem alterações</>}
-          </button>
+          {hasUnsavedChanges && (
+            <button
+              onClick={handleSave}
+              disabled={saving || locked || homeInput === '' || awayInput === ''}
+              className="shrink-0 h-11 px-4 rounded-xl font-bold text-sm bg-brand hover:bg-brand-light text-white disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-md"
+            >
+              {saving ? <Spinner size="sm" /> : <><Zap size={13} /> Salvar</>}
+            </button>
+          )}
         </div>
         {/* Linha secundária: data + prazo + badges */}
-        <div className="flex items-center justify-between px-4 pb-3 gap-2">
+        <div className="flex items-center justify-between px-4 pb-2 gap-2">
           <span className="text-xs text-zinc-600 flex items-center gap-1">
             <Clock size={9} /> {formatCompact(match.matchDate)}
           </span>
@@ -359,15 +379,15 @@ export function MatchCard({
   if (!locked && canPredict && saved && !editing) {
     return (
       <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${match.myPrediction?.isJoker ? "border-yellow-400/70 bg-brand/8 shadow-lg shadow-yellow-500/20" : "border-brand/40 bg-brand/8"}`}>
-        <div className="flex items-center gap-3 px-4 pt-3.5 pb-2">
+        <div className="flex items-center gap-2 px-4 pt-2.5 pb-1.5">
           <span className="flex-1 text-right text-sm font-bold text-white truncate">{match.homeTeam}</span>
           <div
             onClick={startEditing}
             className="flex items-center gap-2 shrink-0 cursor-pointer"
           >
-            <span className={`w-11 h-11 flex items-center justify-center text-xl font-black text-white bg-transparent border rounded-xl tabular-nums shadow-inner ${match.myPrediction?.isJoker ? "border-yellow-400/60" : "border-brand/40"}`}>{homeInput}</span>
+            <span className={`w-11 h-11 flex items-center justify-center text-base font-black text-white bg-transparent border rounded-xl tabular-nums shadow-inner ${match.myPrediction?.isJoker ? "border-yellow-400/60" : "border-brand/40"}`}>{homeInput}</span>
             <span className="text-zinc-500 text-base font-black">×</span>
-            <span className={`w-11 h-11 flex items-center justify-center text-xl font-black text-white bg-transparent border rounded-xl tabular-nums shadow-inner ${match.myPrediction?.isJoker ? "border-yellow-400/60" : "border-brand/40"}`}>{awayInput}</span>
+            <span className={`w-11 h-11 flex items-center justify-center text-base font-black text-white bg-transparent border rounded-xl tabular-nums shadow-inner ${match.myPrediction?.isJoker ? "border-yellow-400/60" : "border-brand/40"}`}>{awayInput}</span>
           </div>
           <span className="flex-1 text-left text-sm font-bold text-white truncate">{match.awayTeam}</span>
           <button
@@ -377,7 +397,7 @@ export function MatchCard({
             <Edit2 size={11} /> Editar
           </button>
         </div>
-        <div className="flex items-center justify-between px-4 pb-3 gap-2">
+        <div className="flex items-center justify-between px-4 pb-2 gap-2">
           <span className="text-xs text-zinc-600 flex items-center gap-1">
             <Clock size={9} /> {formatCompact(match.matchDate)}
           </span>
@@ -396,7 +416,7 @@ export function MatchCard({
   if (canPredict && editing && !locked) {
     return (
       <div className="max-w-4xl mx-auto rounded-2xl border border-brand/60 bg-brand/8 shadow-lg">
-        <div className="flex items-center gap-3 px-4 pt-3.5 pb-2">
+        <div className="flex items-center gap-2 px-4 pt-2.5 pb-1.5">
           <span className="flex-1 text-right text-sm font-bold text-white truncate">{match.homeTeam}</span>
           <div className="flex items-center gap-2 shrink-0">
             <ScoreInput value={homeInput} onChange={setHomeInput} inputRef={homeRef} autoFocus />
@@ -412,7 +432,7 @@ export function MatchCard({
             {saving ? <Spinner size="sm" /> : <><Check size={13} /> Atualizar</>}
           </button>
         </div>
-        <div className="flex items-center justify-between px-4 pb-3 gap-2">
+        <div className="flex items-center justify-between px-4 pb-2 gap-2">
           <span className="text-xs text-zinc-600 flex items-center gap-1">
             <Clock size={9} /> {formatCompact(match.matchDate)}
           </span>
@@ -429,14 +449,14 @@ export function MatchCard({
     return (
       <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${isLive ? 'border-green-500/40 bg-green-500/8' : 'border-zinc-700/50 bg-zinc-900/70'}`}>
         {/* Linha principal: times + palpite grande + pontos */}
-        <div className="flex items-center gap-3 px-4 pt-3.5 pb-1.5">
+        <div className="flex items-center gap-2 px-4 pt-3.5 pb-1.5">
           <span className="flex-1 text-right text-sm font-bold text-zinc-300 truncate">{match.homeTeam}</span>
           <div className="flex items-center gap-2 shrink-0">
-            <span className={`w-11 h-11 flex items-center justify-center text-xl font-black rounded-xl tabular-nums shadow-inner ${isLive ? 'text-green-300 bg-green-500/15 border border-green-500/40' : 'text-zinc-200 bg-zinc-800 border border-zinc-700'}`}>
+            <span className={`w-11 h-11 flex items-center justify-center text-base font-black rounded-xl tabular-nums shadow-inner ${isLive ? 'text-green-300 bg-green-500/15 border border-green-500/40' : 'text-zinc-200 bg-zinc-800 border border-zinc-700'}`}>
               {match.myPrediction!.homeScoreTip}
             </span>
             <span className="text-zinc-500 text-base font-black">×</span>
-            <span className={`w-11 h-11 flex items-center justify-center text-xl font-black rounded-xl tabular-nums shadow-inner ${isLive ? 'text-green-300 bg-green-500/15 border border-green-500/40' : 'text-zinc-200 bg-zinc-800 border border-zinc-700'}`}>
+            <span className={`w-11 h-11 flex items-center justify-center text-base font-black rounded-xl tabular-nums shadow-inner ${isLive ? 'text-green-300 bg-green-500/15 border border-green-500/40' : 'text-zinc-200 bg-zinc-800 border border-zinc-700'}`}>
               {match.myPrediction!.awayScoreTip}
             </span>
           </div>
@@ -450,14 +470,14 @@ export function MatchCard({
           )}
         </div>
         {/* Linha secundária: data + resultado real (discreto) + status */}
-        <div className="flex items-center justify-between px-4 pb-3 gap-2">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between px-4 pb-2 gap-2">
+          <div className="flex items-center gap-1.5">
             <span className="text-xs text-zinc-600 flex items-center gap-1">
               <Clock size={9} /> {formatCompact(match.matchDate)}
             </span>
             {isLive && hasScore && (
-              <span className="text-xs text-zinc-600">
-                Real: <span className="text-zinc-400 font-semibold">{match.homeScore}–{match.awayScore}</span>
+              <span className="text-[10px] text-zinc-500">
+                Real: <span className="text-emerald-400 font-semibold">{match.homeScore}–{match.awayScore}</span>
               </span>
             )}
           </div>
@@ -490,38 +510,50 @@ export function MatchCard({
     const c = cfg ?? RESULT_CFG.miss;
     return (
       <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${c.cardBorder} ${c.cardBg}`}>
-        {/* Linha principal: times + PALPITE GRANDE + pontos em destaque */}
-        <div className="flex items-center gap-3 px-4 pt-3.5 pb-1.5">
-          <span className="flex-1 text-right text-sm font-bold text-zinc-300 truncate">{match.homeTeam}</span>
-          {/* Palpite — elemento mais forte */}
-          <div className="flex items-center gap-2 shrink-0">
-            <span className={`w-12 h-12 flex items-center justify-center text-2xl font-black rounded-xl tabular-nums shadow-inner border ${c.scoreBg} ${c.scoreText} ${c.scoreBorder}`}>
-              {match.myPrediction!.homeScoreTip}
-            </span>
-            <span className="text-zinc-500 text-base font-black">×</span>
-            <span className={`w-12 h-12 flex items-center justify-center text-2xl font-black rounded-xl tabular-nums shadow-inner border ${c.scoreBg} ${c.scoreText} ${c.scoreBorder}`}>
-              {match.myPrediction!.awayScoreTip}
-            </span>
+        <div className="grid grid-cols-[1fr_auto_1fr_auto] items-start gap-2 px-4 pt-2.5 pb-1.5">
+          <div className="flex justify-end pt-3">
+            <span className="text-sm font-bold text-zinc-300 truncate">{match.homeTeam}</span>
           </div>
-          <span className="flex-1 text-left text-sm font-bold text-zinc-300 truncate">{match.awayTeam}</span>
-          {/* Pontos — destaque secundário */}
-          <span className={`shrink-0 text-base font-black tabular-nums px-2.5 py-1.5 rounded-xl ${c.ptsBg} ${c.ptsText}`}>
-            {pts !== null ? (pts > 0 ? `+${pts}` : '0') : '—'}
-          </span>
-        </div>
-        {/* Linha secundária: resultado real (pequeno, discreto) + label + badges */}
-        <div className="flex items-center justify-between px-4 pb-3 gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-600 flex items-center gap-1">
-              <Clock size={9} /> {formatCompact(match.matchDate)}
-            </span>
-            {/* Resultado real — menor, subordinado */}
-            {hasScore && (
-              <span className="text-xs text-zinc-600">
-                Real: <span className="text-zinc-500 font-semibold">{match.homeScore}–{match.awayScore}</span>
+
+          <div className="flex flex-col items-center shrink-0">
+            <div className="flex items-center gap-2">
+              <span className={`w-8 h-8 flex items-center justify-center text-base font-black rounded-xl tabular-nums shadow-inner border ${c.scoreBg} ${c.scoreText} ${c.scoreBorder}`}>
+                {match.myPrediction!.homeScoreTip}
               </span>
+              <span className="text-zinc-500 text-base font-black">×</span>
+              <span className={`w-8 h-8 flex items-center justify-center text-base font-black rounded-xl tabular-nums shadow-inner border ${c.scoreBg} ${c.scoreText} ${c.scoreBorder}`}>
+                {match.myPrediction!.awayScoreTip}
+              </span>
+            </div>
+
+            {hasScore && (
+              <div className="mt-[-2px] text-center leading-none">
+                <div className="text-[9px] text-zinc-500 uppercase tracking-wide">
+                  Resultado
+                </div>
+                <div className="text-sm font-semibold text-emerald-400">
+                  {match.homeScore}–{match.awayScore}
+                </div>
+              </div>
             )}
           </div>
+
+          <div className="flex justify-start pt-3">
+            <span className="text-sm font-bold text-zinc-300 truncate">{match.awayTeam}</span>
+          </div>
+
+          <div className="flex justify-end pt-1">
+            <span className={`shrink-0 text-base font-black tabular-nums px-2.5 py-1.5 rounded-xl ${c.ptsBg} ${c.ptsText}`}>
+              {pts !== null ? (pts > 0 ? `+${pts}` : '0') : '—'}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between px-4 pb-2 gap-2">
+          <span className="text-xs text-zinc-600 flex items-center gap-1">
+            <Clock size={9} /> {formatCompact(match.matchDate)}
+          </span>
+
           <div className="flex items-center gap-1.5">
             {match.myPrediction?.isJoker && <ModBadge type="joker" />}
             {round.isBonusRound && <ModBadge type="bonus" />}
@@ -546,7 +578,7 @@ export function MatchCard({
     const isFinished = match.status === 'FINISHED';
     return (
       <div className="max-w-4xl mx-auto rounded-2xl border border-amber-400/20 bg-zinc-900/75 shadow-md shadow-black/20 overflow-hidden">
-        <div className="flex items-center justify-center gap-2 text-[11px] text-zinc-500 bg-zinc-800/40 py-1 border-b border-zinc-700/30">
+        <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-500 bg-zinc-800/40 py-1 border-b border-zinc-700/30">
           <span>🔒</span>
           <span className="font-medium">Palpites encerrados</span>
         </div>
@@ -554,7 +586,7 @@ export function MatchCard({
           <div className="flex justify-center mb-2">
             
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <span className="flex-1 text-right text-sm font-semibold text-zinc-300 truncate">{match.homeTeam}</span>
             <div className="flex items-center justify-center shrink-0">
               <span className="text-zinc-400 text-base font-bold">×</span>
@@ -563,7 +595,7 @@ export function MatchCard({
             <span className="shrink-0 text-sm font-black text-zinc-500">0</span>
           </div>
         </div>
-        <div className="flex items-center justify-between px-4 pb-3 gap-2">
+        <div className="flex items-center justify-between px-4 pb-2 gap-2">
           <span className="text-xs text-zinc-700 flex items-center gap-1">
             <Clock size={9} /> {formatCompact(match.matchDate)}
           </span>
@@ -587,14 +619,14 @@ export function MatchCard({
   // ── CARD: JOGO FUTURO (não-membro ou não autenticado) ────────
   return (
     <div className="max-w-4xl mx-auto rounded-2xl border border-zinc-800/40 bg-zinc-900/30">
-      <div className="flex items-center gap-3 px-4 py-3">
+      <div className="flex items-center gap-2 px-4 py-3">
         <span className="flex-1 text-right text-sm font-semibold text-zinc-400 truncate">{match.homeTeam}</span>
         <div className="flex items-center gap-2 shrink-0 px-2">
           <span className="text-xs text-zinc-600">vs</span>
         </div>
         <span className="flex-1 text-left text-sm font-semibold text-zinc-400 truncate">{match.awayTeam}</span>
       </div>
-      <div className="flex items-center justify-between px-4 pb-3 gap-2">
+      <div className="flex items-center justify-between px-4 pb-2 gap-2">
         <span className="text-xs text-zinc-700 flex items-center gap-1">
           <Clock size={9} /> {formatCompact(match.matchDate)}
         </span>

@@ -24,6 +24,7 @@ import {
 import { getPool, joinPoolById, type Pool } from '../services/pool.service';
 import {
   getPoolMatches,
+  savePrediction,
   type Round,
   type Match,
   type MyPrediction,
@@ -72,6 +73,38 @@ export default function PoolDetailPage() {
 
   // Drawer de palpites dos adversários
   const [drawerMatchId, setDrawerMatchId] = useState<string | null>(null);
+
+  // ── STAGING: salvar tudo ─────────────────────────────
+  const [pendingPredictions, setPendingPredictions] = useState<Record<string, any>>({});
+
+  function handlePredictionStaged(matchId: string, prediction: any) {
+    setPendingPredictions(prev => ({
+      ...prev,
+      [matchId]: prediction
+    }));
+  }
+
+  async function handleSaveAll() {
+    const entries = Object.entries(pendingPredictions);
+    if (entries.length === 0) return;
+
+    for (const [matchId, pred] of entries) {
+      await savePrediction({
+        
+        
+          
+        
+        matchId,
+        poolId: pool!.id,
+        homeScoreTip: pred.homeScoreTip,
+        awayScoreTip: pred.awayScoreTip,
+        isJoker: pred.isJoker
+      });
+    }
+
+    setPendingPredictions({});
+    await loadData();
+  }
 
   const loadData = useCallback(async () => {
     if (!id) return;
@@ -314,6 +347,14 @@ export default function PoolDetailPage() {
                 defaultOpen={true}
                 badge={null}
               >
+                <div className="flex justify-end mb-2">
+                  <button
+                    onClick={handleSaveAll}
+                    className="px-3 py-1.5 text-xs font-bold rounded-lg bg-green-600 hover:bg-green-500 text-white transition"
+                  >
+                    Salvar tudo
+                  </button>
+                </div>
                 <div className="space-y-2">
                   {openMatches.map(({ match, round }, idx) => (
                     <MatchCard
@@ -324,7 +365,8 @@ export default function PoolDetailPage() {
                       isAuthenticated={isAuthenticated}
                       isMember={isMember}
                       autoFocusFirst={idx === 0}
-                      onPredictionSaved={handlePredictionSaved}
+                      onPredictionSaved={handlePredictionStaged}
+                      onPredictionChange={handlePredictionStaged}
                     />
                   ))}
                 </div>
@@ -355,7 +397,7 @@ export default function PoolDetailPage() {
                       poolId={id!}
                       isAuthenticated={isAuthenticated}
                       isMember={isMember}
-                      onPredictionSaved={handlePredictionSaved}
+                      onPredictionSaved={handlePredictionStaged}
                       onViewOpponentPredictions={setDrawerMatchId}
                     />
                   ))}
@@ -382,7 +424,7 @@ export default function PoolDetailPage() {
                       poolId={id!}
                       isAuthenticated={isAuthenticated}
                       isMember={isMember}
-                      onPredictionSaved={handlePredictionSaved}
+                      onPredictionSaved={handlePredictionStaged}
                       onViewOpponentPredictions={setDrawerMatchId}
                     />
                   ))}
@@ -404,7 +446,8 @@ export default function PoolDetailPage() {
   );
 
   // ── Coluna da direita: ranking + destaques + campeonato + regras
-  const rightColumn = (
+
+const rightColumn = (
     <div className="space-y-3">
 
       {/* ── 2. TABELA DO BOLÃO ──────────────────────────────── */}
