@@ -56,15 +56,18 @@ export async function getPool(req: AuthRequest, res: Response): Promise<void> {
 
     // Verificar se o usuário autenticado já é membro
     let isMember = false;
+    let myFavoriteTeam: string | null = null;
+
     if (userId) {
       const membership = await prisma.poolMember.findUnique({
         where: { userId_poolId: { userId, poolId: id } },
       });
-      isMember = !!membership;
 
+      isMember = !!membership;
+      myFavoriteTeam = membership?.favoriteTeam ?? null;
     }
 
-    res.json({ pool: { ...pool, isMember } });
+    res.json({ pool: { ...pool, isMember, myFavoriteTeam } });
   } catch (err) {
     console.error('[Pool] Erro ao buscar bolão:', err);
     res.status(500).json({ error: 'Erro ao buscar bolão' });
@@ -101,6 +104,19 @@ export async function createPool(req: AuthRequest, res: Response): Promise<void>
       attempts++;
     }
 
+    const startingRound = await prisma.round.findFirst({
+      where: {
+        championshipId,
+        matches: {
+          some: {
+            status: 'SCHEDULED',
+            matchDate: { gt: new Date() }
+          }
+        }
+      },
+      orderBy: { number: 'asc' }
+    });
+
     const pool = await prisma.pool.create({
       data: {
         name,
@@ -110,6 +126,7 @@ export async function createPool(req: AuthRequest, res: Response): Promise<void>
         maxMembers: maxMembers ? parseInt(maxMembers) : null,
         ownerId: userId,
         championshipId,
+        startingRoundId: startingRound?.id ?? null,
         // Criador entra automaticamente como membro
         members: { create: { userId } },
         // Regras padrão do bolão
@@ -340,5 +357,64 @@ export async function drawBonusRound(req: AuthRequest, res: Response): Promise<v
   } catch (err) {
     console.error('[Pool] Erro ao sortear rodada bônus:', err);
     res.status(500).json({ error: 'Erro ao sortear rodada bônus' });
+  }
+}
+
+
+// ── PATCH /api/pools/:id/favorite-team ─────────────────────
+export async function setFavoriteTeam(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const { id: poolId } = req.params;
+    const userId = req.user!.userId;
+    const { team } = req.body;
+
+    if (!team) {
+      res.status(400).json({ error: 'Time é obrigatório.' });
+      return;
+    }
+
+    const member = await prisma.poolMember.findUnique({
+      where: {
+        userId_poolId: {
+          userId,
+          poolId
+        }
+      },
+      include: {
+        pool: true
+      }
+    });
+
+    if (!member) {
+      res.status(404).json({ error: 'Usuário não está no bolão.' });
+      return;
+    }
+
+    const startedMatch = await prisma.match.findFirst({
+      where: {
+        roundId: member.pool.startingRoundId,
+        OR: [
+          { status: 'LIVE' },
+          { status: 'FINISHED' },
+          { matchDate: { lte: new Date() } }
+        ]
+      },
+      select: { id: true }
+    });
+
+    if (startedMatch) {
+      res.status(400).json({ error: 'O time do coração não pode ser alterado após o início do primeiro jogo do bolão.' });
+      return;
+    }
+
+    await prisma.poolMember.update({
+      where: { id: member.id },
+      data: { favoriteTeam: team }
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[Pool] Erro ao definir time do coração:', err);
+    res.status(500).json({ error: 'Erro ao definir time do coração.' });
   }
 }

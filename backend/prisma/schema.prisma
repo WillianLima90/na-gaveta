@@ -51,8 +51,9 @@ model Pool {
   isActive       Boolean  @default(true)  @map("is_active")
   maxMembers     Int?     @map("max_members")
   ownerId        String   @map("owner_id")
-  championshipId String   @map("championship_id")
-  bonusRoundId   String?  @map("bonus_round_id")
+  championshipId  String   @map("championship_id")
+  bonusRoundId    String?  @map("bonus_round_id")
+  startingRoundId String?  @map("starting_round_id")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
@@ -60,6 +61,7 @@ model Pool {
   owner          User         @relation("PoolOwner", fields: [ownerId], references: [id])
   championship   Championship @relation(fields: [championshipId], references: [id])
   bonusRound     Round?       @relation("PoolBonusRound", fields: [bonusRoundId], references: [id])
+  startingRound  Round?       @relation("PoolStartingRound", fields: [startingRoundId], references: [id])
   scoreRule      ScoreRule?   // 1:1 — criada junto com o bolão
   members        PoolMember[]
   predictions    Prediction[]
@@ -77,8 +79,10 @@ model PoolMember {
   id       String   @id @default(uuid())
   userId   String   @map("user_id")
   poolId   String   @map("pool_id")
-  joinedAt DateTime @default(now()) @map("joined_at")
-  score    Int      @default(0)
+  joinedAt       DateTime @default(now()) @map("joined_at")
+  score          Int      @default(0)
+  favoriteTeam   String?  @map("favorite_team")
+  heartTeamScore Int      @default(0) @map("heart_team_score")
 
   // Relações
   user User @relation(fields: [userId], references: [id])
@@ -129,6 +133,7 @@ model Round {
   matches        Match[]
   roundWinners   RoundWinner[]
   bonusForPools  Pool[]       @relation("PoolBonusRound")
+  startingForPools Pool[]     @relation("PoolStartingRound")
 
   @@unique([championshipId, number])
   @@map("rounds")

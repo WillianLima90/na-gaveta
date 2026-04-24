@@ -38,6 +38,8 @@ export function AdminUsersPage() {
   const [message, setMessage] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [syncLoading, setSyncLoading] = useState(false);
+  const [syncSummary, setSyncSummary] = useState<any>(null);
+  const [syncLogs, setSyncLogs] = useState<string[]>([]);
 
   const currentUser = useMemo(() => {
     try {
@@ -100,8 +102,11 @@ export function AdminUsersPage() {
         headers: { Authorization: `Bearer ${token}` }
       })
 
-      setMessage(`Sync concluído: ${res.data.summary.updated} atualizado(s)`)
+      setSyncSummary(res.data.summary)
+      setSyncLogs(res.data.summary.logs || [])
+      setMessage(`Sync concluído: ${res.data.summary.updated} atualizado(s) | ${res.data.summary.predictionsUpdated || 0} palpite(s) pontuado(s)`)
     } catch (err: any) {
+      setSyncLogs([])
       setError(err?.response?.data?.error || 'Erro no sync')
     } finally {
       setSyncLoading(false)
@@ -205,6 +210,51 @@ export function AdminUsersPage() {
         {error && (
           <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
             {error}
+          </div>
+        )}
+
+        {syncSummary && (
+          <div className="mb-6 grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-center">
+              <p className="text-xs text-zinc-400">API</p>
+              <p className="text-lg font-bold">{syncSummary.finishedApi}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-center">
+              <p className="text-xs text-zinc-400">Match</p>
+              <p className="text-lg font-bold">{syncSummary.matchedLocal}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-center">
+              <p className="text-xs text-zinc-400">Atualizados</p>
+              <p className="text-lg font-bold text-green-400">{syncSummary.updated}</p>
+            </div>
+
+            <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-center">
+              <p className="text-xs text-zinc-400">Palpites</p>
+              <p className="text-lg font-bold text-blue-400">{syncSummary.predictionsUpdated || 0}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-center">
+              <p className="text-xs text-zinc-400">Ignorados</p>
+              <p className="text-lg font-bold text-yellow-400">{syncSummary.skipped}</p>
+            </div>
+          </div>
+        )}
+
+        {syncLogs.length > 0 && (
+          <div className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/80">
+            <div className="px-4 py-3 border-b border-zinc-800">
+              <h2 className="text-sm font-semibold text-white">Detalhes do último sync</h2>
+              <p className="text-xs text-zinc-400">Logs completos retornados pela sincronização.</p>
+            </div>
+            <div className="max-h-72 overflow-y-auto px-4 py-3 space-y-2">
+              {syncLogs.map((log, idx) => (
+                <div
+                  key={`${idx}-${log}`}
+                  className="rounded-lg border border-zinc-800 bg-black/30 px-3 py-2 text-xs text-zinc-300 break-all"
+                >
+                  {log}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

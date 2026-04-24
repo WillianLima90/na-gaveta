@@ -72,3 +72,9 @@ export async function joinPoolByCode(code: string): Promise<{ message: string; p
   const { data } = await api.post('/pools/join', { code });
   return data;
 }
+
+// Definir time do coração no bolão
+export async function setFavoriteTeam(poolId: string, team: string): Promise<{ success: boolean }> {
+  const { data } = await api.patch(`/pools/${poolId}/favorite-team`, { team });
+  return data;
+}

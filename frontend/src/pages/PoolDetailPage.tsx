@@ -21,7 +21,7 @@ import {
   Lock, UserPlus, BookOpen, X, Trophy,
   ChevronDown, ChevronUp
 } from 'lucide-react';
-import { getPool, joinPoolById, type Pool } from '../services/pool.service';
+import { getPool, joinPoolById, setFavoriteTeam, type Pool } from '../services/pool.service';
 import {
   getPoolMatches,
   savePrediction,
@@ -73,6 +73,18 @@ export default function PoolDetailPage() {
 
   // Drawer de palpites dos adversários
   const [drawerMatchId, setDrawerMatchId] = useState<string | null>(null);
+  const [favoriteTeam, setFavoriteTeamState] = useState("");
+
+  async function handleSetFavoriteTeam(team: string) {
+    try {
+      await setFavoriteTeam(id!, team);
+      setFavoriteTeamState(team);
+      setSaveMessage("Time do coração definido!");
+    } catch {
+      setSaveMessage("Erro ao definir time.");
+    }
+  }
+
 
   // ── STAGING: salvar tudo ─────────────────────────────
   const [pendingPredictions, setPendingPredictions] = useState<Record<string, any>>({});
@@ -119,6 +131,7 @@ export default function PoolDetailPage() {
         getPoolMatches(id),
       ]);
       setPool(poolData);
+      setFavoriteTeamState((poolData as Pool & { myFavoriteTeam?: string | null }).myFavoriteTeam ?? "");
       setRounds(roundsData);
 
       // Priorizar rodada atual/próxima; não forçar rodada bônus na entrada
@@ -558,6 +571,29 @@ const rightColumn = (
           </span>
         </button>
       </div>
+
+      {/* ── Time do coração ───────────────────────── */}
+      {isMember && (
+        <div className="mb-4 rounded-xl border border-zinc-800 bg-zinc-900/70 p-3">
+          <label className="text-xs text-zinc-500 block mb-1">
+            Seu time do coração neste bolão
+          </label>
+          <select
+            value={favoriteTeam}
+            onChange={(e) => handleSetFavoriteTeam(e.target.value)}
+            className="w-full max-w-xs px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm"
+          >
+            <option value="">Selecione seu time</option>
+            {allRoundMatches
+              .flatMap(m => [m.match.homeTeam, m.match.awayTeam])
+              .filter((v, i, a) => a.indexOf(v) === i)
+              .sort()
+              .map(team => (
+                <option key={team} value={team}>{team}</option>
+              ))}
+          </select>
+        </div>
+      )}
 
       {/* ── LAYOUT RESPONSIVO ───────────────────────────────── */}
       <div className="lg:grid lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_420px]">

@@ -24,12 +24,6 @@ export async function getPoolRules(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const isOwner = pool.ownerId === userId;
-    if (!isOwner && !isAdmin) {
-      res.status(403).json({ error: 'Sem permissão para alterar rodada bônus.' });
-      return;
-    }
-
     if (!pool.scoreRule) {
       res.status(404).json({ error: 'Este bolão não possui regras de pontuação configuradas.' });
       return;
