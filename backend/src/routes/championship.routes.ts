@@ -5,11 +5,12 @@
 // ============================================================
 
 import { Router } from 'express';
-import { listChampionships, getChampionship } from '../controllers/championship.controller';
+import { listChampionships, getChampionship, getChampionshipStandings } from '../controllers/championship.controller';
 
 const router = Router();
 
 router.get('/', listChampionships);
+router.get('/:id/standings', getChampionshipStandings);
 router.get('/:id', getChampionship);
 
 export default router;

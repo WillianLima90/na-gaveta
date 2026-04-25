@@ -272,25 +272,24 @@ return (
               const isCurrentUser = entry.userId === user?.id;
               const userWins = winsMap.get(entry.userId);
               const pos = i + 1;
-const isLeader = pos === 1;
+              const isLeader = pos === 1;
               const medalColor = pos <= 3 ? MEDAL_TEXT_COLOR[pos - 1] : undefined;
               const medalEmoji = pos <= 3 ? MEDAL_EMOJI[pos - 1] : null;
 
-              const gridCols = '32px 1.6fr 100px 90px 120px 120px';
 
-return (
+              return (
                 <div
                   key={entry.userId}
                   className="px-5 py-4 transition-all hover:bg-white/[0.04] border-b border-white/[0.04]"
                   style={{
-  background: isLeader
-  ? 'linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))'
-  : isCurrentUser
-    ? 'linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015))'
-    : 'transparent',
-  borderLeft: isCurrentUser ? '2px solid rgba(255,255,255,0.25)' : '2px solid transparent',
-boxShadow: isLeader ? '0 0 0 1px rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0.6)' : undefined
-}}
+                    background: isLeader
+                      ? 'linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))'
+                      : isCurrentUser
+                        ? 'linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015))'
+                        : 'transparent',
+                    borderLeft: isCurrentUser ? '2px solid rgba(255,255,255,0.25)' : '2px solid transparent',
+                    boxShadow: isLeader ? '0 0 0 1px rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0.6)' : undefined,
+                  }}
                 >
                   {/* Linha principal */}
                   <div
@@ -325,6 +324,11 @@ boxShadow: isLeader ? '0 0 0 1px rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0
                             style={{ color: '#FFFFFF' }}
                           >
                             {entry.name}
+{i > 0 && (
+  <span className="ml-2 text-xs text-zinc-500">
+    -{displayRanking[i - 1].totalPoints - entry.totalPoints}
+  </span>
+)}
                           </span>
                           {isCurrentUser && (
                             <span className="text-xs flex-shrink-0 text-zinc-300">você</span>
