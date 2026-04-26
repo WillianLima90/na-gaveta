@@ -82,13 +82,13 @@ async function findLocalMatch(apiMatch: any) {
   return matched;
 }
 
-async function pushResult(localMatchId: string, apiMatch: any, adminToken: string) {
+async function pushResult(localMatchId: string, apiMatch: any, adminToken: string, status: 'LIVE' | 'FINISHED') {
   return axios.patch(
     `${LOCAL_API}/matches/${localMatchId}/result`,
     {
       homeScore: apiMatch.score?.fullTime?.home ?? 0,
       awayScore: apiMatch.score?.fullTime?.away ?? 0,
-      status: 'FINISHED',
+      status,
     },
     {
       headers: {
@@ -113,9 +113,9 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
   }
 
   const apiMatches = await fetchApiMatches();
-  const finished = apiMatches.filter(
+  const syncable = apiMatches.filter(
     (m: any) =>
-      m.status === 'FINISHED' &&
+      ['FINISHED', 'IN_PLAY', 'PAUSED'].includes(m.status) &&
       typeof m.score?.fullTime?.home === 'number' &&
       typeof m.score?.fullTime?.away === 'number'
   );
@@ -125,7 +125,7 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
   let skipped = 0;
   const logs: string[] = [];
 
-  for (const apiMatch of finished) {
+  for (const apiMatch of syncable) {
     const localMatch = await findLocalMatch(apiMatch);
 
     if (!localMatch) {
@@ -137,10 +137,12 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
 
     matched += 1;
 
+    const targetStatus = apiMatch.status === 'FINISHED' ? 'FINISHED' : 'LIVE';
+
     const sameScore =
       localMatch.homeScore === apiMatch.score.fullTime.home &&
       localMatch.awayScore === apiMatch.score.fullTime.away &&
-      localMatch.status === 'FINISHED';
+      localMatch.status === targetStatus;
 
     if (sameScore) {
       logs.push(`OK unchanged | ${localMatch.homeTeam} x ${localMatch.awayTeam}`);
@@ -148,7 +150,7 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
     }
 
     try {
-      const res = await pushResult(localMatch.id, apiMatch, adminToken);
+      const res = await pushResult(localMatch.id, apiMatch, adminToken, targetStatus);
       logs.push(`UPDATED | ${localMatch.homeTeam} x ${localMatch.awayTeam} | ${res.data.message}`);
       updated += 1;
     } catch (err: any) {
@@ -158,7 +160,7 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
   }
 
   return {
-    finishedApi: finished.length,
+    finishedApi: syncable.length,
     matchedLocal: matched,
     updated,
     skipped,

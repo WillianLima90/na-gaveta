@@ -315,9 +315,9 @@ export function MatchCard({
   // ── CARD: PALPITE EM ABERTO (sem palpite salvo) ───────────────
   if (!locked && canPredict && (!saved || editing)) {
     return (
-      <div ref={cardRef} className="max-w-4xl mx-auto rounded-2xl border border-zinc-700/60 bg-zinc-900 shadow-lg">
+      <div ref={cardRef} className="relative max-w-4xl mx-auto rounded-2xl border border-zinc-700/60 bg-zinc-900 shadow-lg">
         {/* Linha principal: times + inputs grandes + salvar */}
-        <div className="flex items-center gap-2 px-4 pt-2.5 pb-1.5">
+        <div className="flex items-center justify-center px-4 pt-2.5 pb-1.5">
           <button
             onClick={() => {
               const next = !isJokerSelected;
@@ -335,7 +335,7 @@ export function MatchCard({
                 });
               }
             }}
-            className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 border transition-colors ${
+            className={`absolute left-4 top-5 text-xs px-2 py-0.5 rounded-full flex items-center gap-1 border transition-colors ${
               isJokerSelected
                 ? 'text-yellow-400 bg-yellow-400/20 border-yellow-400/40'
                 : 'text-zinc-400 bg-zinc-800 border-zinc-700 hover:bg-zinc-700'
@@ -343,19 +343,22 @@ export function MatchCard({
           >
             ⚡ {isJokerSelected ? 'Coringa' : 'Usar coringa'}
           </button>
-          <span className="flex-1 text-right text-sm font-bold text-white truncate">{match.homeTeam}</span>
-          <div className="flex items-center gap-2 shrink-0">
-            <ScoreInput value={homeInput} onChange={setHomeInput} inputRef={homeRef} autoFocus={autoFocusFirst} />
-            <span className="text-zinc-500 text-sm font-black">×</span>
-            <ScoreInput value={awayInput} onChange={setAwayInput} />
+          <div className="flex justify-center w-full">
+            <div className="grid grid-cols-[minmax(180px,1fr)_112px_minmax(180px,1fr)] items-center gap-3 w-full max-w-[620px] mx-auto">
+              <span className="text-right text-sm font-bold text-white truncate">{match.homeTeam}</span>
+              <div className="flex items-center justify-center gap-2 shrink-0">
+                <ScoreInput value={homeInput} onChange={setHomeInput} inputRef={homeRef} autoFocus={autoFocusFirst} />
+                <span className="text-zinc-500 text-sm font-black">×</span>
+                <ScoreInput value={awayInput} onChange={setAwayInput} />
+              </div>
+              <span className="text-left text-sm font-bold text-white truncate">{match.awayTeam}</span>
+            </div>
           </div>
-
-          <span className="flex-1 text-left text-sm font-bold text-white truncate">{match.awayTeam}</span>
           {hasUnsavedChanges && (
             <button
               onClick={handleSave}
               disabled={saving || locked || homeInput === '' || awayInput === ''}
-              className="shrink-0 h-11 px-4 rounded-xl font-bold text-sm bg-brand hover:bg-brand-light text-white disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-md"
+              className="absolute right-4 top-4 h-11 px-4 rounded-xl font-bold text-sm bg-brand hover:bg-brand-light text-white disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-md"
             >
               {saving ? <Spinner size="sm" /> : <><Zap size={13} /> Salvar</>}
             </button>
@@ -381,7 +384,7 @@ export function MatchCard({
   if (!locked && canPredict && saved && !editing) {
     return (
       <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${match.myPrediction?.isJoker ? "border-yellow-400/70 bg-brand/8 shadow-lg shadow-yellow-500/20" : "border-brand/40 bg-brand/8"}`}>
-        <div className="flex items-center gap-2 px-4 pt-2.5 pb-1.5">
+        <div className="flex items-center justify-center px-4 pt-2.5 pb-1.5">
           <span className="flex-1 text-right text-sm font-bold text-white truncate">{match.homeTeam}</span>
           <div
             onClick={startEditing}
@@ -418,7 +421,7 @@ export function MatchCard({
   if (canPredict && editing && !locked) {
     return (
       <div className="max-w-4xl mx-auto rounded-2xl border border-brand/60 bg-brand/8 shadow-lg">
-        <div className="flex items-center gap-2 px-4 pt-2.5 pb-1.5">
+        <div className="flex items-center justify-center px-4 pt-2.5 pb-1.5">
           <span className="flex-1 text-right text-sm font-bold text-white truncate">{match.homeTeam}</span>
           <div className="flex items-center gap-2 shrink-0">
             <ScoreInput value={homeInput} onChange={setHomeInput} inputRef={homeRef} autoFocus />
@@ -429,7 +432,7 @@ export function MatchCard({
           <button
             onClick={handleSave}
             disabled={saving || homeInput === '' || awayInput === ''}
-            className="shrink-0 h-11 px-4 rounded-xl font-bold text-sm bg-brand hover:bg-brand-light text-white disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-md"
+            className="absolute right-4 top-4 h-11 px-4 rounded-xl font-bold text-sm bg-brand hover:bg-brand-light text-white disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-md"
           >
             {saving ? <Spinner size="sm" /> : <><Check size={13} /> Atualizar</>}
           </button>
@@ -579,7 +582,7 @@ export function MatchCard({
     const isLive = match.status === 'LIVE';
     const isFinished = match.status === 'FINISHED';
     return (
-      <div className="max-w-4xl mx-auto rounded-2xl border border-amber-400/20 bg-zinc-900/75 shadow-md shadow-black/20 overflow-hidden">
+      <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md shadow-black/20 overflow-hidden ${match.status === "LIVE" ? "border-emerald-400/40 bg-emerald-400/5 shadow-lg shadow-emerald-500/10" : "border-amber-400/20 bg-zinc-900/75"}`}>
         <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-500 bg-zinc-800/40 py-1 border-b border-zinc-700/30">
           <span>🔒</span>
           <span className="font-medium">Palpites encerrados</span>
@@ -588,13 +591,15 @@ export function MatchCard({
           <div className="flex justify-center mb-2">
             
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center gap-3">
             <span className="flex-1 text-right text-sm font-semibold text-zinc-300 truncate">{match.homeTeam}</span>
-            <div className="flex items-center justify-center shrink-0">
-              <span className="text-zinc-400 text-base font-bold">×</span>
-            </div>
+            <span className="shrink-0 text-zinc-500 text-sm font-bold">×</span>
             <span className="flex-1 text-left text-sm font-semibold text-zinc-300 truncate">{match.awayTeam}</span>
-            <span className="shrink-0 text-sm font-black text-zinc-500">0</span>
+          </div>
+          <div className="flex justify-center mt-2">
+            <span className="text-xs font-bold text-emerald-400 tabular-nums">
+              {match.status === 'LIVE' ? 'Ao vivo: ' : 'Resultado final: '}{match.homeScore ?? '-'}–{match.awayScore ?? '-'}
+            </span>
           </div>
         </div>
         <div className="flex items-center justify-between px-4 pb-2 gap-2">

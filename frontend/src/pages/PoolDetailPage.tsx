@@ -35,6 +35,7 @@ import { RulesTab } from '../components/RulesTab';
 import { AdminPanel } from '../components/AdminPanel';
 import { RankingBlock } from '../components/RankingBlock';
 import { ChampionshipTable } from '../components/ChampionshipTable';
+import { OfficialChampionshipTable } from '../components/OfficialChampionshipTable';
 import { RoundNavigator } from '../components/RoundNavigator';
 import { OpponentPredictionsDrawer } from '../components/OpponentPredictionsDrawer';
 import { Spinner, Badge } from '../components/ui';
@@ -485,11 +486,13 @@ const rightColumn = (
       )}
 
       {/* ── 4. TABELA DO CAMPEONATO (sempre aberta) ─────────── */}
-      <ChampionshipTable
-        championshipId={pool.championshipId}
-        rounds={rounds}
-              bonusRoundId={pool?.bonusRoundId}
-      />
+
+
+      <div>
+        <OfficialChampionshipTable
+          championshipId={pool.championshipId}
+        />
+      </div>
 
       {/* ── 5. REGRAS (colapsado) ───────────────────────────── */}
       <CollapsibleSection
@@ -517,7 +520,7 @@ const rightColumn = (
   );
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
+    <div className="max-w-[1500px] mx-auto px-6 py-6">
       {saveMessage && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-green-600 text-white text-sm font-bold px-4 py-2 rounded-xl shadow-lg z-50">
           {saveMessage}
@@ -596,7 +599,7 @@ const rightColumn = (
       )}
 
       {/* ── LAYOUT RESPONSIVO ───────────────────────────────── */}
-      <div className="lg:grid lg:grid-cols-[1fr_380px] lg:gap-6 xl:grid-cols-[1fr_420px]">
+      <div className="lg:grid lg:grid-cols-[minmax(760px,1fr)_500px] lg:gap-6 xl:grid-cols-[minmax(820px,1fr)_520px]">
         <div>{leftColumn}</div>
         <div className="lg:sticky lg:top-20 lg:self-start">
           {rightColumn}
