@@ -163,6 +163,14 @@ export default function PoolDetailPage() {
   // loading e tela preta. loadData já é estável via useCallback([id, navigate]).
   useEffect(() => { loadData(); }, [loadData]);
 
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      loadData();
+    }, 60000);
+
+    return () => window.clearInterval(interval);
+  }, [loadData]);
+
   async function handleJoin() {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: `/pools/${id}` } });
