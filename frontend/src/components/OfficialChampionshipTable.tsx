@@ -3,6 +3,34 @@ import { Trophy } from 'lucide-react';
 import { getChampionshipStandings, type ChampionshipStanding } from '../services/championship.service';
 import { Spinner } from './ui';
 
+
+const TEAM_DISPLAY_NAMES: Record<string, string> = {
+  'SE Palmeiras': 'Palmeiras',
+  'CR Flamengo': 'Flamengo',
+  'Fluminense FC': 'Fluminense',
+  'São Paulo FC': 'São Paulo',
+  'EC Bahia': 'Bahia',
+  'CA Paranaense': 'Athletico-PR',
+  'Coritiba FBC': 'Coritiba',
+  'RB Bragantino': 'Bragantino',
+  'Botafogo FR': 'Botafogo',
+  'CR Vasco da Gama': 'Vasco',
+  'EC Vitória': 'Vitória',
+  'CA Mineiro': 'Atlético-MG',
+  'Grêmio FBPA': 'Grêmio',
+  'SC Internacional': 'Internacional',
+  'Santos FC': 'Santos',
+  'Cruzeiro EC': 'Cruzeiro',
+  'SC Corinthians Paulista': 'Corinthians',
+  'Mirassol FC': 'Mirassol',
+  'Clube do Remo': 'Remo',
+  'Chapecoense AF': 'Chapecoense',
+};
+
+function getTeamDisplayName(apiName: string, fallback: string): string {
+  return TEAM_DISPLAY_NAMES[apiName] ?? fallback;
+}
+
 interface OfficialChampionshipTableProps {
   championshipId: string;
 }
@@ -14,11 +42,35 @@ export function OfficialChampionshipTable({ championshipId }: OfficialChampionsh
   useEffect(() => {
     if (!championshipId) return;
 
+    let active = true;
+
+    const loadStandings = () => {
+      getChampionshipStandings(championshipId)
+        .then((data) => {
+          if (active) setStandings(data || []);
+        })
+        .catch(() => {
+          if (active) setStandings([]);
+        })
+        .finally(() => {
+          if (active) setLoading(false);
+        });
+    };
+
     setLoading(true);
-    getChampionshipStandings(championshipId)
-      .then((data) => setStandings(data || []))
-      .catch(() => setStandings([]))
-      .finally(() => setLoading(false));
+    loadStandings();
+
+    const hasLiveMatch = standings.some(s => s.playedGames < 38); // heurística simples
+
+    const interval = window.setInterval(
+      loadStandings,
+      hasLiveMatch ? 15000 : 60000
+    );
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
   }, [championshipId]);
 
   if (loading) {
@@ -60,7 +112,7 @@ export function OfficialChampionshipTable({ championshipId }: OfficialChampionsh
               <span className="text-zinc-500 text-xs">{row.position}</span>
               <div className="flex items-center gap-2 min-w-0">
                 <img src={row.team.crest} alt="" className="w-5 h-5 object-contain flex-shrink-0" />
-                <span className="text-zinc-200 font-medium truncate">{row.team.shortName}</span>
+                <span className="text-zinc-200 font-medium truncate">{getTeamDisplayName(row.team.name, row.team.shortName)}</span>
               </div>
               <span className="text-center text-white font-bold tabular-nums">{row.points}</span>
               <span className="text-center text-zinc-400 tabular-nums">{row.playedGames}</span>

@@ -31,6 +31,34 @@ export interface MatchCardProps {
   onViewOpponentPredictions?: (matchId: string) => void;
 }
 
+
+const TEAM_DISPLAY_NAMES: Record<string, string> = {
+  'SE Palmeiras': 'Palmeiras',
+  'CR Flamengo': 'Flamengo',
+  'Fluminense FC': 'Fluminense',
+  'São Paulo FC': 'São Paulo',
+  'EC Bahia': 'Bahia',
+  'CA Paranaense': 'Athletico-PR',
+  'Coritiba FBC': 'Coritiba',
+  'Botafogo FR': 'Botafogo',
+  'CR Vasco da Gama': 'Vasco',
+  'EC Vitória': 'Vitória',
+  'CA Mineiro': 'Atlético-MG',
+  'Grêmio FBPA': 'Grêmio',
+  'SC Internacional': 'Internacional',
+  'Santos FC': 'Santos',
+  'Cruzeiro EC': 'Cruzeiro',
+  'SC Corinthians Paulista': 'Corinthians',
+  'RB Bragantino': 'Bragantino',
+  'Mirassol FC': 'Mirassol',
+  'Clube do Remo': 'Remo',
+  'Chapecoense AF': 'Chapecoense',
+};
+
+function teamName(name: string): string {
+  return TEAM_DISPLAY_NAMES[name] ?? name;
+}
+
 // ── Helpers de tempo ─────────────────────────────────────────
 const LOCK_MINUTES_BEFORE = 10;
 const SAO_PAULO_TZ = 'America/Sao_Paulo';
@@ -344,14 +372,14 @@ export function MatchCard({
             ⚡ {isJokerSelected ? 'Coringa' : 'Usar coringa'}
           </button>
           <div className="flex justify-center w-full">
-            <div className="grid grid-cols-[minmax(180px,1fr)_112px_minmax(180px,1fr)] items-center gap-3 w-full max-w-[620px] mx-auto">
-              <span className="text-right text-sm font-bold text-white truncate">{match.homeTeam}</span>
-              <div className="flex items-center justify-center gap-2 shrink-0">
+            <div className="grid grid-cols-[minmax(180px,1fr)_140px_minmax(180px,1fr)] items-center gap-5 w-full max-w-[640px] mx-auto">
+              <span className="text-right text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
+              <div className="flex items-center justify-center gap-3 shrink-0">
                 <ScoreInput value={homeInput} onChange={setHomeInput} inputRef={homeRef} autoFocus={autoFocusFirst} />
                 <span className="text-zinc-500 text-sm font-black">×</span>
                 <ScoreInput value={awayInput} onChange={setAwayInput} />
               </div>
-              <span className="text-left text-sm font-bold text-white truncate">{match.awayTeam}</span>
+              <span className="text-left text-sm font-bold text-white truncate">{teamName(match.awayTeam)}</span>
             </div>
           </div>
           {hasUnsavedChanges && (
@@ -385,7 +413,7 @@ export function MatchCard({
     return (
       <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${match.myPrediction?.isJoker ? "border-yellow-400/70 bg-brand/8 shadow-lg shadow-yellow-500/20" : "border-brand/40 bg-brand/8"}`}>
         <div className="flex items-center justify-center px-4 pt-2.5 pb-1.5">
-          <span className="flex-1 text-right text-sm font-bold text-white truncate">{match.homeTeam}</span>
+          <span className="flex-1 text-right text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
           <div
             onClick={startEditing}
             className="flex items-center gap-2 shrink-0 cursor-pointer"
@@ -394,7 +422,7 @@ export function MatchCard({
             <span className="text-zinc-500 text-base font-black">×</span>
             <span className={`w-11 h-11 flex items-center justify-center text-base font-black text-white bg-transparent border rounded-xl tabular-nums shadow-inner ${match.myPrediction?.isJoker ? "border-yellow-400/60" : "border-brand/40"}`}>{awayInput}</span>
           </div>
-          <span className="flex-1 text-left text-sm font-bold text-white truncate">{match.awayTeam}</span>
+          <span className="flex-1 text-left text-sm font-bold text-white truncate">{teamName(match.awayTeam)}</span>
           <button
             onClick={startEditing}
             className="shrink-0 h-8 px-3 rounded-lg font-semibold text-xs border border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500 transition-all flex items-center gap-1"
@@ -422,13 +450,13 @@ export function MatchCard({
     return (
       <div className="max-w-4xl mx-auto rounded-2xl border border-brand/60 bg-brand/8 shadow-lg">
         <div className="flex items-center justify-center px-4 pt-2.5 pb-1.5">
-          <span className="flex-1 text-right text-sm font-bold text-white truncate">{match.homeTeam}</span>
+          <span className="flex-1 text-right text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
           <div className="flex items-center gap-2 shrink-0">
             <ScoreInput value={homeInput} onChange={setHomeInput} inputRef={homeRef} autoFocus />
             <span className="text-zinc-500 text-base font-black">×</span>
             <ScoreInput value={awayInput} onChange={setAwayInput} />
           </div>
-          <span className="flex-1 text-left text-sm font-bold text-white truncate">{match.awayTeam}</span>
+          <span className="flex-1 text-left text-sm font-bold text-white truncate">{teamName(match.awayTeam)}</span>
           <button
             onClick={handleSave}
             disabled={saving || homeInput === '' || awayInput === ''}
@@ -455,7 +483,7 @@ export function MatchCard({
       <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${isLive ? 'border-green-500/40 bg-green-500/8' : 'border-zinc-700/50 bg-zinc-900/70'}`}>
         {/* Linha principal: times + palpite grande + pontos */}
         <div className="flex items-center gap-2 px-4 pt-3.5 pb-1.5">
-          <span className="flex-1 text-right text-sm font-bold text-zinc-300 truncate">{match.homeTeam}</span>
+          <span className="flex-1 text-right text-sm font-bold text-zinc-300 truncate">{teamName(match.homeTeam)}</span>
           <div className="flex items-center gap-2 shrink-0">
             <span className={`w-11 h-11 flex items-center justify-center text-base font-black rounded-xl tabular-nums shadow-inner ${isLive ? 'text-green-300 bg-green-500/15 border border-green-500/40' : 'text-zinc-200 bg-zinc-800 border border-zinc-700'}`}>
               {match.myPrediction!.homeScoreTip}
@@ -465,7 +493,7 @@ export function MatchCard({
               {match.myPrediction!.awayScoreTip}
             </span>
           </div>
-          <span className="flex-1 text-left text-sm font-bold text-zinc-300 truncate">{match.awayTeam}</span>
+          <span className="flex-1 text-left text-sm font-bold text-zinc-300 truncate">{teamName(match.awayTeam)}</span>
           {/* Pontos parciais ao vivo — destaque */}
           {isLive && pts !== null && (
             <span className={`shrink-0 text-base font-black tabular-nums px-2 py-1 rounded-lg ${cfg?.ptsBg ?? 'bg-zinc-800'} ${cfg?.ptsText ?? 'text-zinc-400'}`}>
@@ -517,7 +545,7 @@ export function MatchCard({
       <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${c.cardBorder} ${c.cardBg}`}>
         <div className="grid grid-cols-[1fr_auto_1fr_auto] items-start gap-2 px-4 pt-2.5 pb-1.5">
           <div className="flex justify-end pt-3">
-            <span className="text-sm font-bold text-zinc-300 truncate">{match.homeTeam}</span>
+            <span className="text-sm font-bold text-zinc-300 truncate">{teamName(match.homeTeam)}</span>
           </div>
 
           <div className="flex flex-col items-center shrink-0">
@@ -544,7 +572,7 @@ export function MatchCard({
           </div>
 
           <div className="flex justify-start pt-3">
-            <span className="text-sm font-bold text-zinc-300 truncate">{match.awayTeam}</span>
+            <span className="text-sm font-bold text-zinc-300 truncate">{teamName(match.awayTeam)}</span>
           </div>
 
           <div className="flex justify-end pt-1">
@@ -583,7 +611,7 @@ export function MatchCard({
     const isFinished = match.status === 'FINISHED';
     return (
       <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md shadow-black/20 overflow-hidden ${match.status === "LIVE" ? "border-emerald-400/40 bg-emerald-400/5 shadow-lg shadow-emerald-500/10" : "border-amber-400/20 bg-zinc-900/75"}`}>
-        <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-500 bg-zinc-800/40 py-1 border-b border-zinc-700/30">
+        <div className="flex items-center justify-center gap-3 text-[10px] text-zinc-500 bg-zinc-800/40 py-1 border-b border-zinc-700/30">
           <span>🔒</span>
           <span className="font-medium">Palpites encerrados</span>
         </div>
@@ -592,9 +620,9 @@ export function MatchCard({
             
           </div>
           <div className="flex items-center justify-center gap-3">
-            <span className="flex-1 text-right text-sm font-semibold text-zinc-300 truncate">{match.homeTeam}</span>
+            <span className="flex-1 text-right text-sm font-semibold text-zinc-300 truncate pr-2">{teamName(match.homeTeam)}</span>
             <span className="shrink-0 text-zinc-500 text-sm font-bold">×</span>
-            <span className="flex-1 text-left text-sm font-semibold text-zinc-300 truncate">{match.awayTeam}</span>
+            <span className="flex-1 text-left text-sm font-semibold text-zinc-300 truncate pl-2">{teamName(match.awayTeam)}</span>
           </div>
           <div className="flex justify-center mt-2">
             <span className="text-xs font-bold text-emerald-400 tabular-nums">
@@ -627,11 +655,11 @@ export function MatchCard({
   return (
     <div className="max-w-4xl mx-auto rounded-2xl border border-zinc-800/40 bg-zinc-900/30">
       <div className="flex items-center gap-2 px-4 py-3">
-        <span className="flex-1 text-right text-sm font-semibold text-zinc-400 truncate">{match.homeTeam}</span>
+        <span className="flex-1 text-right text-sm font-semibold text-zinc-400 truncate">{teamName(match.homeTeam)}</span>
         <div className="flex items-center gap-2 shrink-0 px-2">
           <span className="text-xs text-zinc-600">vs</span>
         </div>
-        <span className="flex-1 text-left text-sm font-semibold text-zinc-400 truncate">{match.awayTeam}</span>
+        <span className="flex-1 text-left text-sm font-semibold text-zinc-400 truncate">{teamName(match.awayTeam)}</span>
       </div>
       <div className="flex items-center justify-between px-4 pb-2 gap-2">
         <span className="text-xs text-zinc-700 flex items-center gap-1">
