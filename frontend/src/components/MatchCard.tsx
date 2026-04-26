@@ -502,17 +502,19 @@ export function MatchCard({
             </span>
           )}
         </div>
+        {isLive && hasScore && (
+          <div className="flex justify-center -mt-1 mb-1 -translate-x-10">
+            <span className="text-xs font-bold text-emerald-400 tabular-nums">
+              Ao vivo: {match.homeScore}–{match.awayScore}
+            </span>
+          </div>
+        )}
         {/* Linha secundária: data + resultado real (discreto) + status */}
         <div className="flex items-center justify-between px-4 pb-2 gap-2">
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-zinc-600 flex items-center gap-1">
               <Clock size={9} /> {formatCompact(match.matchDate)}
             </span>
-            {isLive && hasScore && (
-              <span className="text-[10px] text-zinc-500">
-                Real: <span className="text-emerald-400 font-semibold">{match.homeScore}–{match.awayScore}</span>
-              </span>
-            )}
           </div>
           <div className="flex items-center gap-1.5">
             {match.myPrediction?.isJoker && <ModBadge type="joker" />}
