@@ -165,6 +165,7 @@ export async function setMatchResult(req: AuthRequest, res: Response): Promise<v
         homeScore,
         awayScore,
         status: (status as MatchStatus) ?? MatchStatus.FINISHED,
+        isManualOverride: true,
       },
       include: {
         round: {

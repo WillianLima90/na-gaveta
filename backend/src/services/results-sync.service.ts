@@ -38,6 +38,7 @@ async function findLocalMatch(apiMatch: any) {
       awayScore: true,
       status: true,
       externalMatchId: true,
+      isManualOverride: true,
     },
   });
 
@@ -57,6 +58,7 @@ async function findLocalMatch(apiMatch: any) {
       awayScore: true,
       status: true,
       externalMatchId: true,
+      isManualOverride: true,
     },
   });
 
@@ -136,6 +138,12 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
     }
 
     matched += 1;
+
+    // 🔒 PROTEÇÃO: não sobrescrever resultado manual
+    if (localMatch.isManualOverride) {
+      logs.push(`LOCKED (manual override) | ${localMatch.homeTeam} x ${localMatch.awayTeam}`);
+      continue;
+    }
 
     const targetStatus = apiMatch.status === 'FINISHED' ? 'FINISHED' : 'LIVE';
 

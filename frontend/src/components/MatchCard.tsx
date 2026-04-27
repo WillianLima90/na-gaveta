@@ -16,6 +16,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Check, Zap, Radio, Clock, Edit2 } from 'lucide-react';
 import type { Match, MyPrediction, Round } from '../services/match.service';
 import { savePrediction } from '../services/match.service';
+import { api } from '../services/api';
 import { Spinner } from './ui';
 
 export interface MatchCardProps {
@@ -623,6 +624,30 @@ const canPredict = isAuthenticated && isMember && !locked;
             {match.myPrediction?.isJoker && <ModBadge type="joker" />}
             {round.isBonusRound && <ModBadge type="bonus" />}
             {result && <span className={`text-xs font-semibold ${c.labelColor}`}>{c.label}</span>}
+
+            <button
+              onClick={async () => {
+                const home = prompt('Novo placar casa:', String(match.homeScore ?? 0));
+                const away = prompt('Novo placar fora:', String(match.awayScore ?? 0));
+                if (home === null || away === null) return;
+
+                await fetch(`/api/matches/${match.id}/result`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    homeScore: Number(home),
+                    awayScore: Number(away),
+                    status: 'FINISHED'
+                  })
+                });
+
+                window.location.reload();
+              }}
+              className="text-xs text-red-400 hover:text-red-300 underline ml-2"
+            >
+              Corrigir
+            </button>
+
             {onViewOpponentPredictions && (
               <button
                 onClick={() => onViewOpponentPredictions(match.id)}
@@ -669,6 +694,26 @@ const canPredict = isAuthenticated && isMember && !locked;
           <div className="flex items-center gap-1.5">
             {isLive && <span className="flex items-center gap-1 text-xs text-green-500"><Radio size={9} /> Ao vivo</span>}
             {isFinished && <span className="text-xs text-zinc-700">Encerrado</span>}
+            {isFinished && (
+              <button
+                onClick={async () => {
+                  const home = prompt('Novo placar casa:', String(match.homeScore ?? 0));
+                  const away = prompt('Novo placar fora:', String(match.awayScore ?? 0));
+                  if (home === null || away === null) return;
+
+                  await api.patch(`/matches/${match.id}/result`, {
+                    homeScore: Number(home),
+                    awayScore: Number(away),
+                    status: 'FINISHED'
+                  });
+
+                  window.location.reload();
+                }}
+                className="text-xs text-red-400 hover:text-red-300 underline ml-2"
+              >
+                Corrigir
+              </button>
+            )}
             {onViewOpponentPredictions && (isLive || isFinished) && (
               <button
                 onClick={() => onViewOpponentPredictions(match.id)}
