@@ -110,9 +110,16 @@ export function OfficialChampionshipTable({ championshipId }: OfficialChampionsh
               className="grid grid-cols-[28px_1fr_42px_34px_34px_34px_42px] gap-2 items-center px-4 py-2.5 text-sm"
             >
               <span className="text-zinc-500 text-xs">{row.position}</span>
-              <div className="flex items-center gap-2 min-w-0">
-                <img src={row.team.crest} alt="" className="w-5 h-5 object-contain flex-shrink-0" />
-                <span className="text-zinc-200 font-medium truncate">{getTeamDisplayName(row.team.name, row.team.shortName)}</span>
+              <div className="flex items-center gap-3 min-w-0">
+                <img 
+  src={row.team.crest} 
+  alt="" 
+  className="w-6 h-6 object-contain flex-shrink-0 rounded-sm"
+  onError={(e) => {
+    e.currentTarget.style.display = 'none';
+  }}
+/>
+                <span className="text-zinc-100 font-semibold truncate">{getTeamDisplayName(row.team.name, row.team.shortName)}</span>
               </div>
               <span className="text-center text-white font-bold tabular-nums">{row.points}</span>
               <span className="text-center text-zinc-400 tabular-nums">{row.playedGames}</span>

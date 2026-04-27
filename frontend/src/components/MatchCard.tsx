@@ -220,8 +220,15 @@ export function MatchCard({
 
   const homeRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const previousLiveScoreRef = useRef<string | null>(null);
+  const [goalFlash, setGoalFlash] = useState(false);
+  const goalAudioRef = useRef<HTMLAudioElement | null>(null);
   const initialRef = useRef({ home: '', away: '', joker: false });
-  const canPredict = isAuthenticated && isMember && !locked;
+    useEffect(() => {
+    goalAudioRef.current = new Audio("https://www.soundjay.com/button/sounds/button-16.mp3");
+  }, []);
+
+const canPredict = isAuthenticated && isMember && !locked;
 
   function startEditing() {
     if (locked) return;
@@ -254,6 +261,29 @@ export function MatchCard({
     setIsJokerSelected(Boolean(match.myPrediction?.isJoker));
     setSaved(!!match.myPrediction);
   }, [match.myPrediction]);
+  useEffect(() => {
+    if (match.status !== 'LIVE') return;
+
+    const currentScore = `${match.homeScore ?? '-'}-${match.awayScore ?? '-'}`;
+
+    if (previousLiveScoreRef.current && previousLiveScoreRef.current !== currentScore) {
+      setGoalFlash(true);
+
+      try {
+        if (goalAudioRef.current) {
+          goalAudioRef.current.currentTime = 0;
+          goalAudioRef.current.play();
+        }
+      } catch {}
+
+      const timeout = window.setTimeout(() => setGoalFlash(false), 3500);
+      previousLiveScoreRef.current = currentScore;
+      return () => window.clearTimeout(timeout);
+    }
+
+    previousLiveScoreRef.current = currentScore;
+  }, [match.status, match.homeScore, match.awayScore]);
+
   // ── STAGING: enviar mudanças em tempo real ─────────────────
   useEffect(() => {
     if (!onPredictionChange) return;
@@ -504,7 +534,7 @@ export function MatchCard({
         </div>
         {isLive && hasScore && (
           <div className="flex justify-center -mt-1 mb-1 -translate-x-10">
-            <span className="text-xs font-bold text-emerald-400 tabular-nums">
+            <span className={`text-xs font-bold tabular-nums transition-all duration-300 ${goalFlash ? "text-white scale-125 drop-shadow-[0_0_10px_rgba(52,211,153,0.9)]" : "text-emerald-400"}`}>
               Ao vivo: {match.homeScore}–{match.awayScore}
             </span>
           </div>
@@ -627,7 +657,7 @@ export function MatchCard({
             <span className="flex-1 text-left text-sm font-semibold text-zinc-300 truncate pl-2">{teamName(match.awayTeam)}</span>
           </div>
           <div className="flex justify-center mt-2">
-            <span className="text-xs font-bold text-emerald-400 tabular-nums">
+            <span className={`text-xs font-bold tabular-nums transition-all duration-300 ${goalFlash ? "text-white scale-125 drop-shadow-[0_0_10px_rgba(52,211,153,0.9)]" : "text-emerald-400"}`}>
               {match.status === 'LIVE' ? 'Ao vivo: ' : 'Resultado final: '}{match.homeScore ?? '-'}–{match.awayScore ?? '-'}
             </span>
           </div>
