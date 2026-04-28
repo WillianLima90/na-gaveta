@@ -35,6 +35,11 @@ export function AdminEditResultModal({
       return;
     }
 
+    if (h === homeScore && a === awayScore) {
+      setError('Resultado não alterado');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 

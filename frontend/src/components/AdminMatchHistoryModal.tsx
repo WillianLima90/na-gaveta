@@ -46,7 +46,7 @@ export function AdminMatchHistoryModal({ isOpen, onClose, matchId }: Props) {
           {history.map((h) => (
             <div key={h.id} className="text-xs text-zinc-300 border-b border-zinc-800 pb-2">
               <div>
-                {h.prevHome ?? '-'}–{h.prevAway ?? '-'} → {h.newHome}–{h.newAway}
+                {h.prevHome ?? '-'} x {h.prevAway ?? '-'} → {h.newHome} x {h.newAway}
               </div>
               <div className="text-zinc-500">
                 {new Date(h.createdAt).toLocaleString()}
