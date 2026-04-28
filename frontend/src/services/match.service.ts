@@ -29,6 +29,7 @@ export interface Match {
   matchDate: string;
   venue?: string;
   isJoker: boolean;
+  isManualOverride?: boolean;
   myPrediction?: MyPrediction | null;
 }
 

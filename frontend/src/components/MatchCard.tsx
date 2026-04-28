@@ -18,6 +18,7 @@ import type { Match, MyPrediction, Round } from '../services/match.service';
 import { savePrediction } from '../services/match.service';
 import { api } from '../services/api';
 import { Spinner } from './ui';
+import { AdminEditResultModal } from './AdminEditResultModal';
 
 export interface MatchCardProps {
   match: Match;
@@ -217,6 +218,7 @@ export function MatchCard({
   const [saved, setSaved] = useState(hasPrediction);
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [adminEditOpen, setAdminEditOpen] = useState(false);
   const [minsUntilLock, setMinsUntilLock] = useState<number | null>(null);
 
   const homeRef = useRef<HTMLInputElement>(null);
@@ -624,25 +626,14 @@ const canPredict = isAuthenticated && isMember && !locked;
             {match.myPrediction?.isJoker && <ModBadge type="joker" />}
             {round.isBonusRound && <ModBadge type="bonus" />}
             {result && <span className={`text-xs font-semibold ${c.labelColor}`}>{c.label}</span>}
+            {match.isManualOverride && (
+              <span className="text-xs text-amber-400 font-semibold ml-1">
+                Corrigido
+              </span>
+            )}
 
             <button
-              onClick={async () => {
-                const home = prompt('Novo placar casa:', String(match.homeScore ?? 0));
-                const away = prompt('Novo placar fora:', String(match.awayScore ?? 0));
-                if (home === null || away === null) return;
-
-                await fetch(`/api/matches/${match.id}/result`, {
-                  method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    homeScore: Number(home),
-                    awayScore: Number(away),
-                    status: 'FINISHED'
-                  })
-                });
-
-                window.location.reload();
-              }}
+              onClick={() => setAdminEditOpen(true)}
               className="text-xs text-red-400 hover:text-red-300 underline ml-2"
             >
               Corrigir
@@ -658,6 +649,14 @@ const canPredict = isAuthenticated && isMember && !locked;
             )}
           </div>
         </div>
+        <AdminEditResultModal
+          isOpen={adminEditOpen}
+          onClose={() => setAdminEditOpen(false)}
+          matchId={match.id}
+          homeScore={match.homeScore}
+          awayScore={match.awayScore}
+          onSuccess={() => window.location.reload()}
+        />
       </div>
     );
   }
@@ -681,10 +680,17 @@ const canPredict = isAuthenticated && isMember && !locked;
             <span className="shrink-0 text-zinc-500 text-sm font-bold">×</span>
             <span className="flex-1 text-left text-sm font-semibold text-zinc-300 truncate pl-2">{teamName(match.awayTeam)}</span>
           </div>
-          <div className="flex justify-center mt-2">
+          <div className="flex flex-col items-center justify-center mt-2">
             <span className={`text-xs font-bold tabular-nums transition-all duration-300 ${goalFlash ? "text-white scale-125 drop-shadow-[0_0_10px_rgba(52,211,153,0.9)]" : "text-emerald-400"}`}>
               {match.status === 'LIVE' ? 'Ao vivo: ' : 'Resultado final: '}{match.homeScore ?? '-'}–{match.awayScore ?? '-'}
             </span>
+            {match.isManualOverride && (
+              <div className="text-[10px] text-amber-400 font-semibold mt-1">
+                Corrigido manualmente
+              </div>
+            )}
+          </div>
+          <div>
           </div>
         </div>
         <div className="flex items-center justify-between px-4 pb-2 gap-2">
@@ -696,23 +702,11 @@ const canPredict = isAuthenticated && isMember && !locked;
             {isFinished && <span className="text-xs text-zinc-700">Encerrado</span>}
             {isFinished && (
               <button
-                onClick={async () => {
-                  const home = prompt('Novo placar casa:', String(match.homeScore ?? 0));
-                  const away = prompt('Novo placar fora:', String(match.awayScore ?? 0));
-                  if (home === null || away === null) return;
-
-                  await api.patch(`/matches/${match.id}/result`, {
-                    homeScore: Number(home),
-                    awayScore: Number(away),
-                    status: 'FINISHED'
-                  });
-
-                  window.location.reload();
-                }}
-                className="text-xs text-red-400 hover:text-red-300 underline ml-2"
-              >
-                Corrigir
-              </button>
+              onClick={() => setAdminEditOpen(true)}
+              className="text-xs text-red-400 hover:text-red-300 underline ml-2"
+            >
+              Corrigir
+            </button>
             )}
             {onViewOpponentPredictions && (isLive || isFinished) && (
               <button
@@ -724,6 +718,14 @@ const canPredict = isAuthenticated && isMember && !locked;
             )}
           </div>
         </div>
+        <AdminEditResultModal
+          isOpen={adminEditOpen}
+          onClose={() => setAdminEditOpen(false)}
+          matchId={match.id}
+          homeScore={match.homeScore}
+          awayScore={match.awayScore}
+          onSuccess={() => window.location.reload()}
+        />
       </div>
     );
   }
