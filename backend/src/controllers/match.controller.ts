@@ -158,6 +158,9 @@ export async function setMatchResult(req: AuthRequest, res: Response): Promise<v
       return;
     }
 
+    const prevHome = existingMatch.homeScore;
+    const prevAway = existingMatch.awayScore;
+
     // Atualizar a partida
     const updatedMatch = await prisma.match.update({
       where: { id },
@@ -171,6 +174,18 @@ export async function setMatchResult(req: AuthRequest, res: Response): Promise<v
         round: {
           include: { championship: { select: { name: true } } },
         },
+      },
+    });
+
+    // Salvar histórico de alteração
+    await prisma.matchResultHistory.create({
+      data: {
+        matchId: id,
+        adminUserId: req.user!.userId,
+        prevHome,
+        prevAway,
+        newHome: homeScore,
+        newAway: awayScore,
       },
     });
 
