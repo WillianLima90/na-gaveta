@@ -241,7 +241,12 @@ export async function toggleJoker(req: Request, res: Response): Promise<void> {
 
 
 // ── GET /api/matches/:id/history ─────────────────────────────
-export async function getMatchHistory(req, res) {
+export async function getMatchHistory(req: AuthRequest, res: Response): Promise<void> {
+  if (!req.user || req.user.role !== 'ADMIN') {
+    res.status(403).json({ error: 'Apenas ADMIN pode ver histórico de alterações' });
+    return;
+  }
+
   try {
     const { id } = req.params;
 
