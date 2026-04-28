@@ -30,8 +30,8 @@ export function AdminEditResultModal({
     const h = Number(home);
     const a = Number(away);
 
-    if (isNaN(h) || isNaN(a) || h < 0 || a < 0) {
-      setError('Placar inválido');
+    if (!Number.isInteger(h) || !Number.isInteger(a) || h < 0 || a < 0 || h > 20 || a > 20) {
+      setError('Use placares inteiros entre 0 e 20');
       return;
     }
 

@@ -19,6 +19,7 @@ import { savePrediction } from '../services/match.service';
 import { api } from '../services/api';
 import { Spinner } from './ui';
 import { AdminEditResultModal } from './AdminEditResultModal';
+import { AdminMatchHistoryModal } from './AdminMatchHistoryModal';
 
 export interface MatchCardProps {
   match: Match;
@@ -219,6 +220,7 @@ export function MatchCard({
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [adminEditOpen, setAdminEditOpen] = useState(false);
+  const [adminHistoryOpen, setAdminHistoryOpen] = useState(false);
   const [minsUntilLock, setMinsUntilLock] = useState<number | null>(null);
 
   const homeRef = useRef<HTMLInputElement>(null);
@@ -638,6 +640,14 @@ const canPredict = isAuthenticated && isMember && !locked;
             >
               Corrigir
             </button>
+            {match.isManualOverride && (
+              <button
+                onClick={() => setAdminHistoryOpen(true)}
+                className="text-xs text-amber-400 hover:text-amber-300 underline ml-1"
+              >
+                Histórico
+              </button>
+            )}
 
             {onViewOpponentPredictions && (
               <button
@@ -656,6 +666,11 @@ const canPredict = isAuthenticated && isMember && !locked;
           homeScore={match.homeScore}
           awayScore={match.awayScore}
           onSuccess={() => window.location.reload()}
+        />
+        <AdminMatchHistoryModal
+          isOpen={adminHistoryOpen}
+          onClose={() => setAdminHistoryOpen(false)}
+          matchId={match.id}
         />
       </div>
     );
@@ -701,12 +716,22 @@ const canPredict = isAuthenticated && isMember && !locked;
             {isLive && <span className="flex items-center gap-1 text-xs text-green-500"><Radio size={9} /> Ao vivo</span>}
             {isFinished && <span className="text-xs text-zinc-700">Encerrado</span>}
             {isFinished && (
-              <button
-              onClick={() => setAdminEditOpen(true)}
-              className="text-xs text-red-400 hover:text-red-300 underline ml-2"
-            >
-              Corrigir
-            </button>
+              <>
+                <button
+                  onClick={() => setAdminEditOpen(true)}
+                  className="text-xs text-red-400 hover:text-red-300 underline ml-2"
+                >
+                  Corrigir
+                </button>
+                {match.isManualOverride && (
+                  <button
+                    onClick={() => setAdminHistoryOpen(true)}
+                    className="text-xs text-amber-400 hover:text-amber-300 underline ml-1"
+                  >
+                    Histórico
+                  </button>
+                )}
+              </>
             )}
             {onViewOpponentPredictions && (isLive || isFinished) && (
               <button
@@ -725,6 +750,11 @@ const canPredict = isAuthenticated && isMember && !locked;
           homeScore={match.homeScore}
           awayScore={match.awayScore}
           onSuccess={() => window.location.reload()}
+        />
+        <AdminMatchHistoryModal
+          isOpen={adminHistoryOpen}
+          onClose={() => setAdminHistoryOpen(false)}
+          matchId={match.id}
         />
       </div>
     );
