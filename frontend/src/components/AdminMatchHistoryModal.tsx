@@ -17,7 +17,9 @@ export function AdminMatchHistoryModal({ isOpen, onClose, matchId }: Props) {
     async function load() {
       setLoading(true);
       try {
-        const res = await api.get(`/matches/${matchId}/history`);
+        console.log('MATCH ID:', matchId);
+      const res = await api.get(`/matches/${matchId}/history`);
+      console.log('HISTORY:', res.data);
         setHistory(res.data.history || []);
       } finally {
         setLoading(false);
@@ -49,6 +51,11 @@ export function AdminMatchHistoryModal({ isOpen, onClose, matchId }: Props) {
               <div className="text-zinc-500">
                 {new Date(h.createdAt).toLocaleString()}
               </div>
+              {h.user && (
+                <div className="text-[10px] text-zinc-400">
+                  por {h.user.name || h.user.email}
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -248,6 +248,11 @@ export async function getMatchHistory(req, res) {
     const history = await prisma.matchResultHistory.findMany({
       where: { matchId: id },
       orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true }
+        }
+      }
     });
 
     res.json({ history });

@@ -221,6 +221,7 @@ export function MatchCard({
   const [error, setError] = useState<string | null>(null);
   const [adminEditOpen, setAdminEditOpen] = useState(false);
   const [adminHistoryOpen, setAdminHistoryOpen] = useState(false);
+  const [adminHistoryMatchId, setAdminHistoryMatchId] = useState<string | null>(null);
   const [minsUntilLock, setMinsUntilLock] = useState<number | null>(null);
 
   const homeRef = useRef<HTMLInputElement>(null);
@@ -642,7 +643,7 @@ const canPredict = isAuthenticated && isMember && !locked;
             </button>
             {match.isManualOverride && (
               <button
-                onClick={() => setAdminHistoryOpen(true)}
+                onClick={() => { setAdminHistoryMatchId(match.id); setAdminHistoryOpen(true); }}
                 className="text-xs text-amber-400 hover:text-amber-300 underline ml-1"
               >
                 Histórico
@@ -667,11 +668,7 @@ const canPredict = isAuthenticated && isMember && !locked;
           awayScore={match.awayScore}
           onSuccess={() => window.location.reload()}
         />
-        <AdminMatchHistoryModal
-          isOpen={adminHistoryOpen}
-          onClose={() => setAdminHistoryOpen(false)}
-          matchId={match.id}
-        />
+
       </div>
     );
   }
@@ -725,7 +722,7 @@ const canPredict = isAuthenticated && isMember && !locked;
                 </button>
                 {match.isManualOverride && (
                   <button
-                    onClick={() => setAdminHistoryOpen(true)}
+                    onClick={() => { setAdminHistoryMatchId(match.id); setAdminHistoryOpen(true); }}
                     className="text-xs text-amber-400 hover:text-amber-300 underline ml-1"
                   >
                     Histórico
@@ -754,7 +751,7 @@ const canPredict = isAuthenticated && isMember && !locked;
         <AdminMatchHistoryModal
           isOpen={adminHistoryOpen}
           onClose={() => setAdminHistoryOpen(false)}
-          matchId={match.id}
+          matchId={adminHistoryMatchId || match.id}
         />
       </div>
     );

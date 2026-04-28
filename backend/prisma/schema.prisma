@@ -34,6 +34,7 @@ model User {
   predictions  Prediction[]
   roundWins    RoundWinner[]
   notifications Notification[]
+  matchResultHistory MatchResultHistory[]
 
   @@map("users")
 }
@@ -184,6 +185,7 @@ model MatchResultHistory {
   createdAt   DateTime @default(now()) @map("created_at")
 
   match Match @relation(fields: [matchId], references: [id])
+  user  User  @relation(fields: [adminUserId], references: [id])
 
   @@map("match_result_history")
 }
