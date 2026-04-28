@@ -12,6 +12,7 @@ import {
   getPoolMatches,
   setMatchResult,
   toggleJoker,
+  getMatchHistory,
 } from '../controllers/match.controller';
 import { authenticate, optionalAuthenticate } from '../middlewares/auth.middleware';
 
@@ -23,6 +24,7 @@ router.get('/', listMatches);
 // Registrar resultado real de uma partida — requer auth (admin em produção)
 // Por ora, qualquer usuário autenticado pode registrar (para testes)
 router.patch('/:id/result', authenticate, setMatchResult);
+router.get('/:id/history', authenticate, getMatchHistory);
 
 // Marcar/desmarcar coringa — requer auth
 router.patch('/:id/joker', authenticate, toggleJoker);

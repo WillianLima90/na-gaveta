@@ -238,3 +238,21 @@ export async function toggleJoker(req: Request, res: Response): Promise<void> {
     res.status(500).json({ error: 'Erro ao atualizar partida.' });
   }
 }
+
+
+// ── GET /api/matches/:id/history ─────────────────────────────
+export async function getMatchHistory(req, res) {
+  try {
+    const { id } = req.params;
+
+    const history = await prisma.matchResultHistory.findMany({
+      where: { matchId: id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json({ history });
+  } catch (err) {
+    console.error('[Match] Erro ao buscar histórico:', err);
+    res.status(500).json({ error: 'Erro ao buscar histórico' });
+  }
+}
