@@ -17,6 +17,7 @@
 
 import { Router } from 'express';
 import { listPools, getPool, createPool, joinPool, joinPoolById, myPools, drawBonusRound, setFavoriteTeam } from '../controllers/pool.controller';
+import { deletePool } from '../controllers/pool.controller';
 import { authenticate, optionalAuthenticate } from '../middlewares/auth.middleware';
 import { poolMatchesRouter } from './match.routes';
 import { poolRankingRouter, poolRoundsRouter, poolUsersRouter, poolRoundWinnersRouter } from './ranking.routes';
@@ -33,6 +34,7 @@ router.get('/', listPools);
 router.get('/:id', optionalAuthenticate, getPool);
 
 // ── Rotas protegidas ─────────────────────────────────────────
+router.delete('/:id', authenticate, deletePool);
 router.post('/', authenticate, createPool);
 router.post('/:id/join', authenticate, joinPoolById);
 router.patch('/:id/favorite-team', authenticate, setFavoriteTeam);

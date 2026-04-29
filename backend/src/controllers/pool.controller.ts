@@ -418,3 +418,42 @@ export async function setFavoriteTeam(req: AuthRequest, res: Response): Promise<
     res.status(500).json({ error: 'Erro ao definir time do coração.' });
   }
 }
+
+
+export async function deletePool(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user!.userId;
+    const { id } = req.params;
+
+    const pool = await prisma.pool.findUnique({
+      where: { id }
+    });
+
+    if (!pool) {
+      res.status(404).json({ error: 'Bolão não encontrado' });
+      return;
+    }
+
+    if (pool.ownerId !== userId) {
+      res.status(403).json({ error: 'Apenas o dono pode deletar o bolão' });
+      return;
+    }
+
+    // Deletar dependências primeiro (ordem importa)
+    await prisma.prediction.deleteMany({ where: { poolId: id } });
+    await prisma.poolMember.deleteMany({ where: { poolId: id } });
+    await prisma.roundWinner?.deleteMany?.({ where: { poolId: id } }).catch(() => {});
+    await prisma.scoreRule.deleteMany({ where: { poolId: id } });
+
+    // Agora sim deletar o pool
+    await prisma.pool.delete({
+      where: { id }
+    });
+
+    res.json({ message: 'Bolão deletado com sucesso' });
+
+  } catch (err) {
+    console.error('[Pool] Erro ao deletar bolão:', err);
+    res.status(500).json({ error: 'Erro ao deletar bolão' });
+  }
+}
