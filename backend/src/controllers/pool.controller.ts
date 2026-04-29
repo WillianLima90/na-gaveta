@@ -434,8 +434,8 @@ export async function deletePool(req: AuthRequest, res: Response): Promise<void>
       return;
     }
 
-    if (pool.ownerId !== userId) {
-      res.status(403).json({ error: 'Apenas o dono pode deletar o bolão' });
+    if (req.user?.role !== 'ADMIN') {
+      res.status(403).json({ error: 'Apenas ADMIN do site pode deletar bolões' });
       return;
     }
 
