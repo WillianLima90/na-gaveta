@@ -20,6 +20,7 @@ import { getPool, type Pool } from '../services/pool.service';
 import { useAuth } from '../hooks/useAuth';
 import { Spinner } from '../components/ui';
 import { ShieldList } from '../components/ShieldBadge';
+import { getTeamLogo } from '../utils/teamDisplay';
 
 const MEDAL_EMOJI = ['🥇', '🥈', '🥉'];
 const MEDAL_TEXT_COLOR = ['#FFD700', '#C0C0C0', '#CD7F32'];
@@ -168,6 +169,7 @@ return (
     roundPoints?: number;
     roundExacts?: number;
     roundOutcomes?: number;
+    favoriteTeam?: string | null;
   }> = filterRoundId === 'geral'
     ? ranking.map((e) => ({
         userId: e.userId,
@@ -175,6 +177,7 @@ return (
         totalPoints: e.totalPoints,
         exactScores: e.exactScores ?? 0,
         correctOutcomes: e.correctOutcomes ?? 0,
+        favoriteTeam: e.favoriteTeam ?? null,
       }))
     : roundRanking.map((e) => ({
         userId: e.userId,
@@ -185,6 +188,7 @@ return (
         roundPoints: e.roundPoints,
         roundExacts: e.exactScores,
         roundOutcomes: e.correctOutcomes,
+        favoriteTeam: e.favoriteTeam ?? ranking.find((r) => r.userId === e.userId)?.favoriteTeam ?? null,
       }));
 
   const selectedRound = rounds.find((r) => r.id === filterRoundId);
@@ -307,15 +311,25 @@ return (
 
                     {/* Avatar + Nome */}
                     <div className="min-w-0 flex items-center gap-1.5">
-                      <div
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0"
-                        style={
-                          isCurrentUser
-                            ? { background: 'rgba(255,255,255,0.08)', color: '#D4D4D8' }
-                            : { background: '#27272A', color: '#A1A1AA' }
-                        }
-                      >
-                        {entry.name.charAt(0).toUpperCase()}
+                      <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
+                        {entry.favoriteTeam && getTeamLogo(entry.favoriteTeam) ? (
+                          <img
+                            src={getTeamLogo(entry.favoriteTeam)!}
+                            alt={entry.favoriteTeam}
+                            className="w-6 h-6 object-contain"
+                          />
+                        ) : (
+                          <div
+                            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black"
+                            style={
+                              isCurrentUser
+                                ? { background: 'rgba(255,255,255,0.08)', color: '#D4D4D8' }
+                                : { background: '#27272A', color: '#A1A1AA' }
+                            }
+                          >
+                            {entry.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-1">
