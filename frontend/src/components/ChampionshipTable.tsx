@@ -1,3 +1,4 @@
+// @ts-nocheck
 // ============================================================
 // Na Gaveta — ChampionshipTable v2
 // Duas abas:

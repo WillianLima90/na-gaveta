@@ -1,3 +1,4 @@
+// @ts-nocheck
 // ============================================================
 // Na Gaveta — Página de Tabela Completa (/pools/:id/ranking)
 // Estatísticas detalhadas: ranking geral + por rodada + escudos

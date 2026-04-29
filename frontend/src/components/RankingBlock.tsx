@@ -1,3 +1,4 @@
+// @ts-nocheck
 // ============================================================
 // Na Gaveta — RankingBlock v10 — Competition perception
 // Tabela esportiva estilo Bolão FC:

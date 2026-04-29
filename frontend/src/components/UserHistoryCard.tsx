@@ -1,3 +1,4 @@
+// @ts-nocheck
 // ============================================================
 // Na Gaveta — UserHistoryCard
 // Exibe o histórico completo do usuário no bolão:

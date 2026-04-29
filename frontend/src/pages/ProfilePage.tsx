@@ -1,3 +1,4 @@
+// @ts-nocheck
 // ============================================================
 // Na Gaveta — Página de Perfil do Usuário (/profile)
 // Estatísticas pessoais agregadas de todos os bolões

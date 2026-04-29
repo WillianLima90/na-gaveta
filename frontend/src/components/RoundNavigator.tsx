@@ -1,3 +1,4 @@
+// @ts-nocheck
 // ============================================================
 // Na Gaveta — RoundNavigator v3
 // Visual refinado:

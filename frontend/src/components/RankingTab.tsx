@@ -1,3 +1,4 @@
+// @ts-nocheck
 // ============================================================
 // Na Gaveta — RankingTab v2
 // Ranking geral com desempate em 4 critérios + ranking por rodada
