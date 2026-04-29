@@ -126,11 +126,20 @@ export function CreatePoolModal({ isOpen, onClose, onCreated }: CreatePoolModalP
                 "
               >
                 <option value="">Selecione um campeonato</option>
-                {championships.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.season})
-                  </option>
-                ))}
+                {championships.map((c) => {
+                  const label =
+                    c.name.includes("Brasileirão")
+                      ? `${c.name} (${c.season}) — Liga (38 rodadas)`
+                      : c.name.includes("Copa")
+                      ? `${c.name} (${c.season}) — Mata-mata`
+                      : `${c.name} (${c.season})`;
+
+                  return (
+                    <option key={c.id} value={c.id}>
+                      {label}
+                    </option>
+                  );
+                })}
               </select>
             )}
           </div>

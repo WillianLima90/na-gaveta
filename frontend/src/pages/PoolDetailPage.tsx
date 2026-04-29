@@ -286,6 +286,15 @@ export default function PoolDetailPage() {
     ? Math.floor((parseDateSafe(nextMatch.matchDate).getTime() - Date.now()) / 60000)
     : null;
 
+  const formatTimeLeft = (minutes: number): string => {
+    if (minutes < 60) return `${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h`;
+    const days = Math.floor(hours / 24);
+    const remainingHours = hours % 24;
+    return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days} dias`;
+  };
+
 
   // ── Coluna da esquerda: palpites ─────────────────────────────
   const leftColumn = (
@@ -338,7 +347,7 @@ export default function PoolDetailPage() {
                 
                 {nextMatchTimeLeft !== null && nextMatchTimeLeft > 0 && (
                   <span className="ml-2 text-red-400 font-bold">
-                    · Próximo jogo fecha em {nextMatchTimeLeft} min
+                    · Próximo jogo fecha em {formatTimeLeft(nextMatchTimeLeft)}
                   </span>
                 )}
               </span>
@@ -573,11 +582,12 @@ const rightColumn = (
         </div>
         <button
           onClick={copyCode}
-          className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 transition-colors flex-shrink-0"
+          className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 transition-colors flex-shrink-0"
           title="Copiar código de convite"
         >
-          <span className="font-mono font-black text-sm text-white tracking-widest">{pool.code}</span>
-          <span className="text-xs text-zinc-500 flex items-center gap-1">
+          <span className="text-[10px] uppercase tracking-wide text-zinc-500 font-bold">Código do convite</span>
+          <span className="font-mono font-black text-base text-white tracking-widest">{pool.code}</span>
+          <span className="text-xs text-zinc-400 flex items-center gap-1">
             {codeCopied ? <Check size={10} className="text-green-400" /> : <Copy size={10} />}
             {codeCopied ? 'Copiado' : 'Copiar'}
           </span>
@@ -587,9 +597,12 @@ const rightColumn = (
       {/* ── Time do coração ───────────────────────── */}
       {isMember && (
         <div className="mb-4 rounded-xl border border-zinc-800 bg-zinc-900/70 p-3">
-          <label className="text-xs text-zinc-500 block mb-1">
-            Seu time do coração neste bolão
+          <label className="text-xs text-zinc-400 block mb-1 font-semibold">
+            Escolha seu time do coração
           </label>
+          <p className="text-[11px] text-zinc-600 mb-2">
+            Isso personaliza seu perfil no ranking deste bolão.
+          </p>
           <select
             value={favoriteTeam}
             onChange={(e) => handleSetFavoriteTeam(e.target.value)}
