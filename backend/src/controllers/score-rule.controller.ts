@@ -31,7 +31,7 @@ export async function getPoolRules(req: Request, res: Response): Promise<void> {
 
     const startedMatch = await prisma.match.findFirst({
       where: {
-        round: { championshipId: pool.championshipId },
+        roundId: pool.startingRoundId,
         OR: [
           { status: 'LIVE' },
           { status: 'FINISHED' },
@@ -79,7 +79,7 @@ export async function updatePoolRules(req: AuthRequest, res: Response): Promise<
 
     const startedMatch = await prisma.match.findFirst({
       where: {
-        round: { championshipId: pool.championshipId },
+        roundId: pool.startingRoundId,
         OR: [
           { status: 'LIVE' },
           { status: 'FINISHED' },
@@ -89,7 +89,7 @@ export async function updatePoolRules(req: AuthRequest, res: Response): Promise<
     });
 
     if (startedMatch) {
-      res.status(400).json({ error: 'As regras do bolão não podem mais ser alteradas após o início do campeonato.' });
+      res.status(400).json({ error: 'As regras do bolão não podem mais ser alteradas após o início do bolão.' });
       return;
     }
 
@@ -140,6 +140,13 @@ export async function updatePoolRules(req: AuthRequest, res: Response): Promise<
         ...(bonusRoundMultiplier !== undefined && { bonusRoundMultiplier }),
       },
     });
+
+    if (jokerMultiplier !== undefined && jokerMultiplier <= 1) {
+      await prisma.prediction.updateMany({
+        where: { poolId, isJoker: true },
+        data: { isJoker: false },
+      });
+    }
 
     res.json({
       message: 'Regras de pontuação atualizadas.',
@@ -198,7 +205,7 @@ export async function toggleBonusRound(req: AuthRequest, res: Response): Promise
 
     const startedMatch = await prisma.match.findFirst({
       where: {
-        round: { championshipId: pool.championshipId },
+        roundId: pool.startingRoundId,
         OR: [
           { status: 'LIVE' },
           { status: 'FINISHED' },
@@ -208,7 +215,7 @@ export async function toggleBonusRound(req: AuthRequest, res: Response): Promise
     });
 
     if (startedMatch) {
-      res.status(400).json({ error: 'A rodada bônus não pode mais ser alterada após o início do campeonato.' });
+      res.status(400).json({ error: 'A rodada bônus não pode mais ser alterada após o início do bolão.' });
       return;
     }
 

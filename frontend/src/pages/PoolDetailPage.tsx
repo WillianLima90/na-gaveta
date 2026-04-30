@@ -22,7 +22,7 @@ import {
   Lock, UserPlus, BookOpen, X, Trophy,
   ChevronDown, ChevronUp
 } from 'lucide-react';
-import { getPool, joinPoolById, setFavoriteTeam, type Pool } from '../services/pool.service';
+import { getPool, joinPoolById, setFavoriteTeam, deletePool, type Pool } from '../services/pool.service';
 import {
   getPoolMatches,
   savePrediction,
@@ -59,12 +59,30 @@ export default function PoolDetailPage() {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
+  const handleDeletePool = async () => {
+    if (!pool) return;
+
+    const confirmDelete = window.confirm("Tem certeza que deseja deletar este bolão? Essa ação é irreversível.");
+    if (!confirmDelete) return;
+
+    try {
+      await deletePool(pool.id);
+      alert("Bolão deletado com sucesso");
+      navigate("/pools");
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao deletar bolão");
+    }
+  };
+
+
   const [pool, setPool] = useState<Pool | null>(null);
   const [rounds, setRounds] = useState<Round[]>([]);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [hasUpdatesAvailable, setHasUpdatesAvailable] = useState(false);
 
   // Rodada selecionada para palpites
   const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null);
@@ -166,11 +184,11 @@ export default function PoolDetailPage() {
 
   useEffect(() => {
     const interval = window.setInterval(() => {
-      loadData();
+      setHasUpdatesAvailable(true);
     }, 60000);
 
     return () => window.clearInterval(interval);
-  }, [loadData]);
+  }, []);
 
   async function handleJoin() {
     if (!isAuthenticated) {
@@ -326,6 +344,21 @@ export default function PoolDetailPage() {
       {/* ── 1. PALPITES ───────────────────────────────────────── */}
       {isMember && (
         <div className="mb-5">
+          {hasUpdatesAvailable && (
+            <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-brand/30 bg-brand/10 px-3 py-2 text-xs text-zinc-200">
+              <span>Novos dados disponíveis</span>
+              <button
+                onClick={async () => {
+                  await loadData();
+                  setHasUpdatesAvailable(false);
+                }}
+                className="rounded-lg bg-brand px-3 py-1 font-bold text-white hover:bg-brand-light transition"
+              >
+                Atualizar
+              </button>
+            </div>
+          )}
+
           {/* Navegador de rodadas */}
           {rounds.length > 0 && (
             <RoundNavigator
@@ -394,6 +427,7 @@ export default function PoolDetailPage() {
                 <div className="space-y-2">
                   {openMatches.map(({ match, round }, idx) => (
                     <MatchCard
+                      jokerEnabled={(pool as any)?.scoreRule?.jokerMultiplier > 1}
                       key={match.id}
                       match={match}
                       round={round}
@@ -401,9 +435,10 @@ export default function PoolDetailPage() {
                       isAuthenticated={isAuthenticated}
                       isMember={isMember}
                       autoFocusFirst={idx === 0}
-                      onPredictionSaved={handlePredictionStaged}
+                      onPredictionSaved={handlePredictionSaved}
                       onPredictionChange={handlePredictionStaged}
-                      onSingleSaveSuccess={() => {
+                      onSingleSaveSuccess={async () => {
+                        await loadData();
                         setSaveMessage('Palpite salvo com sucesso');
                         setTimeout(() => setSaveMessage(null), 3000);
                       }}
@@ -431,13 +466,14 @@ export default function PoolDetailPage() {
                 <div className="space-y-2">
                   {doneMatches.map(({ match, round }) => (
                     <MatchCard
+                      jokerEnabled={(pool as any)?.scoreRule?.jokerMultiplier > 1}
                       key={match.id}
                       match={match}
                       round={round}
                       poolId={id!}
                       isAuthenticated={isAuthenticated}
                       isMember={isMember}
-                      onPredictionSaved={handlePredictionStaged}
+                      onPredictionSaved={handlePredictionSaved}
                       onViewOpponentPredictions={setDrawerMatchId}
                     />
                   ))}
@@ -458,13 +494,14 @@ export default function PoolDetailPage() {
                 <div className="space-y-2">
                   {finishedMatches.map(({ match, round }) => (
                     <MatchCard
+                      jokerEnabled={(pool as any)?.scoreRule?.jokerMultiplier > 1}
                       key={match.id}
                       match={match}
                       round={round}
                       poolId={id!}
                       isAuthenticated={isAuthenticated}
                       isMember={isMember}
-                      onPredictionSaved={handlePredictionStaged}
+                      onPredictionSaved={handlePredictionSaved}
                       onViewOpponentPredictions={setDrawerMatchId}
                     />
                   ))}
@@ -524,6 +561,7 @@ const rightColumn = (
           isOwner={isOwner}
           bonusRoundNumber={bonusRound?.number ?? null}
           roundOptions={rounds.map((r) => ({ id: r.id, number: r.number, startDate: r.startDate }))}
+          onRulesSaved={loadData}
         />
       </CollapsibleSection>
 
@@ -578,6 +616,15 @@ const rightColumn = (
             )}
             {isOwner && <Badge variant="brand">Admin do bolão</Badge>}
             {isMember && !isOwner && <Badge variant="success">Participando</Badge>}
+            {user?.role === 'ADMIN' && (
+              <button
+                onClick={handleDeletePool}
+                className="ml-2 text-[10px] px-2 py-1 rounded-md bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition"
+              >
+                Deletar
+              </button>
+            )}
+
           </div>
         </div>
         <button
@@ -666,7 +713,12 @@ const rightColumn = (
               </button>
             </div>
             <div className="p-5 max-h-[70vh] overflow-y-auto">
-              <RulesTab poolId={id!} isOwner={false} />
+              <RulesTab
+                poolId={id!}
+                isOwner={false}
+                roundOptions={rounds.map((r) => ({ id: r.id, number: r.number, startDate: r.startDate }))}
+                onRulesSaved={loadData}
+              />
             </div>
           </div>
         </div>

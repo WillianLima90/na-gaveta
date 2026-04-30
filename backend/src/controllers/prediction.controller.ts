@@ -98,10 +98,18 @@ export async function upsertPrediction(req: AuthRequest, res: Response): Promise
     // Verificar se o bolão existe e está ativo
     const pool = await prisma.pool.findUnique({
       where: { id: poolId },
+      include: { scoreRule: true },
     });
 
     if (!pool || !pool.isActive) {
       res.status(400).json({ error: 'Este bolão não está mais ativo' });
+      return;
+    }
+
+    const jokerEnabled = (pool.scoreRule?.jokerMultiplier ?? 2) > 1;
+
+    if (isJoker && !jokerEnabled) {
+      res.status(400).json({ error: 'Coringa está desativado neste bolão' });
       return;
     }
 

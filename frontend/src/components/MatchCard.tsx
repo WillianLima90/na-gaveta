@@ -35,6 +35,7 @@ export interface MatchCardProps {
   onPredictionChange?: (matchId: string, prediction: MyPrediction) => void;
   onSingleSaveSuccess?: () => void;
   onViewOpponentPredictions?: (matchId: string) => void;
+  jokerEnabled?: boolean;
 }
 
 
@@ -210,7 +211,7 @@ function ModBadge({ type }: { type: 'joker' | 'bonus' }) {
 // ── Componente principal ──────────────────────────────────────
 export function MatchCard({
   match, round, poolId, isAuthenticated, isMember,
-  autoFocusFirst, onPredictionSaved, onPredictionChange, onSingleSaveSuccess, onViewOpponentPredictions,
+  autoFocusFirst, onPredictionSaved, onPredictionChange, onSingleSaveSuccess, onViewOpponentPredictions, jokerEnabled = true,
 }: MatchCardProps) {
   const locked = isMatchLocked(match.matchDate, match.status);
   const hasPrediction = !!match.myPrediction;
@@ -387,34 +388,36 @@ const canPredict = isAuthenticated && isMember && !locked;
       <div ref={cardRef} className="relative max-w-4xl mx-auto rounded-2xl border border-zinc-700/60 bg-zinc-900 shadow-lg">
         {/* Linha principal: times + inputs grandes + salvar */}
         <div className="flex items-center justify-center px-4 pt-2.5 pb-1.5">
-          <button
-            onClick={() => {
-              const next = !isJokerSelected;
-              setIsJokerSelected(next);
-              if (next && onPredictionChange) {
-                onPredictionChange(match.id, {
-                  ...(match.myPrediction || {}),
-                  id: match.myPrediction?.id || 'temp',
-                  homeScoreTip: Number(homeInput || 0),
-                  awayScoreTip: Number(awayInput || 0),
-                  isJoker: true,
-                  points: match.myPrediction?.points ?? 0,
-                  scoredAt: match.myPrediction?.scoredAt ?? null,
-                  createdAt: match.myPrediction?.createdAt ?? new Date().toISOString(),
-                });
-              }
-            }}
-            className={`absolute left-4 top-5 text-xs px-2 py-0.5 rounded-full flex items-center gap-1 border transition-colors ${
-              isJokerSelected
-                ? 'text-yellow-400 bg-yellow-400/20 border-yellow-400/40'
-                : 'text-zinc-400 bg-zinc-800 border-zinc-700 hover:bg-zinc-700'
-            }`}
-          >
-            ⚡ {isJokerSelected ? 'Coringa' : 'Usar coringa'}
-          </button>
+          {jokerEnabled && (
+            <button
+              onClick={() => {
+                const next = !isJokerSelected;
+                setIsJokerSelected(next);
+                if (next && onPredictionChange) {
+                  onPredictionChange(match.id, {
+                    ...(match.myPrediction || {}),
+                    id: match.myPrediction?.id || 'temp',
+                    homeScoreTip: Number(homeInput || 0),
+                    awayScoreTip: Number(awayInput || 0),
+                    isJoker: true,
+                    points: match.myPrediction?.points ?? 0,
+                    scoredAt: match.myPrediction?.scoredAt ?? null,
+                    createdAt: match.myPrediction?.createdAt ?? new Date().toISOString(),
+                  });
+                }
+              }}
+              className={`absolute left-4 top-5 text-xs px-2 py-0.5 rounded-full flex items-center gap-1 border transition-colors ${
+                isJokerSelected
+                  ? 'text-yellow-400 bg-yellow-400/20 border-yellow-400/40'
+                  : 'text-zinc-400 bg-zinc-800 border-zinc-700 hover:bg-zinc-700'
+              }`}
+            >
+              ⚡ {isJokerSelected ? 'Coringa' : 'Usar coringa'}
+            </button>
+          )}
           <div className="flex justify-center w-full">
             <div className="grid grid-cols-[minmax(180px,1fr)_140px_minmax(180px,1fr)] items-center gap-5 w-full max-w-[640px] mx-auto">
-              <div className="flex items-center justify-end gap-2 pr-1 min-w-0">
+              <div className="flex items-center justify-end gap-2 min-w-0">
                 <span className="text-right text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
                 {getTeamLogo(match.homeTeam) && (
                   <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
@@ -464,7 +467,7 @@ const canPredict = isAuthenticated && isMember && !locked;
     return (
       <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${match.myPrediction?.isJoker ? "border-yellow-400/70 bg-brand/8 shadow-lg shadow-yellow-500/20" : "border-brand/40 bg-brand/8"}`}>
         <div className="flex items-center justify-center px-4 pt-2.5 pb-1.5">
-          <div className="flex-1 flex items-center justify-end gap-2 pr-1 min-w-0">
+          <div className="flex-1 flex items-center justify-end gap-2 min-w-0 pr-5">
             <span className="text-right text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
             {getTeamLogo(match.homeTeam) && (
               <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
@@ -478,7 +481,7 @@ const canPredict = isAuthenticated && isMember && !locked;
             <span className="text-zinc-500 text-base font-black">×</span>
             <span className={`w-11 h-11 flex items-center justify-center text-base font-black text-white bg-transparent border rounded-xl tabular-nums shadow-inner ${match.myPrediction?.isJoker ? "border-yellow-400/60" : "border-brand/40"}`}>{awayInput}</span>
           </div>
-          <div className="flex-1 flex items-center justify-start gap-2 min-w-0">
+          <div className="flex-1 flex items-center justify-start gap-2 min-w-0 pl-5">
             {getTeamLogo(match.awayTeam) && (
               <img src={getTeamLogo(match.awayTeam)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
             )}
@@ -511,7 +514,7 @@ const canPredict = isAuthenticated && isMember && !locked;
     return (
       <div className="max-w-4xl mx-auto rounded-2xl border border-brand/60 bg-brand/8 shadow-lg">
         <div className="flex items-center justify-center px-4 pt-2.5 pb-1.5">
-          <div className="flex-1 flex items-center justify-end gap-2 pr-1 min-w-0">
+          <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
             <span className="text-right text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
             {getTeamLogo(match.homeTeam) && (
               <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
@@ -554,7 +557,7 @@ const canPredict = isAuthenticated && isMember && !locked;
       <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${isLive ? 'border-green-500/40 bg-green-500/8' : 'border-zinc-700/50 bg-zinc-900/70'}`}>
         {/* Linha principal: times + palpite grande + pontos */}
         <div className="flex items-center gap-2 px-4 pt-3.5 pb-1.5">
-          <div className="flex-1 flex items-center justify-end gap-2 pr-1 min-w-0">
+          <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
             <span className="text-right text-sm font-bold text-zinc-300 truncate">{teamName(match.homeTeam)}</span>
             {getTeamLogo(match.homeTeam) && (
               <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
@@ -627,7 +630,7 @@ const canPredict = isAuthenticated && isMember && !locked;
     return (
       <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${c.cardBorder} ${c.cardBg}`}>
         <div className="grid grid-cols-[1fr_auto_1fr_auto] items-start gap-2 px-4 pt-2.5 pb-1.5">
-          <div className="flex items-center justify-end gap-2 pr-1 pt-3 min-w-0">
+          <div className="flex items-center justify-end gap-2 pt-3 min-w-0">
             <span className="text-sm font-bold text-zinc-300 truncate">{teamName(match.homeTeam)}</span>
             {getTeamLogo(match.homeTeam) && (
               <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
@@ -743,7 +746,7 @@ const canPredict = isAuthenticated && isMember && !locked;
             
           </div>
           <div className="flex items-center justify-center gap-3">
-            <div className="flex-1 flex items-center justify-end gap-2 pr-1 min-w-0 pr-2">
+            <div className="flex-1 flex items-center justify-end gap-2 min-w-0 pr-2">
               <span className="text-right text-sm font-semibold text-zinc-300 truncate">{teamName(match.homeTeam)}</span>
               {getTeamLogo(match.homeTeam) && (
                 <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
@@ -826,7 +829,7 @@ const canPredict = isAuthenticated && isMember && !locked;
   return (
     <div className="max-w-4xl mx-auto rounded-2xl border border-zinc-800/40 bg-zinc-900/30">
       <div className="flex items-center gap-2 px-4 py-3">
-        <div className="flex-1 flex items-center justify-end gap-2 pr-1 min-w-0">
+        <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
           <span className="text-right text-sm font-semibold text-zinc-400 truncate">{teamName(match.homeTeam)}</span>
           {getTeamLogo(match.homeTeam) && (
             <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />

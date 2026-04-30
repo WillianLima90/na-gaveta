@@ -17,6 +17,7 @@ interface RulesTabProps {
   isOwner: boolean;
   bonusRoundNumber?: number | null;
   roundOptions: { id: string; number: number; startDate: string }[];
+  onRulesSaved?: () => void | Promise<void>;
 }
 
 interface RuleField {
@@ -68,7 +69,7 @@ const RULE_FIELDS: RuleField[] = [
   },
 ];
 
-export function RulesTab({ poolId, isOwner, bonusRoundNumber, roundOptions }: RulesTabProps) {
+export function RulesTab({ poolId, isOwner, bonusRoundNumber, roundOptions, onRulesSaved }: RulesTabProps) {
   const [rules, setRules] = useState<ScoreRule | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -122,6 +123,7 @@ export function RulesTab({ poolId, isOwner, bonusRoundNumber, roundOptions }: Ru
       const updated = await updatePoolRules(poolId, editValues);
       setRules(updated);
       setEditing(false);
+      await onRulesSaved?.();
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err: any) {

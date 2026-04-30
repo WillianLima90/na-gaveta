@@ -78,3 +78,9 @@ export async function setFavoriteTeam(poolId: string, team: string): Promise<{ s
   const { data } = await api.patch(`/pools/${poolId}/favorite-team`, { team });
   return data;
 }
+
+// Deletar bolão (somente ADMIN do site)
+export async function deletePool(poolId: string): Promise<{ message: string }> {
+  const { data } = await api.delete(`/pools/${poolId}`);
+  return data;
+}
