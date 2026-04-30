@@ -12,6 +12,7 @@ import {
   myPredictions,
   poolPredictions,
   matchPredictions,
+  deletePrediction,
 } from '../controllers/prediction.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 
@@ -24,5 +25,6 @@ router.post('/', upsertPrediction);
 router.get('/me', myPredictions);
 router.get('/pool/:poolId', poolPredictions);
 router.get('/match/:matchId/pool/:poolId', matchPredictions);
+router.delete('/match/:matchId/pool/:poolId', deletePrediction);
 
 export default router;

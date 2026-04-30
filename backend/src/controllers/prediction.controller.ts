@@ -312,3 +312,36 @@ export async function matchPredictions(req: AuthRequest, res: Response): Promise
     res.status(500).json({ error: 'Erro ao buscar palpites' });
   }
 }
+
+// ── DELETE /api/predictions/match/:matchId/pool/:poolId — Remover palpite ─
+export async function deletePrediction(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user!.userId;
+    const { matchId, poolId } = req.params;
+
+    const match = await prisma.match.findUnique({
+      where: { id: matchId },
+      select: { id: true, matchDate: true, status: true },
+    });
+
+    if (!match) {
+      res.status(404).json({ error: 'Partida não encontrada' });
+      return;
+    }
+
+    const { open, reason } = isPredictionOpen(match.matchDate, match.status);
+    if (!open) {
+      res.status(400).json({ error: reason });
+      return;
+    }
+
+    await prisma.prediction.deleteMany({
+      where: { userId, matchId, poolId },
+    });
+
+    res.json({ message: 'Palpite removido com sucesso' });
+  } catch (err) {
+    console.error('[Prediction] Erro ao remover palpite:', err);
+    res.status(500).json({ error: 'Erro ao remover palpite' });
+  }
+}

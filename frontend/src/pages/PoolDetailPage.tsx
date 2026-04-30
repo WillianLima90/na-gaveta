@@ -217,11 +217,16 @@ export default function PoolDetailPage() {
     setTimeout(() => setCodeCopied(false), 2000);
   }
 
-  function handlePredictionSaved(matchId: string, prediction: MyPrediction) {
+  function handlePredictionSaved(matchId: string, prediction: MyPrediction | null) {
     setRounds((prev) =>
       prev.map((round) => ({
         ...round,
         matches: round.matches.map((match) => {
+          // Se esse match foi removido
+          if (match.id === matchId && prediction === null) {
+            return { ...match, myPrediction: null };
+          }
+
           // Se esse match é o salvo
           if (match.id === matchId) {
             return { ...match, myPrediction: prediction };
