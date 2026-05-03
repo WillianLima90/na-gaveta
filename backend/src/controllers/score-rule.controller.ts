@@ -185,6 +185,7 @@ export async function toggleBonusRound(req: AuthRequest, res: Response): Promise
         id: true,
         ownerId: true,
         championshipId: true,
+        startingRoundId: true,
       },
     });
 

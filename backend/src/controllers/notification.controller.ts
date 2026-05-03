@@ -1,5 +1,4 @@
 import { AuthRequest } from "../types";
-import { AuthRequest } from "../types";
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma';
 
