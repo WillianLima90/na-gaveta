@@ -442,8 +442,7 @@ export default function PoolDetailPage() {
                       autoFocusFirst={idx === 0}
                       onPredictionSaved={handlePredictionSaved}
                       onPredictionChange={handlePredictionStaged}
-                      onSingleSaveSuccess={async () => {
-                        await loadData();
+                      onSingleSaveSuccess={() => {
                         setSaveMessage('Palpite salvo com sucesso');
                         setTimeout(() => setSaveMessage(null), 3000);
                       }}
