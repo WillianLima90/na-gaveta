@@ -392,7 +392,7 @@ export async function setFavoriteTeam(req: AuthRequest, res: Response): Promise<
 
     const startedMatch = await prisma.match.findFirst({
       where: {
-        roundId: member.pool.startingRoundId,
+        roundId: member.pool.startingRoundId || undefined,
         OR: [
           { status: 'LIVE' },
           { status: 'FINISHED' },

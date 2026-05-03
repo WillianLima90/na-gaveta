@@ -1,4 +1,5 @@
-import { Request, Response } from 'express';
+import { AuthRequest } from "../types";
+import { AuthRequest, Response } from 'express';
 import prisma from '../utils/prisma';
 
 export async function listMyNotifications(req: Request, res: Response): Promise<void> {
