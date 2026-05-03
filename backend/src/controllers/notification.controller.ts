@@ -1,8 +1,9 @@
 import { AuthRequest } from "../types";
-import { AuthRequest, Response } from 'express';
+import { AuthRequest } from "../types";
+import { Request, Response } from 'express';
 import prisma from '../utils/prisma';
 
-export async function listMyNotifications(req: Request, res: Response): Promise<void> {
+export async function listMyNotifications(req: AuthRequest, res: Response): Promise<void> {
   try {
     const userId = req.user?.userId;
 
@@ -28,7 +29,7 @@ export async function listMyNotifications(req: Request, res: Response): Promise<
   }
 }
 
-export async function markAllMyNotificationsAsRead(req: Request, res: Response): Promise<void> {
+export async function markAllMyNotificationsAsRead(req: AuthRequest, res: Response): Promise<void> {
   try {
     const userId = req.user?.userId;
 
@@ -55,7 +56,7 @@ export async function markAllMyNotificationsAsRead(req: Request, res: Response):
   }
 }
 
-export async function markOneNotificationAsRead(req: Request, res: Response): Promise<void> {
+export async function markOneNotificationAsRead(req: AuthRequest, res: Response): Promise<void> {
   try {
     const userId = req.user?.userId;
     const { id } = req.params;
