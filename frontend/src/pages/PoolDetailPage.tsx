@@ -94,12 +94,14 @@ export default function PoolDetailPage() {
   // Drawer de palpites dos adversários
   const [drawerMatchId, setDrawerMatchId] = useState<string | null>(null);
   const [favoriteTeam, setFavoriteTeamState] = useState("");
+  const [favoriteTeamDraft, setFavoriteTeamDraft] = useState("");
   const [favoriteTeamOpen, setFavoriteTeamOpen] = useState(false);
 
-  async function handleSetFavoriteTeam(team: string) {
+  async function handleSaveFavoriteTeam() {
+    if (!favoriteTeamDraft || favoriteTeamDraft === favoriteTeam) return;
     try {
-      await setFavoriteTeam(id!, team);
-      setFavoriteTeamState(team);
+      await setFavoriteTeam(id!, favoriteTeamDraft);
+      setFavoriteTeamState(favoriteTeamDraft);
       setSaveMessage("Time do coração definido!");
     } catch {
       setSaveMessage("Erro ao definir time.");
@@ -669,12 +671,12 @@ const rightColumn = (
               className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="flex items-center gap-2">
-                {favoriteTeam ? (
+                {(favoriteTeamDraft || favoriteTeam) ? (
                   <>
-                    {getTeamLogo(favoriteTeam) && (
-                      <img src={getTeamLogo(favoriteTeam)!} alt={getTeamName(favoriteTeam)} className="w-5 h-5 object-contain" />
+                    {getTeamLogo(favoriteTeamDraft || favoriteTeam) && (
+                      <img src={getTeamLogo(favoriteTeamDraft || favoriteTeam)!} alt={getTeamName(favoriteTeamDraft || favoriteTeam)} className="w-5 h-5 object-contain shrink-0" />
                     )}
-                    <span>{getTeamName(favoriteTeam)}</span>
+                    <span>{getTeamName(favoriteTeamDraft || favoriteTeam)}</span>
                   </>
                 ) : (
                   <span className="text-zinc-400">Selecione seu time</span>
@@ -690,13 +692,13 @@ const rightColumn = (
                     type="button"
                     key={team}
                     onClick={() => {
-                      handleSetFavoriteTeam(team);
+                      setFavoriteTeamDraft(team);
                       setFavoriteTeamOpen(false);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 hover:bg-zinc-800 text-left text-sm text-white"
+                    className="w-full flex items-center gap-2 px-3 py-2 hover:bg-zinc-800/80 text-left text-sm text-white"
                   >
                     {getTeamLogo(team) && (
-                      <img src={getTeamLogo(team)!} alt={getTeamName(team)} className="w-5 h-5 object-contain" />
+                      <img src={getTeamLogo(team)!} alt={getTeamName(team)} className="w-5 h-5 object-contain shrink-0" />
                     )}
                     <span>{getTeamName(team)}</span>
                   </button>
@@ -704,6 +706,17 @@ const rightColumn = (
               </div>
             )}
           </div>
+
+          {!poolAlreadyStarted && favoriteTeamDraft && favoriteTeamDraft !== favoriteTeam && (
+            <button
+              type="button"
+              onClick={handleSaveFavoriteTeam}
+              className="mt-2 px-3 py-2 rounded-lg bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold transition-colors"
+            >
+              Salvar time do coração
+            </button>
+          )}
+
           {poolAlreadyStarted && (
             <p className="text-[11px] text-red-400 mt-2">
               O time do coração só pode ser definido antes do início do bolão.
@@ -833,7 +846,7 @@ function CollapsibleSection({
     <div className="mb-2">
       <button
         onClick={toggle}
-        className="w-full flex items-center justify-between px-4 py-3.5 bg-zinc-900 border border-zinc-800 rounded-2xl hover:bg-zinc-800/60 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3.5 bg-zinc-900 border border-zinc-800 rounded-2xl hover:bg-zinc-800/80/60 transition-colors"
       >
         <div className="flex items-center gap-2">
           {iconEl}
