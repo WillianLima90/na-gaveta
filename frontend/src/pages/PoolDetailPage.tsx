@@ -1,4 +1,4 @@
-import { getTeamName } from '../utils/teamDisplay';
+import { getTeamName, getTeamLogo } from '../utils/teamDisplay';
 // @ts-nocheck
 // ============================================================
 // Na Gaveta — Página de Detalhe do Bolão (/pools/:id) v10
@@ -94,6 +94,7 @@ export default function PoolDetailPage() {
   // Drawer de palpites dos adversários
   const [drawerMatchId, setDrawerMatchId] = useState<string | null>(null);
   const [favoriteTeam, setFavoriteTeamState] = useState("");
+  const [favoriteTeamOpen, setFavoriteTeamOpen] = useState(false);
 
   async function handleSetFavoriteTeam(team: string) {
     try {
@@ -284,6 +285,11 @@ export default function PoolDetailPage() {
     m.status === 'FINISHED' ||
     new Date(m.matchDate).getTime() <= Date.now()
   ));
+
+  const favoriteTeamOptions = allRoundMatches
+    .flatMap(m => [m.match.homeTeam, m.match.awayTeam])
+    .filter((v, i, a) => a.indexOf(v) === i)
+    .sort((a, b) => getTeamName(a).localeCompare(getTeamName(b)));
 
   // ── Classificação centralizada usando getMatchState ───────────────────────
   // Regra obrigatória (fonte única de verdade):
@@ -655,21 +661,49 @@ const rightColumn = (
           <p className="text-[11px] text-zinc-600 mb-2">
             Isso personaliza seu perfil no ranking deste bolão.
           </p>
-          <select
-            value={favoriteTeam}
-            onChange={(e) => handleSetFavoriteTeam(e.target.value)}
-            disabled={poolAlreadyStarted}
-            className="w-full max-w-xs px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <option value="">Selecione seu time</option>
-            {allRoundMatches
-              .flatMap(m => [m.match.homeTeam, m.match.awayTeam])
-              .filter((v, i, a) => a.indexOf(v) === i)
-              .sort()
-              .map(team => (
-                <option key={team} value={team}>{getTeamName(team)}</option>
-              ))}
-          </select>
+          <div className="relative w-full max-w-xs">
+            <button
+              type="button"
+              disabled={poolAlreadyStarted}
+              onClick={() => setFavoriteTeamOpen(v => !v)}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="flex items-center gap-2">
+                {favoriteTeam ? (
+                  <>
+                    {getTeamLogo(favoriteTeam) && (
+                      <img src={getTeamLogo(favoriteTeam)!} alt={getTeamName(favoriteTeam)} className="w-5 h-5 object-contain" />
+                    )}
+                    <span>{getTeamName(favoriteTeam)}</span>
+                  </>
+                ) : (
+                  <span className="text-zinc-400">Selecione seu time</span>
+                )}
+              </span>
+              <ChevronDown size={14} />
+            </button>
+
+            {favoriteTeamOpen && !poolAlreadyStarted && (
+              <div className="absolute mt-1 w-full bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg z-50 max-h-60 overflow-auto">
+                {favoriteTeamOptions.map(team => (
+                  <button
+                    type="button"
+                    key={team}
+                    onClick={() => {
+                      handleSetFavoriteTeam(team);
+                      setFavoriteTeamOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 hover:bg-zinc-800 text-left text-sm text-white"
+                  >
+                    {getTeamLogo(team) && (
+                      <img src={getTeamLogo(team)!} alt={getTeamName(team)} className="w-5 h-5 object-contain" />
+                    )}
+                    <span>{getTeamName(team)}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           {poolAlreadyStarted && (
             <p className="text-[11px] text-red-400 mt-2">
               O time do coração só pode ser definido antes do início do bolão.
