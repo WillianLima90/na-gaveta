@@ -57,6 +57,7 @@ export interface Pool {
   isPublic: boolean;
   maxMembers?: number;
   ownerId: string;
+  startingRoundId?: string | null;
   owner?: Pick<User, 'id' | 'name' | 'avatarUrl'>;
   championship?: Pick<Championship, 'id' | 'name' | 'logoUrl'>;
   _count?: { members: number };

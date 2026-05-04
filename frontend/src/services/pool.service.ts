@@ -13,6 +13,7 @@ export interface Pool {
   isPublic: boolean;
   maxMembers?: number;
   ownerId: string;
+  startingRoundId?: string | null;
   championshipId: string;
   bonusRoundId?: string | null;
   createdAt: string;

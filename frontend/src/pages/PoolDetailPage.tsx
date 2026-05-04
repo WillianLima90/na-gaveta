@@ -278,13 +278,12 @@ export default function PoolDetailPage() {
         .map((m) => ({ match: m, round: currentRound }))
     : [];
 
-  const poolAlreadyStarted = rounds.some(r =>
-    r.matches.some(m =>
-      m.status === 'LIVE' ||
-      m.status === 'FINISHED' ||
-      new Date(m.matchDate).getTime() <= Date.now()
-    )
-  );
+  const startingRound = rounds.find(r => r.id === pool?.startingRoundId);
+  const poolAlreadyStarted = Boolean(startingRound?.matches.some(m =>
+    m.status === 'LIVE' ||
+    m.status === 'FINISHED' ||
+    new Date(m.matchDate).getTime() <= Date.now()
+  ));
 
   // ── Classificação centralizada usando getMatchState ───────────────────────
   // Regra obrigatória (fonte única de verdade):
