@@ -278,6 +278,12 @@ export default function PoolDetailPage() {
         .map((m) => ({ match: m, round: currentRound }))
     : [];
 
+  const poolAlreadyStarted = allRoundMatches.some(({ match }) =>
+    match.status === 'LIVE' ||
+    match.status === 'FINISHED' ||
+    new Date(match.matchDate).getTime() <= Date.now()
+  );
+
   // ── Classificação centralizada usando getMatchState ───────────────────────
   // Regra obrigatória (fonte única de verdade):
   //   1. FINISHED  → finishedMatches
@@ -657,7 +663,8 @@ const rightColumn = (
           <select
             value={favoriteTeam}
             onChange={(e) => handleSetFavoriteTeam(e.target.value)}
-            className="w-full max-w-xs px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm"
+            disabled={poolAlreadyStarted}
+            className="w-full max-w-xs px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="">Selecione seu time</option>
             {allRoundMatches
@@ -668,6 +675,11 @@ const rightColumn = (
                 <option key={team} value={team}>{team}</option>
               ))}
           </select>
+          {poolAlreadyStarted && (
+            <p className="text-[11px] text-red-400 mt-2">
+              O time do coração só pode ser definido antes do início do bolão.
+            </p>
+          )}
         </div>
       )}
 
