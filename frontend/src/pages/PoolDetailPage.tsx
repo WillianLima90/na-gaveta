@@ -278,10 +278,12 @@ export default function PoolDetailPage() {
         .map((m) => ({ match: m, round: currentRound }))
     : [];
 
-  const poolAlreadyStarted = allRoundMatches.some(({ match }) =>
-    match.status === 'LIVE' ||
-    match.status === 'FINISHED' ||
-    new Date(match.matchDate).getTime() <= Date.now()
+  const poolAlreadyStarted = rounds.some(r =>
+    r.matches.some(m =>
+      m.status === 'LIVE' ||
+      m.status === 'FINISHED' ||
+      new Date(m.matchDate).getTime() <= Date.now()
+    )
   );
 
   // ── Classificação centralizada usando getMatchState ───────────────────────
