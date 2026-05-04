@@ -1,3 +1,4 @@
+import { getTeamName } from '../utils/teamDisplay';
 // @ts-nocheck
 // ============================================================
 // Na Gaveta — Página de Detalhe do Bolão (/pools/:id) v10
@@ -35,7 +36,6 @@ import { MatchCard, isMatchLocked } from '../components/MatchCard';
 import { RulesTab } from '../components/RulesTab';
 import { AdminPanel } from '../components/AdminPanel';
 import { RankingBlock } from '../components/RankingBlock';
-import { ChampionshipTable } from '../components/ChampionshipTable';
 import { OfficialChampionshipTable } from '../components/OfficialChampionshipTable';
 import { RoundNavigator } from '../components/RoundNavigator';
 import { OpponentPredictionsDrawer } from '../components/OpponentPredictionsDrawer';
@@ -309,10 +309,6 @@ export default function PoolDetailPage() {
     .map(({ match }) => match)
     .sort((a, b) => parseDateSafe(a.matchDate).getTime() - parseDateSafe(b.matchDate).getTime())[0];
 
-  const nowInSaoPaulo = new Date(
-    new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' })
-  );
-
   const nextMatchTimeLeft = nextMatch
     ? Math.floor((parseDateSafe(nextMatch.matchDate).getTime() - Date.now()) / 60000)
     : null;
@@ -378,7 +374,6 @@ export default function PoolDetailPage() {
               poolId={id!}
               currentUserId={user?.id}
               rounds={rounds}
-              bonusRoundId={pool?.bonusRoundId}
               selectedRoundId={selectedRoundId}
               onSelectRound={setSelectedRoundId}
               isAuthenticated={isAuthenticated}
@@ -546,7 +541,6 @@ const rightColumn = (
           poolId={id!}
           currentUserId={user?.id}
           rounds={rounds}
-              bonusRoundId={pool?.bonusRoundId}
           isAuthenticated={isAuthenticated}
           isMember={isMember}
         />
@@ -581,7 +575,7 @@ const rightColumn = (
       {isOwner && (
         <div className="mt-1">
           <AdminPanel rounds={rounds}
-              bonusRoundId={pool?.bonusRoundId} onResultSet={loadData} />
+ onResultSet={loadData} />
         </div>
       )}
     </div>
@@ -628,7 +622,7 @@ const rightColumn = (
             )}
             {isOwner && <Badge variant="brand">Admin do bolão</Badge>}
             {isMember && !isOwner && <Badge variant="success">Participando</Badge>}
-            {user?.role === 'ADMIN' && (
+            {(user as any)?.role === 'ADMIN' && (
               <button
                 onClick={handleDeletePool}
                 className="ml-2 text-[10px] px-2 py-1 rounded-md bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition"
@@ -674,7 +668,7 @@ const rightColumn = (
               .filter((v, i, a) => a.indexOf(v) === i)
               .sort()
               .map(team => (
-                <option key={team} value={team}>{team}</option>
+                <option key={team} value={team}>{getTeamName(team)}</option>
               ))}
           </select>
           {poolAlreadyStarted && (
