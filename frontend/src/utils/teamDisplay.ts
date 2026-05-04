@@ -33,7 +33,7 @@ export const TEAM_DISPLAY: Record<string, { name: string; logo: string }> = {
   },
   "Fluminense FC": {
     "name": "Fluminense",
-    "logo": "https://crests.football-data.org/1765.png"
+    "logo": "https://r2.thesportsdb.com/images/media/team/badge/stvvwp1473538082.png"
   },
   "Grêmio FBPA": {
     "name": "Grêmio",

@@ -23,6 +23,7 @@ const TEAM_LOGO_MAP: Record<string, string> = {
   'Santos':                 'https://r2.thesportsdb.com/images/media/team/badge/j8xk9g1679447486.png',
   'Grêmio':                 'https://r2.thesportsdb.com/images/media/team/badge/uvpwyt1473538089.png',
   'Internacional':          'https://r2.thesportsdb.com/images/media/team/badge/yprvxx1473538097.png',
+  'CA Mineiro':             'https://r2.thesportsdb.com/images/media/team/badge/x5lixs1743742872.png',
   'Atlético-MG':            'https://r2.thesportsdb.com/images/media/team/badge/x5lixs1743742872.png',
   'Atlético Mineiro':       'https://r2.thesportsdb.com/images/media/team/badge/x5lixs1743742872.png',
   'Cruzeiro':               'https://r2.thesportsdb.com/images/media/team/badge/upsvvu1473538059.png',
@@ -49,13 +50,19 @@ const TEAM_LOGO_MAP: Record<string, string> = {
 
 export function getTeamLogoUrl(teamName: string | null | undefined): string | null {
   if (!teamName) return null;
-  if (TEAM_LOGO_MAP[teamName]) return TEAM_LOGO_MAP[teamName];
-  const lower = teamName.toLowerCase();
+
+  // normalização básica
+  const normalized = teamName
+    .toLowerCase()
+    .replace(/[^a-z]/g, '');
+
   for (const [key, url] of Object.entries(TEAM_LOGO_MAP)) {
-    if (key.toLowerCase().includes(lower) || lower.includes(key.toLowerCase())) {
+    const keyNorm = key.toLowerCase().replace(/[^a-z]/g, '');
+    if (keyNorm === normalized) {
       return url;
     }
   }
+
   return null;
 }
 

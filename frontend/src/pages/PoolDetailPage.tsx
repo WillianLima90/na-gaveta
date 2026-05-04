@@ -102,6 +102,7 @@ export default function PoolDetailPage() {
     try {
       await setFavoriteTeam(id!, favoriteTeamDraft);
       setFavoriteTeamState(favoriteTeamDraft);
+      await loadData();
       setSaveMessage("Time do coração definido!");
     } catch {
       setSaveMessage("Erro ao definir time.");
