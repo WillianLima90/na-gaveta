@@ -18,6 +18,7 @@ import predictionRouter from './routes/prediction.routes';
 import notificationRouter from './routes/notification.routes';
 import { roundBonusRouter } from './routes/score-rule.routes';
 import adminRouter from './routes/admin.routes';
+import internalRouter from './routes/internal.routes';
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use('/api/predictions', predictionRouter);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/rounds/:id/bonus', roundBonusRouter); // marcar rodada como bônus
 app.use('/api/admin', adminRouter);
+app.use('/api/internal', internalRouter);
 
 // ── Handler de rota não encontrada ──────────────────────────
 app.use((_req, res) => {
