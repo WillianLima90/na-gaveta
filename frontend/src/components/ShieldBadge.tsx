@@ -13,6 +13,7 @@
 // ============================================================
 
 import React, { useState } from 'react';
+import { getTeamLogo } from '../utils/teamDisplay';
 
 // ── Mapa de escudos ───────────────────────────────────────────
 const TEAM_LOGO_MAP: Record<string, string> = {
@@ -51,17 +52,10 @@ const TEAM_LOGO_MAP: Record<string, string> = {
 export function getTeamLogoUrl(teamName: string | null | undefined): string | null {
   if (!teamName) return null;
 
-  // normalização básica
-  const normalized = teamName
-    .toLowerCase()
-    .replace(/[^a-z]/g, '');
+  const logoFromDisplay = getTeamLogo(teamName);
+  if (logoFromDisplay) return logoFromDisplay;
 
-  for (const [key, url] of Object.entries(TEAM_LOGO_MAP)) {
-    const keyNorm = key.toLowerCase().replace(/[^a-z]/g, '');
-    if (keyNorm === normalized) {
-      return url;
-    }
-  }
+  if (TEAM_LOGO_MAP[teamName]) return TEAM_LOGO_MAP[teamName];
 
   return null;
 }
