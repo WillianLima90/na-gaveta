@@ -88,24 +88,14 @@ export const ShieldNormal: React.FC<ShieldNormalProps> = ({ teamName, size = 20 
   }
 
   return (
-    <div
-      className="flex-shrink-0 rounded-full overflow-hidden flex items-center justify-center"
-      style={{
-        width: size,
-        height: size,
-        background: 'rgba(255,255,255,0.92)',
-        padding: '2px',
-        border: '1px solid rgba(255,255,255,0.15)',
-      }}
-    >
-      <img
-        src={logoUrl}
-        alt={teamName ?? 'escudo'}
-        className="w-full h-full object-contain"
-        onError={() => setImgError(true)}
-        loading="lazy"
-      />
-    </div>
+    <img
+      src={logoUrl}
+      alt={teamName ?? 'escudo'}
+      className="flex-shrink-0 object-contain"
+      style={{ width: size, height: size }}
+      onError={() => setImgError(true)}
+      loading="lazy"
+    />
   );
 };
 
