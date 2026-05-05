@@ -91,6 +91,7 @@ async function pushResult(localMatchId: string, apiMatch: any, adminToken: strin
       homeScore: apiMatch.score?.fullTime?.home ?? 0,
       awayScore: apiMatch.score?.fullTime?.away ?? 0,
       status,
+      isManualOverride: false,
     },
     {
       headers: {

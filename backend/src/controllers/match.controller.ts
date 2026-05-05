@@ -130,7 +130,7 @@ export async function setMatchResult(req: AuthRequest, res: Response): Promise<v
   }
   try {
     const { id } = req.params;
-    const { homeScore, awayScore, status } = req.body;
+    const { homeScore, awayScore, status, isManualOverride = true } = req.body;
 
     // Validações
     if (homeScore === undefined || awayScore === undefined) {
@@ -168,7 +168,7 @@ export async function setMatchResult(req: AuthRequest, res: Response): Promise<v
         homeScore,
         awayScore,
         status: (status as MatchStatus) ?? MatchStatus.FINISHED,
-        isManualOverride: true,
+        isManualOverride,
       },
       include: {
         round: {
