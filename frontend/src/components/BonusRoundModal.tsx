@@ -42,9 +42,13 @@ export function BonusRoundModal({ isOpen, onClose, rounds, onConfirm }: Props) {
 
     timeoutRef.current = window.setTimeout(async () => {
       try {
+        const randomIndex = Math.floor(Math.random() * availableRounds.length);
+        const selected = availableRounds[randomIndex];
+
+        setCurrentIndex(randomIndex);
         setSpinning(false);
         setConfirming(true);
-        const selected = availableRounds[currentIndex];
+
         await onConfirm(selected.id);
       } finally {
         setConfirming(false);
