@@ -458,12 +458,24 @@ const canPredict = isAuthenticated && isMember && !locked;
             <button
               onClick={handleSave}
               disabled={saving || locked || ((homeInput === '' || awayInput === '') && !(homeInput === '' && awayInput === ''))}
-              className="absolute right-2 top-3 h-10 px-3 sm:right-4 sm:top-4 sm:h-11 sm:px-4 rounded-xl font-bold text-xs sm:text-sm bg-brand hover:bg-brand-light text-white disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-md"
+              className="hidden sm:flex absolute right-4 top-4 h-11 px-4 rounded-xl font-bold text-sm bg-brand hover:bg-brand-light text-white disabled:opacity-40 transition-all items-center gap-1.5 shadow-md"
             >
               {saving ? <Spinner size="sm" /> : <><Zap size={13} /> Salvar</>}
             </button>
           )}
         </div>
+        {hasUnsavedChanges && (
+          <div className="sm:hidden px-4 pb-2">
+            <button
+              onClick={handleSave}
+              disabled={saving || locked || ((homeInput === '' || awayInput === '') && !(homeInput === '' && awayInput === ''))}
+              className="w-full h-11 rounded-xl font-bold text-sm bg-brand hover:bg-brand-light text-white disabled:opacity-40 transition-all flex items-center justify-center gap-1.5 shadow-md"
+            >
+              {saving ? <Spinner size="sm" /> : <><Zap size={13} /> Salvar palpite</>}
+            </button>
+          </div>
+        )}
+
         {/* Linha secundária: data + prazo + badges */}
         <div className="flex items-center justify-between px-4 pb-2 gap-2">
           <span className="text-xs text-zinc-600 flex items-center gap-1">
