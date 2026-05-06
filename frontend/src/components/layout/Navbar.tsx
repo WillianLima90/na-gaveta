@@ -220,8 +220,11 @@ export function Navbar() {
                   <div className="w-6 h-6 rounded-full bg-brand/20 flex items-center justify-center">
                     <User className="w-3 h-3 text-brand" />
                   </div>
-                  <span className="text-sm text-text-primary font-medium group-hover:text-brand transition-colors">
-                    {user?.name.split(' ')[0]}
+                  <span className="flex flex-col leading-tight">
+                    <span className="text-[10px] uppercase tracking-wide text-zinc-500">Você está como</span>
+                    <span className="text-sm text-white font-black group-hover:text-brand transition-colors">
+                      {user?.name}
+                    </span>
                   </span>
                   <ChevronDown className="w-3 h-3 text-zinc-500" />
                 </Link>

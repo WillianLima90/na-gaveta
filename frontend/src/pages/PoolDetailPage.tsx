@@ -648,10 +648,10 @@ const rightColumn = (
           title="Copiar código de convite"
         >
           <span className="text-[10px] uppercase tracking-wide text-zinc-500 font-bold">Código do convite</span>
-          <span className="font-mono font-black text-base text-white tracking-widest">{pool.code}</span>
-          <span className="text-xs text-zinc-400 flex items-center gap-1">
+          <span className="font-mono font-black text-lg text-white tracking-widest">{pool.code}</span>
+          <span className="text-xs text-zinc-300 flex items-center gap-1">
             {codeCopied ? <Check size={10} className="text-green-400" /> : <Copy size={10} />}
-            {codeCopied ? 'Copiado' : 'Copiar'}
+            {codeCopied ? 'Copiado!' : 'Clique para copiar'}
           </span>
         </button>
       </div>
