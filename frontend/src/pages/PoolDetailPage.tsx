@@ -609,7 +609,7 @@ const rightColumn = (
   );
 
   return (
-    <div className="max-w-[1500px] mx-auto px-6 py-6">
+    <div className="max-w-[1500px] mx-auto px-3 sm:px-6 py-4 sm:py-6">
       {saveMessage && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-green-600 text-white text-sm font-bold px-4 py-2 rounded-xl shadow-lg z-50">
           {saveMessage}
@@ -626,18 +626,18 @@ const rightColumn = (
       </Link>
 
       {/* ── CABEÇALHO DO BOLÃO ──────────────────────────────── */}
-      <div className="flex items-center gap-3 mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
         <div className="w-12 h-12 rounded-xl bg-brand/20 flex items-center justify-center flex-shrink-0">
           <Trophy size={24} className="text-brand" />
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 w-full">
           {pool.championship && (
             <p className="text-xs text-zinc-500 uppercase tracking-wider truncate">
               {pool.championship.name} · {pool.championship.season}
             </p>
           )}
           <h1 className="text-lg font-black text-white leading-tight truncate">{pool.name}</h1>
-          <div className="flex items-center gap-2 mt-0.5">
+          <div className="flex flex-wrap items-center gap-2 mt-1">
             <span className="text-xs text-zinc-500 flex items-center gap-1">
               <Users size={10} />
               {pool._count?.members ?? 0}
@@ -662,7 +662,7 @@ const rightColumn = (
         </div>
         <button
           onClick={copyCode}
-          className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 transition-colors flex-shrink-0"
+          className="w-full sm:w-auto flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 transition-colors flex-shrink-0"
           title="Copiar código de convite"
         >
           <span className="text-[10px] uppercase tracking-wide text-zinc-500 font-bold">Código do convite</span>

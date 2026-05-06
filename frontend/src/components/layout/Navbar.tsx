@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Trophy, LogOut, User, LayoutDashboard, ChevronDown, Bell, AlertTriangle, Clock, Info } from 'lucide-react';
+import { Menu, X, Trophy, LogOut, User, LayoutDashboard, Bell, AlertTriangle, Clock, Info } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../ui';
 
@@ -213,9 +213,8 @@ export function Navbar() {
                   )}
                 </div>
 
-                <Link
-                  to="/profile"
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-bg-elevated border border-border-subtle hover:border-zinc-600 transition-colors group"
+                <div
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-bg-elevated border border-border-subtle"
                 >
                   <div className="w-6 h-6 rounded-full bg-brand/20 flex items-center justify-center">
                     <User className="w-3 h-3 text-brand" />
@@ -226,8 +225,7 @@ export function Navbar() {
                       {user?.name}
                     </span>
                   </span>
-                  <ChevronDown className="w-3 h-3 text-zinc-500" />
-                </Link>
+                </div>
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-colors"
@@ -282,14 +280,12 @@ export function Navbar() {
             <div className="pt-2 border-t border-border-subtle mt-2 space-y-2">
               {isAuthenticated ? (
                 <>
-                  <Link
-                    to="/profile"
-                    onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors"
+                  <div
+                    className="flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-text-secondary"
                   >
                     <User className="w-4 h-4" />
                     {user?.name}
-                  </Link>
+                  </div>
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-red-400 hover:bg-red-500/10 transition-colors"
