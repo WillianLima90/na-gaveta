@@ -113,20 +113,7 @@ export function LoginPage() {
             </Button>
           </form>
 
-          {/* ── Credenciais de teste (apenas em dev) ─────────── */}
-          {import.meta.env.DEV && (
-            <div className="mt-4 p-3 rounded-xl bg-bg-elevated border border-border-subtle">
-              <p className="text-xs text-text-muted font-medium mb-2">🧪 Credenciais de teste:</p>
-              <button
-                type="button"
-                onClick={() => { setEmail('admin@nagaveta.com'); setPassword('senha123'); }}
-                className="text-xs text-brand hover:underline block"
-              >
-                admin@nagaveta.com / senha123
-              </button>
-            </div>
-          )}
-        </div>
+          {/* ── 
 
         {/* ── Link para cadastro ───────────────────────────── */}
         <p className="text-center text-text-secondary text-sm mt-6">
