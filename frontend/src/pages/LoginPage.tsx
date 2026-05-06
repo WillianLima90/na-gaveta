@@ -113,7 +113,7 @@ export function LoginPage() {
             </Button>
           </form>
 
-          {/* ── 
+        </div>
 
         {/* ── Link para cadastro ───────────────────────────── */}
         <p className="text-center text-text-secondary text-sm mt-6">
