@@ -382,6 +382,7 @@ export default function PoolDetailPage() {
               poolId={id!}
               currentUserId={user?.id}
               rounds={rounds}
+              bonusRoundId={pool?.bonusRoundId}
               selectedRoundId={selectedRoundId}
               onSelectRound={setSelectedRoundId}
               isAuthenticated={isAuthenticated}
