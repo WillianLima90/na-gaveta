@@ -214,11 +214,29 @@ export default function PoolDetailPage() {
     } finally { setJoining(false); }
   }
 
-  function copyCode() {
+  async function copyCode() {
     if (!pool) return;
-    navigator.clipboard.writeText(pool.code);
-    setCodeCopied(true);
-    setTimeout(() => setCodeCopied(false), 2000);
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(pool.code);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = pool.code;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+    } catch {
+      alert(`Código do convite: ${pool.code}`);
+    }
   }
 
   function handlePredictionSaved(matchId: string, prediction: MyPrediction | null) {
