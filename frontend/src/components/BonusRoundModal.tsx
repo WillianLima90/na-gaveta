@@ -4,7 +4,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   rounds: { id: string; number: number; startDate: string }[];
-  onConfirm: (roundId: string) => Promise<void>;
+  onConfirm: (roundId: string) => Promise<{ roundNumber: number }>;
 }
 
 export function BonusRoundModal({ isOpen, onClose, rounds, onConfirm }: Props) {
@@ -12,6 +12,7 @@ export function BonusRoundModal({ isOpen, onClose, rounds, onConfirm }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [resultRoundNumber, setResultRoundNumber] = useState<number | null>(null);
   const timeoutRef = useRef<number | null>(null);
   const intervalRef = useRef<number | null>(null);
 
@@ -34,6 +35,7 @@ export function BonusRoundModal({ isOpen, onClose, rounds, onConfirm }: Props) {
     if (!isOpen) {
       setSpinning(false);
       setConfirming(false);
+      setResultRoundNumber(null);
       if (timeoutRef.current) {
         window.clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
@@ -60,7 +62,12 @@ export function BonusRoundModal({ isOpen, onClose, rounds, onConfirm }: Props) {
         setSpinning(false);
         setConfirming(true);
 
-        await onConfirm(selected.id);
+        const result = await onConfirm(selected.id);
+        setResultRoundNumber(result.roundNumber);
+
+        window.setTimeout(() => {
+          window.location.reload();
+        }, 1200);
       } finally {
         setConfirming(false);
         timeoutRef.current = null;
@@ -77,7 +84,7 @@ export function BonusRoundModal({ isOpen, onClose, rounds, onConfirm }: Props) {
 
         <div className="h-20 flex items-center justify-center mb-6">
           <div className="text-2xl font-black text-brand">
-            Rodada {availableRounds[currentIndex]?.number}
+            Rodada {resultRoundNumber ?? availableRounds[currentIndex]?.number}
           </div>
         </div>
 
@@ -86,7 +93,7 @@ export function BonusRoundModal({ isOpen, onClose, rounds, onConfirm }: Props) {
           disabled={spinning || confirming || availableRounds.length === 0}
           className="w-full py-2 rounded-xl bg-brand text-white font-semibold hover:bg-brand-light transition disabled:opacity-50"
         >
-          {availableRounds.length === 0 ? 'Sem rodadas futuras' : confirming ? 'Confirmando...' : spinning ? 'Sorteando...' : 'Girar'}
+          {availableRounds.length === 0 ? 'Sem rodadas futuras' : resultRoundNumber ? 'Rodada sorteada!' : confirming ? 'Confirmando...' : spinning ? 'Sorteando...' : 'Girar'}
         </button>
 
         <button

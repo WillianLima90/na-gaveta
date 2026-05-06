@@ -159,14 +159,13 @@ export function RulesTab({ poolId, isOwner, bonusRoundNumber, roundOptions, onRu
 
       if (!response.ok) {
         alert(data?.error || 'Erro ao sortear rodada bônus');
-        return;
+        throw new Error(data?.error || 'Erro ao sortear rodada bônus');
       }
 
-      setShowBonusModal(false);
-      alert(`Rodada bônus sorteada: Rodada ${data.roundNumber}`);
-      window.location.reload();
+      return { roundNumber: data.roundNumber };
     } catch {
       alert('Erro ao sortear rodada bônus');
+      throw new Error('Erro ao sortear rodada bônus');
     }
   }
 
