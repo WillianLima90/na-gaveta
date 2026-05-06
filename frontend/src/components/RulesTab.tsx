@@ -146,7 +146,7 @@ export function RulesTab({ poolId, isOwner, bonusRoundNumber, roundOptions, onRu
 
   async function handleConfirmBonusRound(roundId: string) {
     try {
-      const response = await fetch(`http://localhost:3001/api/pools/${poolId}/bonus/draw`, {
+      const response = await fetch(`/api/pools/${poolId}/bonus/draw`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
