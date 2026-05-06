@@ -13,15 +13,21 @@ export function BonusRoundModal({ isOpen, onClose, rounds, onConfirm }: Props) {
   const [spinning, setSpinning] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const timeoutRef = useRef<number | null>(null);
+  const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!spinning || availableRounds.length === 0) return;
 
-    const interval = window.setInterval(() => {
+    intervalRef.current = window.setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % availableRounds.length);
     }, 80);
 
-    return () => window.clearInterval(interval);
+    return () => {
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
   }, [spinning, availableRounds.length]);
 
   useEffect(() => {
@@ -44,6 +50,11 @@ export function BonusRoundModal({ isOpen, onClose, rounds, onConfirm }: Props) {
       try {
         const randomIndex = Math.floor(Math.random() * availableRounds.length);
         const selected = availableRounds[randomIndex];
+
+        if (intervalRef.current) {
+          window.clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
 
         setCurrentIndex(randomIndex);
         setSpinning(false);
