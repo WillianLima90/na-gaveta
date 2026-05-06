@@ -144,7 +144,7 @@ export function RulesTab({ poolId, isOwner, bonusRoundNumber, roundOptions, onRu
     setError(null);
   }
 
-  async function handleConfirmBonusRound() {
+  async function handleConfirmBonusRound(roundId: string) {
     try {
       const response = await fetch(`/api/pools/${poolId}/bonus/draw`, {
         method: 'POST',
@@ -152,7 +152,7 @@ export function RulesTab({ poolId, isOwner, bonusRoundNumber, roundOptions, onRu
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('ng_token')}`,
         },
-        
+        body: JSON.stringify({ roundId }),
       });
 
       const data = await response.json();
