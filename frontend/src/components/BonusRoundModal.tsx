@@ -67,7 +67,7 @@ export function BonusRoundModal({ isOpen, onClose, rounds, onConfirm }: Props) {
 
         window.setTimeout(() => {
           window.location.reload();
-        }, 1200);
+        }, 2500);
       } finally {
         setConfirming(false);
         timeoutRef.current = null;
