@@ -183,8 +183,8 @@ export function RoundNavigator({
               )}
 
               {r.id === bonusRoundId && (
-                <span className="absolute left-1/2 -translate-x-1/2 -top-0.5 z-10 px-1.5 py-[1px] text-[9px] font-medium rounded-full bg-purple-500 text-white">
-                  BONUS
+                <span className="mt-1 px-2 py-[2px] text-[9px] font-bold rounded-full bg-purple-500 text-white shadow-sm">
+                  ✨ BÔNUS
                 </span>
               )}
 
