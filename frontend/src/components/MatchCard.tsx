@@ -434,9 +434,9 @@ const canPredict = isAuthenticated && isMember && !locked;
             </button>
           )}
           <div className="flex justify-center w-full">
-            <div className="grid grid-cols-[minmax(180px,1fr)_140px_minmax(180px,1fr)] items-center gap-5 w-full max-w-[640px] mx-auto">
+            <div className="grid grid-cols-[minmax(82px,1fr)_104px_minmax(82px,1fr)] sm:grid-cols-[minmax(180px,1fr)_140px_minmax(180px,1fr)] items-center gap-2 sm:gap-5 w-full max-w-[640px] mx-auto">
               <div className="flex items-center justify-end gap-2 min-w-0">
-                <span className="text-right text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
+                <span className="text-right text-xs sm:text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
                 {getTeamLogo(match.homeTeam) && (
                   <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
                 )}
@@ -450,7 +450,7 @@ const canPredict = isAuthenticated && isMember && !locked;
                 {getTeamLogo(match.awayTeam) && (
                   <img src={getTeamLogo(match.awayTeam)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
                 )}
-                <span className="text-left text-sm font-bold text-white truncate">{teamName(match.awayTeam)}</span>
+                <span className="text-left text-xs sm:text-sm font-bold text-white truncate">{teamName(match.awayTeam)}</span>
               </div>
             </div>
           </div>
@@ -458,7 +458,7 @@ const canPredict = isAuthenticated && isMember && !locked;
             <button
               onClick={handleSave}
               disabled={saving || locked || ((homeInput === '' || awayInput === '') && !(homeInput === '' && awayInput === ''))}
-              className="absolute right-4 top-4 h-11 px-4 rounded-xl font-bold text-sm bg-brand hover:bg-brand-light text-white disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-md"
+              className="absolute right-2 top-3 h-10 px-3 sm:right-4 sm:top-4 sm:h-11 sm:px-4 rounded-xl font-bold text-xs sm:text-sm bg-brand hover:bg-brand-light text-white disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-md"
             >
               {saving ? <Spinner size="sm" /> : <><Zap size={13} /> Salvar</>}
             </button>
@@ -486,7 +486,7 @@ const canPredict = isAuthenticated && isMember && !locked;
       <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${match.myPrediction?.isJoker ? "border-yellow-400/70 bg-brand/8 shadow-lg shadow-yellow-500/20" : "border-brand/40 bg-brand/8"}`}>
         <div className="flex items-center justify-center px-4 pt-2.5 pb-1.5">
           <div className="flex-1 flex items-center justify-end gap-2 min-w-0 pr-5">
-            <span className="text-right text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
+            <span className="text-right text-xs sm:text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
             {getTeamLogo(match.homeTeam) && (
               <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
             )}
@@ -503,7 +503,7 @@ const canPredict = isAuthenticated && isMember && !locked;
             {getTeamLogo(match.awayTeam) && (
               <img src={getTeamLogo(match.awayTeam)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
             )}
-            <span className="text-left text-sm font-bold text-white truncate">{teamName(match.awayTeam)}</span>
+            <span className="text-left text-xs sm:text-sm font-bold text-white truncate">{teamName(match.awayTeam)}</span>
           </div>
           <button
             onClick={startEditing}
@@ -533,7 +533,7 @@ const canPredict = isAuthenticated && isMember && !locked;
       <div className="max-w-4xl mx-auto rounded-2xl border border-brand/60 bg-brand/8 shadow-lg">
         <div className="flex items-center justify-center px-4 pt-2.5 pb-1.5">
           <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
-            <span className="text-right text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
+            <span className="text-right text-xs sm:text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
             {getTeamLogo(match.homeTeam) && (
               <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
             )}
@@ -547,12 +547,12 @@ const canPredict = isAuthenticated && isMember && !locked;
             {getTeamLogo(match.awayTeam) && (
               <img src={getTeamLogo(match.awayTeam)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
             )}
-            <span className="text-left text-sm font-bold text-white truncate">{teamName(match.awayTeam)}</span>
+            <span className="text-left text-xs sm:text-sm font-bold text-white truncate">{teamName(match.awayTeam)}</span>
           </div>
           <button
             onClick={handleSave}
             disabled={saving || ((homeInput === '' || awayInput === '') && !(homeInput === '' && awayInput === ''))}
-            className="absolute right-4 top-4 h-11 px-4 rounded-xl font-bold text-sm bg-brand hover:bg-brand-light text-white disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-md"
+            className="absolute right-2 top-3 h-10 px-3 sm:right-4 sm:top-4 sm:h-11 sm:px-4 rounded-xl font-bold text-xs sm:text-sm bg-brand hover:bg-brand-light text-white disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-md"
           >
             {saving ? <Spinner size="sm" /> : <><Check size={13} /> Atualizar</>}
           </button>
