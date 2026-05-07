@@ -177,12 +177,13 @@ const RESULT_CFG = {
 
 // ── Input de placar compacto ──────────────────────────────────
 function ScoreInput({
-  value, onChange, inputRef, autoFocus,
+  value, onChange, inputRef, autoFocus, onActivate,
 }: {
   value: string;
   onChange: (v: string) => void;
   inputRef?: React.RefObject<HTMLInputElement | null>;
   autoFocus?: boolean;
+  onActivate?: () => void;
 }) {
   return (
     <input
@@ -193,6 +194,7 @@ function ScoreInput({
       pattern="[0-9]*"
       value={value}
       onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 2))}
+      onPointerDown={onActivate}
       onFocus={(e) => e.target.select()}
       placeholder="–"
       maxLength={2}
