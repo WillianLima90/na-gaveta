@@ -494,6 +494,53 @@ const canPredict = isAuthenticated && isMember && !locked;
     );
   }
 
+  // ── CARD: PALPITE SALVO (ainda editável) ─────────────────────
+  if (!locked && canPredict && saved && !editing) {
+    return (
+      <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${match.myPrediction?.isJoker ? "border-yellow-400/70 bg-brand/8 shadow-lg shadow-yellow-500/20" : "border-brand/40 bg-brand/8"}`}>
+        <div className="flex items-center justify-center px-4 pt-2.5 pb-1.5">
+          <div className="flex-1 flex items-center justify-end gap-2 min-w-0 pr-5">
+            <span className="text-right text-xs sm:text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
+            {getTeamLogo(match.homeTeam) && (
+              <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
+            )}
+          </div>
+          <div
+            onClick={startEditing}
+            className="flex items-center gap-2 shrink-0 cursor-pointer"
+          >
+            <span className={`w-11 h-11 flex items-center justify-center text-base font-black text-white bg-transparent border rounded-xl tabular-nums shadow-inner ${match.myPrediction?.isJoker ? "border-yellow-400/60" : "border-brand/40"}`}>{homeInput}</span>
+            <span className="text-zinc-500 text-base font-black">×</span>
+            <span className={`w-11 h-11 flex items-center justify-center text-base font-black text-white bg-transparent border rounded-xl tabular-nums shadow-inner ${match.myPrediction?.isJoker ? "border-yellow-400/60" : "border-brand/40"}`}>{awayInput}</span>
+          </div>
+          <div className="flex-1 flex items-center justify-start gap-2 min-w-0 pl-5">
+            {getTeamLogo(match.awayTeam) && (
+              <img src={getTeamLogo(match.awayTeam)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
+            )}
+            <span className="text-left text-xs sm:text-sm font-bold text-white truncate">{teamName(match.awayTeam)}</span>
+          </div>
+          <button
+            onClick={startEditing}
+            className="shrink-0 h-8 px-3 rounded-lg font-semibold text-xs border border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500 transition-all flex items-center gap-1"
+          >
+            <Edit2 size={11} /> Editar
+          </button>
+        </div>
+        <div className="flex items-center justify-between px-4 pb-2 gap-2">
+          <span className="text-xs text-zinc-600 flex items-center gap-1">
+            <Clock size={9} /> {formatCompact(match.matchDate)}
+          </span>
+          <div className="flex items-center gap-1.5">
+            {match.myPrediction?.isJoker && <ModBadge type="joker" />}
+            {round.isBonusRound && <ModBadge type="bonus" />}
+            <LockInfo />
+            <span className="flex items-center gap-1 text-xs text-brand font-semibold"><Check size={10} /> Salvo</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ── CARD: MODO EDIÇÃO ─────────────────────────────────────────
   if (canPredict && editing && !locked) {
     return (
