@@ -821,14 +821,19 @@ function PredictionSection({ title, defaultOpen, badge, children }: PredictionSe
     <div className="mb-3">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between mb-2 group py-1"
+        className={`w-full flex items-center justify-between mb-2 group px-3 py-2 rounded-xl border transition-all ${
+          open
+            ? 'bg-zinc-900/80 border-zinc-700/70'
+            : 'bg-brand/10 border-brand/30 shadow-sm shadow-brand/10'
+        }`}
       >
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-zinc-500 uppercase tracking-wide">{title}</span>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-xs font-bold text-zinc-300 uppercase tracking-wide truncate">{title}</span>
           {badge}
         </div>
-        <span className="text-zinc-600 group-hover:text-zinc-400 transition-colors text-xs">
-          {open ? '▲' : '▼'}
+        <span className="shrink-0 flex items-center gap-1.5 text-xs font-semibold text-zinc-400 group-hover:text-white transition-colors">
+          {open ? 'Ocultar' : 'Mostrar'}
+          <span className="text-[10px]">{open ? '▲' : '▼'}</span>
         </span>
       </button>
       {open && children}
