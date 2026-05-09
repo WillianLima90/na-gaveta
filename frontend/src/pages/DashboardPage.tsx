@@ -102,10 +102,6 @@ export function DashboardPage() {
     );
   }
 
-  // Bolão com mais palpites pendentes (destino do CTA principal)
-  const firstPoolWithPending = pools.find((p) => (p.summary?.pendingMatches ?? 0) > 0);
-  const ctaPoolId = firstPoolWithPending?.id ?? pools[0]?.id;
-
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 animate-fade-in">
 
