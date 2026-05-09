@@ -143,17 +143,15 @@ export function DashboardPage() {
                 </div>
                 <div>
                   <p className="font-black text-white text-lg leading-tight">
-                    {totalPending === 1
-                      ? '1 jogo esperando seu palpite'
-                      : `${totalPending} jogos esperando seus palpites`}
+                    Pronto para palpitar?
                   </p>
                   <p className="text-xs text-zinc-400 mt-0.5">
-                    Os palpites fecham no início de cada partida
+                    Veja seus bolões e envie os palpites da próxima rodada
                   </p>
                 </div>
               </div>
               <button
-                onClick={() => ctaPoolId && navigate(`/pools/${ctaPoolId}`)}
+                onClick={() => navigate("/pools")}
                 className="w-full flex items-center justify-center gap-3 py-4 bg-brand hover:bg-brand-light text-white font-black text-xl rounded-xl transition-all shadow-lg shadow-brand/30 active:scale-[0.98]"
               >
                 <Zap size={22} />
