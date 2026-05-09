@@ -1,4 +1,5 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+dotenv.config({ override: true });
 import app from './app';
 import { startReminderCron, startResultsSyncCron } from './services/cron.service';
 
