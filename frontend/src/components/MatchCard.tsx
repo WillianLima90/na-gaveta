@@ -407,7 +407,7 @@ const canPredict = isAuthenticated && isMember && !locked;
     return (
       <div ref={cardRef} className="relative max-w-4xl mx-auto rounded-2xl border border-zinc-700/60 bg-zinc-900 shadow-lg">
         {/* Linha principal: times + inputs grandes + salvar */}
-        <div className="flex items-center justify-center px-4 pt-2.5 pb-1.5">
+        <div className="flex items-center justify-center px-2 sm:px-4 pt-2.5 pb-1.5">
           {jokerEnabled && (
             <button
               onClick={() => {
@@ -426,13 +426,14 @@ const canPredict = isAuthenticated && isMember && !locked;
                   });
                 }
               }}
-              className={`absolute left-4 top-5 text-xs px-2 py-0.5 rounded-full flex items-center gap-1 border transition-colors ${
+              className={`absolute left-2 sm:left-4 top-4 sm:top-5 w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-0.5 rounded-full flex items-center justify-center sm:gap-1 border transition-colors text-sm sm:text-xs ${
                 isJokerSelected
                   ? 'text-yellow-400 bg-yellow-400/20 border-yellow-400/40'
                   : 'text-zinc-400 bg-zinc-800 border-zinc-700 hover:bg-zinc-700'
               }`}
             >
-              ⚡ {isJokerSelected ? 'Coringa' : 'Usar coringa'}
+              <span>⚡</span>
+              <span className="hidden sm:inline">{isJokerSelected ? 'Coringa' : 'Usar coringa'}</span>
             </button>
           )}
           <div className="flex justify-center w-full">
@@ -499,7 +500,7 @@ const canPredict = isAuthenticated && isMember && !locked;
     return (
       <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${match.myPrediction?.isJoker ? "border-yellow-400/70 bg-brand/8 shadow-lg shadow-yellow-500/20" : "border-brand/40 bg-brand/8"}`}>
         <div className="flex items-center justify-center px-4 pt-2.5 pb-1.5">
-          <div className="flex-1 flex items-center justify-end gap-2 min-w-0 pr-5">
+          <div className="flex-1 flex items-center justify-end gap-1.5 min-w-0 pr-2 sm:pr-5">
             <span className="text-right text-xs sm:text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
             {getTeamLogo(match.homeTeam) && (
               <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
@@ -507,13 +508,13 @@ const canPredict = isAuthenticated && isMember && !locked;
           </div>
           <div
             onClick={startEditing}
-            className="flex items-center gap-2 shrink-0 cursor-pointer"
+            className="flex items-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer"
           >
-            <span className={`w-11 h-11 flex items-center justify-center text-base font-black text-white bg-transparent border rounded-xl tabular-nums shadow-inner ${match.myPrediction?.isJoker ? "border-yellow-400/60" : "border-brand/40"}`}>{homeInput}</span>
+            <span className={`w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center text-base font-black text-white bg-transparent border rounded-xl tabular-nums shadow-inner ${match.myPrediction?.isJoker ? "border-yellow-400/60" : "border-brand/40"}`}>{homeInput}</span>
             <span className="text-zinc-500 text-base font-black">×</span>
-            <span className={`w-11 h-11 flex items-center justify-center text-base font-black text-white bg-transparent border rounded-xl tabular-nums shadow-inner ${match.myPrediction?.isJoker ? "border-yellow-400/60" : "border-brand/40"}`}>{awayInput}</span>
+            <span className={`w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center text-base font-black text-white bg-transparent border rounded-xl tabular-nums shadow-inner ${match.myPrediction?.isJoker ? "border-yellow-400/60" : "border-brand/40"}`}>{awayInput}</span>
           </div>
-          <div className="flex-1 flex items-center justify-start gap-2 min-w-0 pl-5">
+          <div className="flex-1 flex items-center justify-start gap-1.5 min-w-0 pl-2 sm:pl-5">
             {getTeamLogo(match.awayTeam) && (
               <img src={getTeamLogo(match.awayTeam)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
             )}
@@ -521,7 +522,7 @@ const canPredict = isAuthenticated && isMember && !locked;
           </div>
           <button
             onClick={startEditing}
-            className="shrink-0 h-8 px-3 rounded-lg font-semibold text-xs border border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500 transition-all flex items-center gap-1"
+            className="hidden sm:flex shrink-0 h-8 px-3 rounded-lg font-semibold text-xs border border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500 transition-all items-center gap-1"
           >
             <Edit2 size={11} /> Editar
           </button>
