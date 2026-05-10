@@ -41,7 +41,7 @@ const MEDAL_BG = [
   'rgba(192,192,192,0.06)',
   'rgba(205,127,50,0.06)',
 ];
-const MEDAL_TEXT = ['#FFD700', '#C0C0C0', '#CD7F32'];
+const MEDAL_TEXT = ['#FFD700', '#F4F4F5', '#CD7F32'];
 
 interface RoundEntry {
   userId: string;
@@ -353,8 +353,7 @@ export function RankingBlock({
             Pts
           </SortLabel>
           <SortLabel column="exact" title="Acertos exatos de placar">
-            <Target size={9} className="text-yellow-500 flex-shrink-0" />
-            <span>Ex</span>
+            <Target size={10} className="text-red-500 fill-white flex-shrink-0" />
           </SortLabel>
           <SortLabel column="heart" title="Pontos nos jogos do time do coração">
             ❤️
@@ -410,23 +409,6 @@ export function RankingBlock({
 
               return (
                 <div key={row.userId}>
-                  {/* Badge de disputa entre linhas */}
-                  {isDispute && i > 0 && (
-                    <div className="flex items-center justify-center py-0.5">
-                      <span
-                        className="text-xs font-bold px-2 py-0.5 rounded-full"
-                        style={{
-                          background: 'rgba(249,115,22,0.12)',
-                          color: '#F97316',
-                          fontSize: '9px',
-                          letterSpacing: '0.05em',
-                        }}
-                      >
-                        ⚡ {prevPts! - row.pts === 0 ? 'EMPATE' : `${prevPts! - row.pts} pts de diferença`}
-                      </span>
-                    </div>
-                  )}
-
                   <div
                     className="transition-all"
                     style={{
@@ -457,13 +439,18 @@ export function RankingBlock({
                           <div className="flex items-center gap-1">
                             <span
                               className={`${pos === 1 ? 'text-sm' : 'text-xs'} font-semibold truncate`}
-                              style={{ color: isCurrentUser ? '#F97316' : medalTextColor ?? '#E5E7EB' }}
+                              style={{ color: medalTextColor ?? '#E5E7EB' }}
                             >
                               {row.name.split(' ')[0]}
                             </span>
                             {isCurrentUser && (
-                              <span className="text-xs flex-shrink-0" style={{ color: 'rgba(249,115,22,0.45)' }}>
+                              <span className="text-xs flex-shrink-0 text-zinc-500">
                                 você
+                              </span>
+                            )}
+                            {isDispute && i > 0 && (
+                              <span className="text-[9px] font-semibold text-zinc-500 flex-shrink-0">
+                                {prevPts! - row.pts === 0 ? 'empate' : `-${prevPts! - row.pts} pts`}
                               </span>
                             )}
                             {row.wonThisRound && (
@@ -484,7 +471,7 @@ export function RankingBlock({
                       <div className="text-right">
                         <span
                           className={`${pos === 1 ? 'text-sm' : 'text-xs'} font-black tabular-nums`}
-                          style={{ color: isCurrentUser ? '#F97316' : medalTextColor ?? '#A1A1AA' }}
+                          style={{ color: '#E5E7EB' }}
                         >
                           {row.pts}
                         </span>
@@ -493,7 +480,7 @@ export function RankingBlock({
                       {/* Acertos exatos */}
                       <div className="text-right">
                         {row.exact > 0 ? (
-                          <span className="text-xs font-bold tabular-nums text-yellow-500">
+                          <span className="text-xs font-bold tabular-nums text-zinc-100">
                             {row.exact}
                           </span>
                         ) : (
@@ -503,7 +490,7 @@ export function RankingBlock({
 
                       {/* ❤️ Pontos do time do coração */}
                       <div className="text-right">
-                        <span className="text-xs font-bold tabular-nums text-pink-500">
+                        <span className="text-xs font-bold tabular-nums text-zinc-100">
                           {row.heart}
                         </span>
                       </div>
@@ -514,7 +501,7 @@ export function RankingBlock({
                           <span
                             className="text-xs font-semibold tabular-nums"
                             style={{
-                              color: displayRodPts > 0 ? '#71717A' : 'transparent',
+                              color: displayRodPts > 0 ? '#E5E7EB' : 'transparent',
                               textShadow: displayRodPts === 0 ? 'none' : undefined,
                               opacity: displayRodPts === 0 ? 0 : 1,
                             }}
@@ -539,17 +526,17 @@ export function RankingBlock({
         <div className="px-4 py-2 border-t border-zinc-800/40 flex items-center justify-between gap-2">
           {userRow && userRankPos >= 3 ? (
             <span className="text-xs text-zinc-500">
-              Você: <span className="text-brand font-bold">{userRankPos + 1}º</span>
+              Você: <span className="text-zinc-100 font-bold">{userRankPos + 1}º</span>
               <span className="text-zinc-600 mx-1">·</span>
               <span className="font-bold text-zinc-400">{userRow.pts} pts</span>
             </span>
           ) : (
             <span className="text-xs text-zinc-600 flex items-center gap-2">
               <span className="flex items-center gap-0.5">
-                <Target size={9} className="text-yellow-500" /> Exatos
+                <Target size={9} className="text-red-500 fill-white" /> Exatos
               </span>
               <span className="flex items-center gap-0.5">
-                <CheckCircle size={9} className="text-blue-500" /> Resultados
+                <CheckCircle size={9} className="text-zinc-300" /> Resultados
               </span>
               <span>· escudos = vitórias</span>
             </span>
