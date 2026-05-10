@@ -642,10 +642,17 @@ const canPredict = isAuthenticated && isMember && !locked;
           </div>
           {/* Pontos parciais ao vivo — destaque */}
           {isLive && pts !== null && (
-            <span className={`shrink-0 text-base font-black tabular-nums px-2 py-1 rounded-lg ${cfg?.ptsBg ?? 'bg-zinc-800'} ${cfg?.ptsText ?? 'text-zinc-400'}`}>
-              {pts > 0 ? `+${pts}` : '0'}
-              {isLivePts && <span className="text-xs opacity-60 ml-0.5">~</span>}
-            </span>
+            <div className="shrink-0 flex flex-col items-end gap-1">
+              <span className={`text-base font-black tabular-nums px-2 py-1 rounded-lg ${cfg?.ptsBg ?? 'bg-zinc-800'} ${cfg?.ptsText ?? 'text-zinc-400'}`}>
+                {pts > 0 ? `+${pts}` : '0'}
+              </span>
+
+              {isLivePts && (
+                <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide">
+                  parcial
+                </span>
+              )}
+            </div>
           )}
         </div>
         {isLive && hasScore && (
