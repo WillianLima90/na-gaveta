@@ -124,10 +124,35 @@ export async function upsertPrediction(req: AuthRequest, res: Response): Promise
       if (matchWithRound?.roundId) {
         const matchesInRound = await prisma.match.findMany({
           where: { roundId: matchWithRound.roundId },
-          select: { id: true },
+          select: { id: true, matchDate: true, status: true },
         });
 
         const matchIds = matchesInRound.map(m => m.id);
+
+        const lockedJoker = await prisma.prediction.findFirst({
+          where: {
+            userId,
+            poolId,
+            matchId: { in: matchIds },
+            isJoker: true,
+            NOT: { matchId },
+          },
+          include: {
+            match: {
+              select: { matchDate: true, status: true, homeTeam: true, awayTeam: true },
+            },
+          },
+        });
+
+        if (lockedJoker) {
+          const lockCheck = isPredictionOpen(lockedJoker.match.matchDate, lockedJoker.match.status);
+          if (!lockCheck.open) {
+            res.status(400).json({
+              error: `Coringa bloqueado em ${lockedJoker.match.homeTeam} x ${lockedJoker.match.awayTeam}. Não é possível trocar após o fechamento do jogo.`,
+            });
+            return;
+          }
+        }
 
         await prisma.prediction.updateMany({
           where: {

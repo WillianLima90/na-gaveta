@@ -256,8 +256,8 @@ export default function PoolDetailPage() {
 
           if (!match.myPrediction) return match;
 
-          // Se outro match tinha coringa, remove
-          if (match.myPrediction.isJoker) {
+          // Se o palpite salvo virou coringa, remove coringa dos outros jogos
+          if (prediction?.isJoker && match.myPrediction.isJoker) {
             return {
               ...match,
               myPrediction: { ...match.myPrediction, isJoker: false }
@@ -321,6 +321,14 @@ export default function PoolDetailPage() {
   const openMatches = allRoundMatches.filter(({ match }) => getMatchState(match) === 'OPEN');
   const doneMatches = allRoundMatches.filter(({ match }) => getMatchState(match) === 'PLACED');
   const finishedMatches = allRoundMatches.filter(({ match }) => getMatchState(match) === 'FINISHED');
+  const lockedJokerMatchId = allRoundMatches.find(({ match }) =>
+    Boolean(match.myPrediction?.isJoker) &&
+    (
+      match.status !== 'SCHEDULED' ||
+      new Date(match.matchDate).getTime() <= Date.now()
+    )
+  )?.match.id;
+
 
   const totalOpenCount = openMatches.length;
   const totalPlacedCount = doneMatches.length;
@@ -463,6 +471,7 @@ export default function PoolDetailPage() {
                   {openMatches.map(({ match, round }, idx) => (
                     <MatchCard
                       jokerEnabled={(pool as any)?.scoreRule?.jokerMultiplier > 1}
+                      jokerLockedByAnotherMatch={Boolean(lockedJokerMatchId && lockedJokerMatchId !== match.id)}
                       key={match.id}
                       match={match}
                       round={round}
@@ -501,6 +510,7 @@ export default function PoolDetailPage() {
                   {doneMatches.map(({ match, round }) => (
                     <MatchCard
                       jokerEnabled={(pool as any)?.scoreRule?.jokerMultiplier > 1}
+                      jokerLockedByAnotherMatch={Boolean(lockedJokerMatchId && lockedJokerMatchId !== match.id)}
                       key={match.id}
                       match={match}
                       round={round}
@@ -529,6 +539,7 @@ export default function PoolDetailPage() {
                   {finishedMatches.map(({ match, round }) => (
                     <MatchCard
                       jokerEnabled={(pool as any)?.scoreRule?.jokerMultiplier > 1}
+                      jokerLockedByAnotherMatch={Boolean(lockedJokerMatchId && lockedJokerMatchId !== match.id)}
                       key={match.id}
                       match={match}
                       round={round}

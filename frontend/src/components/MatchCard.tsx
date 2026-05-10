@@ -36,6 +36,7 @@ export interface MatchCardProps {
   onSingleSaveSuccess?: () => void;
   onViewOpponentPredictions?: (matchId: string) => void;
   jokerEnabled?: boolean;
+  jokerLockedByAnotherMatch?: boolean;
 }
 
 
@@ -213,14 +214,18 @@ function ModBadge({ type }: { type: 'joker' | 'bonus' }) {
 // ── Componente principal ──────────────────────────────────────
 export function MatchCard({
   match, round, poolId, isAuthenticated, isMember,
-  autoFocusFirst, onPredictionSaved, onPredictionChange, onSingleSaveSuccess, onViewOpponentPredictions, jokerEnabled = true,
+  autoFocusFirst, onPredictionSaved, onPredictionChange, onSingleSaveSuccess, onViewOpponentPredictions, jokerEnabled = true, jokerLockedByAnotherMatch = false,
 }: MatchCardProps) {
   const locked = isMatchLocked(match.matchDate, match.status);
   const hasPrediction = !!match.myPrediction;
 
   const [homeInput, setHomeInput] = useState(hasPrediction ? String(match.myPrediction!.homeScoreTip) : '');
   const [awayInput, setAwayInput] = useState(hasPrediction ? String(match.myPrediction!.awayScoreTip) : '');
-  const [isJokerSelected, setIsJokerSelected] = useState(Boolean(match.myPrediction && (match.myPrediction as MyPrediction & { isJoker?: boolean }).isJoker));
+  const [isJokerSelected, setIsJokerSelected] = useState(
+    jokerLockedByAnotherMatch
+      ? false
+      : Boolean(match.myPrediction && (match.myPrediction as MyPrediction & { isJoker?: boolean }).isJoker)
+  );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(hasPrediction);
   const [editing, setEditing] = useState(false);
@@ -301,13 +306,14 @@ const canPredict = isAuthenticated && isMember && !locked;
   // ── STAGING: enviar mudanças em tempo real ─────────────────
   useEffect(() => {
     if (!onPredictionChange) return;
+    if (locked || match.status !== 'SCHEDULED') return;
     if (homeInput === '' || awayInput === '') return;
 
     onPredictionChange(match.id, {
       id: match.myPrediction?.id || 'temp',
       homeScoreTip: Number(homeInput),
       awayScoreTip: Number(awayInput),
-      isJoker: isJokerSelected,
+      isJoker: jokerLockedByAnotherMatch ? false : isJokerSelected,
       points: match.myPrediction?.points ?? 0,
       scoredAt: match.myPrediction?.scoredAt ?? null,
       createdAt: match.myPrediction?.createdAt ?? new Date().toISOString(),
@@ -384,7 +390,13 @@ const canPredict = isAuthenticated && isMember && !locked;
     if (isNaN(home) || isNaN(away) || home < 0 || away < 0) { setError('Placares inválidos'); return; }
     setSaving(true); setError(null);
     try {
-      const pred = await savePrediction({ matchId: match.id, poolId, homeScoreTip: home, awayScoreTip: away, isJoker: isJokerSelected });
+      const pred = await savePrediction({
+        matchId: match.id,
+        poolId,
+        homeScoreTip: home,
+        awayScoreTip: away,
+        isJoker: jokerLockedByAnotherMatch ? false : isJokerSelected
+      });
       setSaved(true); setEditing(false);
       onPredictionSaved?.(match.id, { id: pred.id, homeScoreTip: home, awayScoreTip: away, isJoker: isJokerSelected, points: pred.points, scoredAt: pred.scoredAt, createdAt: pred.createdAt });
       onSingleSaveSuccess?.();
@@ -408,7 +420,7 @@ const canPredict = isAuthenticated && isMember && !locked;
       <div ref={cardRef} className="relative max-w-4xl mx-auto rounded-2xl border border-zinc-700/60 bg-zinc-900 shadow-lg">
         {/* Linha principal: times + inputs grandes + salvar */}
         <div className="flex items-center justify-center px-2 sm:px-4 pt-2.5 pb-1.5">
-          {jokerEnabled && (
+          {jokerEnabled && !jokerLockedByAnotherMatch && (
             <button
               onClick={() => {
                 const next = !isJokerSelected;
