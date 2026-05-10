@@ -94,11 +94,27 @@ function getMinutesUntilLock(matchDate: string): number {
 
 function formatCompact(dateStr: string): string {
   const d = new Date(dateStr);
-  return d.toLocaleString('pt-BR', {
+
+  const weekdayRaw = d.toLocaleDateString('pt-BR', {
     timeZone: SAO_PAULO_TZ,
-    weekday: 'short', day: '2-digit', month: '2-digit',
-    hour: '2-digit', minute: '2-digit',
+    weekday: 'short',
   });
+
+  const weekday = weekdayRaw.charAt(0).toUpperCase() + weekdayRaw.slice(1).replace('.', '');
+
+  const date = d.toLocaleDateString('pt-BR', {
+    timeZone: SAO_PAULO_TZ,
+    day: '2-digit',
+    month: '2-digit',
+  });
+
+  const time = d.toLocaleTimeString('pt-BR', {
+    timeZone: SAO_PAULO_TZ,
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  return `${weekday} · ${date} · <span class="text-zinc-300 font-semibold">${time}</span>`;
 }
 
 function formatTime(dateStr: string): string {
@@ -411,7 +427,8 @@ const canPredict = isAuthenticated && isMember && !locked;
     if (minsUntilLock !== null && minsUntilLock <= 30 && minsUntilLock > 0) {
       return <span className="text-xs text-orange-400 font-medium">Fecha em {minsUntilLock} min</span>;
     }
-    return <span className="text-xs text-zinc-600">Fecha às {formatTime(match.matchDate)}</span>;
+    const lockTime = new Date(new Date(match.matchDate).getTime() - 10 * 60 * 1000).toISOString();
+    return <span className="text-xs text-zinc-600">Fecha às <span className="text-zinc-300 font-semibold">{formatTime(lockTime)}</span></span>;
   }
 
   // ── CARD: PALPITE EM ABERTO (sem palpite salvo) ───────────────
@@ -494,7 +511,7 @@ const canPredict = isAuthenticated && isMember && !locked;
         {/* Linha secundária: data + prazo + badges */}
         <div className="flex items-center justify-between px-4 pb-2 gap-2">
           <span className="text-xs text-zinc-600 flex items-center gap-1">
-            <Clock size={9} /> {formatCompact(match.matchDate)}
+            <Clock size={9} /> <span dangerouslySetInnerHTML={{ __html: formatCompact(match.matchDate) }} />
           </span>
           <div className="flex items-center gap-1.5">
             {match.myPrediction?.isJoker && <ModBadge type="joker" />}
@@ -541,7 +558,7 @@ const canPredict = isAuthenticated && isMember && !locked;
         </div>
         <div className="flex items-center justify-between px-4 pb-2 gap-2">
           <span className="text-xs text-zinc-600 flex items-center gap-1">
-            <Clock size={9} /> {formatCompact(match.matchDate)}
+            <Clock size={9} /> <span dangerouslySetInnerHTML={{ __html: formatCompact(match.matchDate) }} />
           </span>
           <div className="flex items-center gap-1.5">
             {match.myPrediction?.isJoker && <ModBadge type="joker" />}
@@ -586,7 +603,7 @@ const canPredict = isAuthenticated && isMember && !locked;
         </div>
         <div className="flex items-center justify-between px-4 pb-2 gap-2">
           <span className="text-xs text-zinc-600 flex items-center gap-1">
-            <Clock size={9} /> {formatCompact(match.matchDate)}
+            <Clock size={9} /> <span dangerouslySetInnerHTML={{ __html: formatCompact(match.matchDate) }} />
           </span>
           <span className="text-xs text-brand italic font-medium">Editando...</span>
         </div>
@@ -642,7 +659,7 @@ const canPredict = isAuthenticated && isMember && !locked;
         <div className="flex items-center justify-between px-4 pb-2 gap-2">
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-zinc-600 flex items-center gap-1">
-              <Clock size={9} /> {formatCompact(match.matchDate)}
+              <Clock size={9} /> <span dangerouslySetInnerHTML={{ __html: formatCompact(match.matchDate) }} />
             </span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -726,7 +743,7 @@ const canPredict = isAuthenticated && isMember && !locked;
 
         <div className="flex items-center justify-between px-4 pb-2 gap-2">
           <span className="text-xs text-zinc-600 flex items-center gap-1">
-            <Clock size={9} /> {formatCompact(match.matchDate)}
+            <Clock size={9} /> <span dangerouslySetInnerHTML={{ __html: formatCompact(match.matchDate) }} />
           </span>
 
           <div className="flex items-center gap-1.5">
@@ -825,7 +842,7 @@ const canPredict = isAuthenticated && isMember && !locked;
         </div>
         <div className="flex items-center justify-between px-4 pb-2 gap-2">
           <span className="text-xs text-zinc-700 flex items-center gap-1">
-            <Clock size={9} /> {formatCompact(match.matchDate)}
+            <Clock size={9} /> <span dangerouslySetInnerHTML={{ __html: formatCompact(match.matchDate) }} />
           </span>
           <div className="flex items-center gap-1.5">
             {isLive && <span className="flex items-center gap-1 text-xs text-green-500"><Radio size={9} /> Ao vivo</span>}
@@ -897,7 +914,7 @@ const canPredict = isAuthenticated && isMember && !locked;
       </div>
       <div className="flex items-center justify-between px-4 pb-2 gap-2">
         <span className="text-xs text-zinc-700 flex items-center gap-1">
-          <Clock size={9} /> {formatCompact(match.matchDate)}
+          <Clock size={9} /> <span dangerouslySetInnerHTML={{ __html: formatCompact(match.matchDate) }} />
         </span>
         <div className="flex items-center gap-1.5">
           {match.myPrediction?.isJoker && <ModBadge type="joker" />}
