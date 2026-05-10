@@ -450,7 +450,7 @@ const canPredict = isAuthenticated && isMember && !locked;
           )}
           <div className="flex justify-center w-full">
             <div className="grid grid-cols-[minmax(82px,1fr)_104px_minmax(82px,1fr)] sm:grid-cols-[minmax(180px,1fr)_140px_minmax(180px,1fr)] items-center gap-2 sm:gap-5 w-full max-w-[640px] mx-auto">
-              <div className="flex items-center justify-end gap-2 min-w-0">
+              <div className="flex items-center justify-end gap-2 min-w-0 translate-y-1">
                 <span className="text-right text-xs sm:text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
                 {getTeamLogo(match.homeTeam) && (
                   <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
@@ -461,7 +461,7 @@ const canPredict = isAuthenticated && isMember && !locked;
                 <span className="text-zinc-500 text-sm font-black">×</span>
                 <ScoreInput value={awayInput} onChange={setAwayInput} />
               </div>
-              <div className="flex items-center justify-start gap-2 min-w-0">
+              <div className="flex items-center justify-start gap-2 min-w-0 translate-y-1">
                 {getTeamLogo(match.awayTeam) && (
                   <img src={getTeamLogo(match.awayTeam)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
                 )}
@@ -675,14 +675,14 @@ const canPredict = isAuthenticated && isMember && !locked;
     return (
       <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${c.cardBorder} ${c.cardBg}`}>
         <div className="grid grid-cols-[1fr_auto_1fr_auto] items-start gap-2 px-4 pt-2.5 pb-1.5">
-          <div className="flex items-center justify-end gap-2 pt-3 min-w-0">
+          <div className="flex items-center justify-end gap-2 min-w-0 pt-4">
             <span className="text-sm font-bold text-zinc-300 truncate">{teamName(match.homeTeam)}</span>
             {getTeamLogo(match.homeTeam) && (
               <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
             )}
           </div>
 
-          <div className="flex flex-col items-center shrink-0">
+          <div className="flex flex-col items-center shrink-0 translate-y-3">
             <div className="flex items-center gap-2">
               <span className={`w-8 h-8 flex items-center justify-center text-base font-black rounded-xl tabular-nums shadow-inner border ${c.scoreBg} ${c.scoreText} ${c.scoreBorder}`}>
                 {match.myPrediction!.homeScoreTip}
@@ -694,27 +694,32 @@ const canPredict = isAuthenticated && isMember && !locked;
             </div>
 
             {hasScore && (
-              <div className="mt-[-2px] text-center leading-none">
-                <div className="text-[9px] text-zinc-500 uppercase tracking-wide">
+              <div className="mt-1.5 text-center leading-tight">
+                <div className="text-[10px] text-zinc-500 uppercase tracking-wide">
                   Resultado
                 </div>
-                <div className="text-sm font-semibold text-emerald-400">
+                <div className="text-base font-bold text-emerald-400">
                   {match.homeScore}–{match.awayScore}
                 </div>
               </div>
             )}
           </div>
 
-          <div className="flex items-center justify-start gap-2 pt-3 min-w-0">
+          <div className="flex items-center justify-start gap-2 min-w-0 pt-4">
             {getTeamLogo(match.awayTeam) && (
               <img src={getTeamLogo(match.awayTeam)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
             )}
             <span className="text-sm font-bold text-zinc-300 truncate">{teamName(match.awayTeam)}</span>
           </div>
 
-          <div className="flex justify-end pt-1">
-            <span className={`shrink-0 text-base font-black tabular-nums px-2.5 py-1.5 rounded-xl ${c.ptsBg} ${c.ptsText}`}>
+          <div className="flex items-center justify-end">
+            <span className={`shrink-0 min-w-[58px] text-center text-base font-black tabular-nums px-2.5 py-1.5 rounded-xl ${c.ptsBg} ${c.ptsText}`}>
               {pts !== null ? (pts > 0 ? `+${pts}` : '0') : '—'}
+              {(result === 'partial' || result === 'miss') && (
+                <span className="block text-[9px] font-semibold uppercase tracking-wide opacity-70 leading-none mt-0.5">
+                  {result === 'partial' ? 'parcial' : 'errou'}
+                </span>
+              )}
             </span>
           </div>
         </div>
@@ -727,8 +732,8 @@ const canPredict = isAuthenticated && isMember && !locked;
           <div className="flex items-center gap-1.5">
             {match.myPrediction?.isJoker && <ModBadge type="joker" />}
             {round.isBonusRound && <ModBadge type="bonus" />}
-            {result && <span className={`text-xs font-semibold ${c.labelColor}`}>{c.label}</span>}
-            {match.isManualOverride && (
+            {result && result !== 'partial' && result !== 'miss' && <span className={`text-xs font-semibold ${c.labelColor}`}>{c.label}</span>}
+            {isAdmin && match.isManualOverride && (
               <span className="text-xs text-amber-400 font-semibold ml-1">
                 Corrigido
               </span>
