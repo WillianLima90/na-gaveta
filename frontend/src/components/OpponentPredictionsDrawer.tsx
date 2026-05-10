@@ -8,6 +8,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { X, Lock } from 'lucide-react';
 import api from '../services/api';
 import { Spinner } from './ui';
+import { getTeamLogo, getTeamName } from '../utils/teamDisplay';
 
 interface ParticipantPrediction {
   userId: string;
@@ -15,6 +16,7 @@ interface ParticipantPrediction {
   avatarUrl?: string;
   homeScoreTip: number;
   awayScoreTip: number;
+  isJoker?: boolean;
   points: number | null;
   scoredAt: string | null;
 }
@@ -70,10 +72,10 @@ function getPredictionResult(
 }
 
 const RESULT_STYLES: Record<PredictionResult & string, { border: string; text: string; label: string }> = {
-  exact: { border: 'border-yellow-400/50', text: 'text-yellow-400', label: '🎯 Exato' },
-  outcome: { border: 'border-green-500/40', text: 'text-green-400', label: '✅ Certo' },
-  partial: { border: 'border-blue-400/30', text: 'text-blue-400', label: '~ Parcial' },
-  miss: { border: 'border-zinc-800', text: 'text-zinc-600', label: '❌ Errou' },
+  exact: { border: 'border-zinc-500/40', text: 'text-zinc-200', label: 'Exato' },
+  outcome: { border: 'border-zinc-700', text: 'text-zinc-300', label: 'Acertou vencedor' },
+  partial: { border: 'border-zinc-800', text: 'text-zinc-400', label: 'Parcial' },
+  miss: { border: 'border-zinc-900', text: 'text-zinc-600', label: 'Errou' },
 };
 
 export function OpponentPredictionsDrawer({
@@ -123,17 +125,19 @@ export function OpponentPredictionsDrawer({
 
   const hasResults = homeScore !== null && homeScore !== undefined;
 
-  // Ordenar: exatos primeiro, depois certos, parciais, erros, sem palpite
+  // Ordenar por maior pontuação atual; desempate por qualidade do acerto
   const sorted = data
     ? [...data.predictions].sort((a, b) => {
         const order = { exact: 0, outcome: 1, partial: 2, miss: 3 };
         const ra = getPredictionResult(a.homeScoreTip, a.awayScoreTip, homeScore, awayScore);
         const rb = getPredictionResult(b.homeScoreTip, b.awayScoreTip, homeScore, awayScore);
+
+        const pointsDiff = (b.points ?? 0) - (a.points ?? 0);
+        if (pointsDiff !== 0) return pointsDiff;
+
         const oa = ra ? order[ra] : 4;
         const ob = rb ? order[rb] : 4;
-        if (oa !== ob) return oa - ob;
-        // Desempate por pontos
-        return (b.points ?? 0) - (a.points ?? 0);
+        return oa - ob;
       })
     : [];
 
@@ -154,8 +158,8 @@ export function OpponentPredictionsDrawer({
           <div>
             <h2 className="text-sm font-bold text-white">Palpites dos participantes</h2>
             {data && (
-              <p className="text-xs text-zinc-500 mt-0.5">
-                {data.homeTeam} × {data.awayTeam}
+              <p className="text-xs text-zinc-500 mt-1">
+                Resultado e palpites da partida
               </p>
             )}
           </div>
@@ -171,12 +175,36 @@ export function OpponentPredictionsDrawer({
         {hasResults && data && (
           <div className="px-4 py-3 bg-zinc-900/50 border-b border-zinc-800">
             <p className="text-xs text-zinc-500 mb-1">Resultado final</p>
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold text-zinc-300">{data.homeTeam}</span>
-              <span className="text-2xl font-black text-white tabular-nums">
+            <div className="flex items-center justify-center gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-sm font-semibold text-zinc-300 truncate">
+                  {getTeamName(data.homeTeam)}
+                </span>
+                {getTeamLogo(data.homeTeam) && (
+                  <img
+                    src={getTeamLogo(data.homeTeam)!}
+                    alt={getTeamName(data.homeTeam)}
+                    className="w-5 h-5 object-contain shrink-0"
+                  />
+                )}
+              </div>
+
+              <span className="text-2xl font-black text-white tabular-nums shrink-0">
                 {homeScore} – {awayScore}
               </span>
-              <span className="text-sm font-semibold text-zinc-300">{data.awayTeam}</span>
+
+              <div className="flex items-center gap-2 min-w-0">
+                {getTeamLogo(data.awayTeam) && (
+                  <img
+                    src={getTeamLogo(data.awayTeam)!}
+                    alt={getTeamName(data.awayTeam)}
+                    className="w-5 h-5 object-contain shrink-0"
+                  />
+                )}
+                <span className="text-sm font-semibold text-zinc-300 truncate">
+                  {getTeamName(data.awayTeam)}
+                </span>
+              </div>
             </div>
           </div>
         )}
@@ -234,7 +262,7 @@ export function OpponentPredictionsDrawer({
                       </div>
 
                       {/* Palpite */}
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="w-[54px] flex items-center justify-center gap-1 shrink-0">
                         <span className={`text-lg font-black tabular-nums ${style?.text ?? 'text-zinc-400'}`}>
                           {p.homeScoreTip}
                         </span>
@@ -245,12 +273,20 @@ export function OpponentPredictionsDrawer({
                       </div>
 
                       {/* Pontos */}
-                      {p.points !== null && p.points > 0 && (
-                        <div className="shrink-0 text-right">
-                          <span className={`text-sm font-black tabular-nums ${style?.text ?? 'text-zinc-400'}`}>
-                            +{p.points}
-                          </span>
-                          <span className="text-xs text-zinc-600 ml-0.5">pts</span>
+                      {p.points !== null && (
+                        <div className="w-[78px] shrink-0 text-right flex flex-col items-end gap-1">
+                          <div>
+                            <span className={`text-sm font-black tabular-nums ${style?.text ?? 'text-zinc-400'}`}>
+                              {p.points > 0 ? `+${p.points}` : '0'}
+                            </span>
+                            <span className="text-xs text-zinc-600 ml-0.5">pts</span>
+                          </div>
+
+                          {p.isJoker && (
+                            <span className="text-[9px] px-1 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold">
+                              ⚡ Coringa ×2
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>

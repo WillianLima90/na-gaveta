@@ -328,6 +328,7 @@ export async function matchPredictions(req: AuthRequest, res: Response): Promise
         avatarUrl: p.user.avatarUrl,
         homeScoreTip: p.homeScoreTip,
         awayScoreTip: p.awayScoreTip,
+        isJoker: p.isJoker,
         points: p.points,
         scoredAt: p.scoredAt,
       })),
