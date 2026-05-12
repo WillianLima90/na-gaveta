@@ -202,7 +202,54 @@ return (
         heartTeamScore: ranking.find((r) => r.userId === e.userId)?.heartTeamScore ?? 0,
       }));
 
-  const selectedRound = rounds.find((r) => r.id === filterRoundId);
+  const previousPositions = new Map<string, number>();
+
+  if (finishedRounds.length > 1 && filterRoundId === 'geral') {
+    const latestFinishedRound = [...finishedRounds].sort((a, b) => b.number - a.number)[0];
+    const latestRoundPoints = latestFinishedRound ? roundPointsData.get(latestFinishedRound.id) : null;
+
+    if (latestRoundPoints) {
+      const previousRanking = ranking
+        .map((entry) => {
+          const roundData = latestRoundPoints.get(entry.userId);
+
+          return {
+            ...entry,
+            previousTotalPoints: entry.totalPoints - (roundData?.points ?? 0),
+            previousExactScores: (entry.exactScores ?? 0) - (roundData?.exactScores ?? 0),
+            previousCorrectOutcomes: (entry.correctOutcomes ?? 0) - (roundData?.correctOutcomes ?? 0),
+          };
+        })
+        .sort((a, b) => {
+          if (b.previousTotalPoints !== a.previousTotalPoints) return b.previousTotalPoints - a.previousTotalPoints;
+          if (b.previousExactScores !== a.previousExactScores) return b.previousExactScores - a.previousExactScores;
+          if ((b.heartTeamScore ?? 0) !== (a.heartTeamScore ?? 0)) return (b.heartTeamScore ?? 0) - (a.heartTeamScore ?? 0);
+          return b.previousCorrectOutcomes - a.previousCorrectOutcomes;
+        });
+
+      previousRanking.forEach((entry, idx) => {
+        previousPositions.set(entry.userId, idx + 1);
+      });
+    }
+  }
+
+  const getPositionChange = (currentIndex: number, userId: string) => {
+    const prev = previousPositions.get(userId);
+    if (!prev) return null;
+
+    const current = currentIndex + 1;
+    const diff = prev - current;
+
+    if (diff > 0) {
+      return { type: 'up', value: diff };
+    }
+
+    if (diff < 0) {
+      return { type: 'down', value: Math.abs(diff) };
+    }
+
+    return null;
+  };
 
   const gridCols = '32px 1.6fr 100px 90px 120px 120px';
 
@@ -349,12 +396,25 @@ return (
                             style={{ color: '#FFFFFF' }}
                           >
                             {entry.name}
-{i > 0 && (
-  <span className="ml-2 text-xs text-zinc-500">
-    -{displayRanking[i - 1].totalPoints - entry.totalPoints}
-  </span>
-)}
                           </span>
+
+                          {(() => {
+                            const change = getPositionChange(i, entry.userId);
+
+                            if (!change) return null;
+
+                            return (
+                              <span
+                                className="text-[10px] font-bold flex items-center gap-0.5"
+                                style={{
+                                  color: change.type === 'up' ? '#22C55E' : '#EF4444'
+                                }}
+                              >
+                                {change.type === 'up' ? '↑' : '↓'}
+                                {change.value}
+                              </span>
+                            );
+                          })()}
                           {isCurrentUser && (
                             <span className="text-xs flex-shrink-0 text-zinc-300">você</span>
                           )}
