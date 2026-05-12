@@ -202,6 +202,52 @@ return (
         heartTeamScore: ranking.find((r) => r.userId === e.userId)?.heartTeamScore ?? 0,
       }));
 
+  const startingRound = rounds.find((round) => round.id === pool.startingRoundId);
+  const validFinishedRounds = startingRound
+    ? finishedRounds.filter((round) => round.number >= startingRound.number)
+    : finishedRounds;
+
+  const biggestRoundScores = validFinishedRounds
+    .map((round) => {
+      const roundMap = roundPointsData.get(round.id);
+
+      if (!roundMap) return null;
+
+      const bestScore = [...roundMap.entries()]
+        .map(([userId, stats]) => {
+          const rankingEntry = ranking.find((r) => r.userId === userId);
+          const normalizedPoints = round.isBonus ? stats.points / 2 : stats.points;
+
+          return {
+            roundNumber: round.number,
+            roundName: round.name,
+            userId,
+            playerName: rankingEntry?.name ?? 'Jogador',
+            points: normalizedPoints,
+            exactScores: stats.exactScores ?? 0,
+            heartTeamScore: rankingEntry?.heartTeamScore ?? 0,
+            correctOutcomes: stats.correctOutcomes ?? 0,
+          };
+        })
+        .sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          if (b.exactScores !== a.exactScores) return b.exactScores - a.exactScores;
+          if (b.heartTeamScore !== a.heartTeamScore) return b.heartTeamScore - a.heartTeamScore;
+          if (b.correctOutcomes !== a.correctOutcomes) return b.correctOutcomes - a.correctOutcomes;
+          return a.playerName.localeCompare(b.playerName, 'pt-BR');
+        })[0];
+
+      return bestScore ?? null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      return a.playerName.localeCompare(b.playerName, 'pt-BR');
+    })
+    .slice(0, 15);
+
+  const highestBiggestRoundScore = biggestRoundScores[0]?.points ?? 0;
+
   const previousPositions = new Map<string, number>();
 
   if (finishedRounds.length > 1 && filterRoundId === 'geral') {
@@ -531,6 +577,47 @@ return (
                   </div>
                 );
               })}
+          </div>
+        </div>
+      )}
+
+      {/* Maiores pontuações em rodada */}
+      {biggestRoundScores.length > 0 && (
+        <div
+          className="mt-4 rounded-2xl overflow-hidden"
+          style={{ background: 'linear-gradient(180deg, rgba(39,39,42,0.92), rgba(24,24,27,0.96))', border: '1px solid rgba(255,255,255,0.08)' }}
+        >
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-zinc-800/60">
+            <Trophy size={14} className="text-brand" />
+            <span className="font-black text-white text-sm">Maiores pontuações em rodada</span>
+          </div>
+
+          <div className="divide-y divide-zinc-800/50">
+            {biggestRoundScores.map((score, index) => (
+              <div
+                key={`${score.roundNumber}-${score.userId}-${index}`}
+                className="grid items-center gap-3 px-4 py-3"
+                style={{ gridTemplateColumns: '64px 1fr 72px' }}
+              >
+                <span className="text-xs font-bold text-zinc-400">
+                  Rod. {score.roundNumber}
+                </span>
+
+                <div className="flex items-center gap-2 min-w-0">
+                  {score.points === highestBiggestRoundScore && (
+                    <Trophy size={14} className="text-yellow-400 flex-shrink-0" />
+                  )}
+
+                  <span className="text-sm font-semibold text-white truncate">
+                    {score.playerName}
+                  </span>
+                </div>
+
+                <span className="text-right text-sm font-black text-brand tabular-nums">
+                  {score.points} pts
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       )}
