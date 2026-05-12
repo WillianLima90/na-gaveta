@@ -48,6 +48,17 @@ export default function PoolRankingPage() {
   const [roundWinners, setRoundWinners] = useState<UserRoundWins[]>([]);
   const [roundPointsData, setRoundPointsData] = useState<Map<string, RoundPointsMap>>(new Map());
   const [roundDataLoading, setRoundDataLoading] = useState(false);
+  const [biggestScoresSort, setBiggestScoresSort] = useState<{ key: 'round' | 'player' | 'points'; direction: 'asc' | 'desc' }>({
+    key: 'round',
+    direction: 'asc',
+  });
+
+  function handleBiggestScoresSort(key: 'round' | 'player' | 'points') {
+    setBiggestScoresSort((current) => ({
+      key,
+      direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc',
+    }));
+  }
 
   const loadData = useCallback(async () => {
     if (!id) return;
@@ -246,7 +257,21 @@ return (
     })
     .slice(0, 15);
 
-  const highestBiggestRoundScore = biggestRoundScores[0]?.points ?? 0;
+  const highestBiggestRoundScore = Math.max(...biggestRoundScores.map((score) => score.points), 0);
+
+  const sortedBiggestRoundScores = [...biggestRoundScores].sort((a, b) => {
+    const direction = biggestScoresSort.direction === 'asc' ? 1 : -1;
+
+    if (biggestScoresSort.key === 'round') {
+      return (a.roundNumber - b.roundNumber) * direction;
+    }
+
+    if (biggestScoresSort.key === 'player') {
+      return a.playerName.localeCompare(b.playerName, 'pt-BR') * direction;
+    }
+
+    return (a.points - b.points) * direction;
+  });
 
   const previousPositions = new Map<string, number>();
 
@@ -592,8 +617,23 @@ return (
             <span className="font-black text-white text-sm">Maiores pontuações em rodada</span>
           </div>
 
+          <div
+            className="grid items-center gap-3 px-4 py-3 border-b border-zinc-700/70 text-xs font-black uppercase tracking-wide text-zinc-300"
+            style={{ gridTemplateColumns: '64px 1fr 72px' }}
+          >
+            <button type="button" onClick={() => handleBiggestScoresSort('round')} className="text-left hover:text-white transition-colors">
+              Rodada {biggestScoresSort.key === 'round' ? (biggestScoresSort.direction === 'asc' ? '↑' : '↓') : ''}
+            </button>
+            <button type="button" onClick={() => handleBiggestScoresSort('player')} className="text-left hover:text-white transition-colors">
+              Jogador {biggestScoresSort.key === 'player' ? (biggestScoresSort.direction === 'asc' ? '↑' : '↓') : ''}
+            </button>
+            <button type="button" onClick={() => handleBiggestScoresSort('points')} className="text-right hover:text-white transition-colors">
+              Pontos {biggestScoresSort.key === 'points' ? (biggestScoresSort.direction === 'asc' ? '↑' : '↓') : ''}
+            </button>
+          </div>
+
           <div className="divide-y divide-zinc-800/50">
-            {biggestRoundScores.map((score, index) => (
+            {sortedBiggestRoundScores.map((score, index) => (
               <div
                 key={`${score.roundNumber}-${score.userId}-${index}`}
                 className="grid items-center gap-3 px-4 py-3"
