@@ -37,6 +37,7 @@ export interface RoundRankingEntry {
   roundPoints: number;
   exactScores: number;
   correctOutcomes: number;
+  heartTeamScore?: number;
   totalPredictions: number;
   isCurrentUser: boolean;
 }
@@ -214,6 +215,8 @@ export async function getRoundRanking(
           awayScore: true,
           status: true,
           roundId: true,
+          homeTeam: true,
+          awayTeam: true,
         },
       },
     },
@@ -233,6 +236,7 @@ export async function getRoundRanking(
     let roundPoints = 0;
     let exactScores = 0;
     let correctOutcomes = 0;
+    let heartTeamScore = 0;
 
     for (const p of scored) {
       roundPoints += p.points ?? 0;
@@ -241,6 +245,12 @@ export async function getRoundRanking(
       if (hScore === null || aScore === null) continue;
       if (isExactScore(p.homeScoreTip, p.awayScoreTip, hScore, aScore)) exactScores++;
       if (isCorrectOutcome(p.homeScoreTip, p.awayScoreTip, hScore, aScore)) correctOutcomes++;
+      if (
+        member.favoriteTeam &&
+        (p.match.homeTeam === member.favoriteTeam || p.match.awayTeam === member.favoriteTeam)
+      ) {
+        heartTeamScore += p.points ?? 0;
+      }
     }
 
     return {
@@ -251,15 +261,17 @@ export async function getRoundRanking(
       roundPoints,
       exactScores,
       correctOutcomes,
+      heartTeamScore,
       totalPredictions: userPredictions.length,
       isCurrentUser: member.userId === currentUserId,
     };
   });
 
-  // Ordenação: pontos > acertos exatos > acertos de resultado
+  // Ordenação: pontos > acertos exatos > time do coração > resultados certos
   entries.sort((a, b) => {
     if (b.roundPoints !== a.roundPoints) return b.roundPoints - a.roundPoints;
     if (b.exactScores !== a.exactScores) return b.exactScores - a.exactScores;
+    if ((b.heartTeamScore ?? 0) !== (a.heartTeamScore ?? 0)) return (b.heartTeamScore ?? 0) - (a.heartTeamScore ?? 0);
     return b.correctOutcomes - a.correctOutcomes;
   });
 
@@ -625,6 +637,7 @@ export async function computeAndSaveRoundWinners(
     const winners = ranking.filter((r) =>
       r.roundPoints === top.roundPoints &&
       r.exactScores === top.exactScores &&
+      (r.heartTeamScore ?? 0) === (top.heartTeamScore ?? 0) &&
       r.correctOutcomes === top.correctOutcomes
     );
 

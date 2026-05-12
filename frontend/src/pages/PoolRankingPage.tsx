@@ -418,10 +418,10 @@ return (
 
         {/* Rodapé */}
         <div className="px-4 py-2.5 border-t border-zinc-800/40">
-          <p className="text-xs text-zinc-700 text-center">
+          <p className="text-xs text-zinc-500 text-center font-medium">
             {filterRoundId === 'geral'
-              ? 'Desempate: pontos · acertos exatos · resultados certos · menos erros'
-              : `${selectedRound?.name ?? 'Rodada'} — Desempate: pontos · acertos exatos`
+              ? 'Desempate do melhor da rodada: pontos · acertos exatos · time do coração · resultados certos · menos erros'
+              : `${selectedRound?.name ?? 'Rodada'} — Desempate do melhor da rodada: pontos · acertos exatos · time do coração · resultados certos`
             }
           </p>
         </div>
@@ -431,7 +431,7 @@ return (
       <div className="mt-4 flex flex-wrap gap-3 text-xs text-zinc-400">
         <span className="flex items-center gap-1"><Target size={11} className="text-zinc-300" /> Placar exato</span>
         <span className="flex items-center gap-1"><CheckCircle size={11} className="text-green-500" /> Resultado certo</span>
-        <span className="flex items-center gap-1"><span className="text-xs">🛡️</span> Vitória de rodada (escudo do time do coração)</span>
+        <span className="flex items-center gap-1"><span className="text-xs">🛡️</span> Vitória de rodada</span>
       </div>
 
       {/* Resumo de vitórias de rodada com escudos */}
