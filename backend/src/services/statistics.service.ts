@@ -617,17 +617,22 @@ export async function computeAndSaveRoundWinners(
 
     if (ranking.length === 0) continue;
 
-    // Identificar o(s) vencedor(es) — pode haver empate
-    const topPoints = ranking[0].roundPoints;
-    if (topPoints === 0) continue; // Ninguém pontuou
+    // Identificar vencedor usando desempate completo.
+    // Se todos os critérios empatarem, dividir vitória.
+    const top = ranking[0];
+    if (top.roundPoints === 0) continue;
 
-    const winners = ranking.filter((r) => r.roundPoints === topPoints);
+    const winners = ranking.filter((r) =>
+      r.roundPoints === top.roundPoints &&
+      r.exactScores === top.exactScores &&
+      r.correctOutcomes === top.correctOutcomes
+    );
 
     // Salvar vencedores (upsert para evitar duplicatas)
     for (const winner of winners) {
-      // Buscar time do coração do usuário
-      const user = await prisma.user.findUnique({
-        where: { id: winner.userId },
+      // Buscar time do coração do usuário neste bolão
+      const membership = await prisma.poolMember.findUnique({
+        where: { userId_poolId: { userId: winner.userId, poolId } },
         select: { favoriteTeam: true },
       });
 
@@ -643,11 +648,11 @@ export async function computeAndSaveRoundWinners(
           poolId,
           roundId: round.id,
           userId: winner.userId,
-          favoriteTeam: user?.favoriteTeam ?? null,
+          favoriteTeam: membership?.favoriteTeam ?? null,
           roundPoints: winner.roundPoints,
         },
         update: {
-          favoriteTeam: user?.favoriteTeam ?? null,
+          favoriteTeam: membership?.favoriteTeam ?? null,
           roundPoints: winner.roundPoints,
         },
       });

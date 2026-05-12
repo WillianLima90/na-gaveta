@@ -126,8 +126,9 @@ const FootballBallSVG: React.FC<FootballBallSVGProps> = ({ size, logoUrl, teamNa
 
   // Tamanho do escudo dentro da bola
   // Pequeno: ocupa ~60% do diâmetro; grande: ~50%
-  const logoSize = isLarge ? size * 0.48 : size * 0.58;
-  const logoOffset = (size - logoSize) / 2;
+  const logoSize = isLarge ? size * 0.58 : size * 0.82;
+  const logoOffsetX = (size - logoSize) / 2;
+  const logoOffsetY = ((size - logoSize) / 2) - (isLarge ? 3.5 : 4);
 
   return (
     <svg
@@ -175,7 +176,7 @@ const FootballBallSVG: React.FC<FootballBallSVGProps> = ({ size, logoUrl, teamNa
 
       {/* ── Camada 2 (apenas versão grande): painéis curvos escuros ── */}
       {isLarge && (
-        <g clipPath={`url(#${clipId})`} opacity="0.35">
+        <g clipPath={`url(#${clipId})`} opacity="0.22">
           {/* Painel central superior — pentágono curvo simplificado */}
           <path
             d={`M ${cx} ${cy - r * 0.55}
@@ -211,14 +212,14 @@ const FootballBallSVG: React.FC<FootballBallSVGProps> = ({ size, logoUrl, teamNa
           <circle
             cx={cx}
             cy={cy}
-            r={logoSize / 2 + (isLarge ? 2 : 1)}
-            fill="rgba(255,255,255,0.82)"
+            r={logoSize / 2 - (isLarge ? 1 : 2)}
+            fill="rgba(255,255,255,0.38)"
             clipPath={`url(#${clipId})`}
           />
           <image
             href={logoUrl}
-            x={logoOffset}
-            y={logoOffset}
+            x={logoOffsetX}
+            y={logoOffsetY}
             width={logoSize}
             height={logoSize}
             clipPath={`url(#${logoClipId})`}
@@ -261,12 +262,14 @@ interface ShieldBallProps {
   teamName?: string | null;
   tooltip?: string;
   size?: number;
+  roundNumber?: number;
 }
 
 export const ShieldBall: React.FC<ShieldBallProps> = ({
   teamName,
   tooltip,
   size = 16,
+  roundNumber,
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -288,6 +291,15 @@ export const ShieldBall: React.FC<ShieldBallProps> = ({
         teamName={teamName}
         onImgError={() => setImgError(true)}
       />
+
+      {roundNumber && (
+        <span
+          className="absolute -right-1 -bottom-1 rounded-full bg-zinc-950 text-white font-black tabular-nums border border-white/30 shadow-sm"
+          style={{ fontSize: Math.max(6, size * 0.34), lineHeight: 1, padding: '1px 2px' }}
+        >
+          {roundNumber}
+        </span>
+      )}
 
       {/* Tooltip */}
       {showTooltip && tooltip && (
@@ -317,6 +329,7 @@ interface ShieldBallListProps {
     roundId: string;
     roundName: string;
     favoriteTeam?: string | null;
+    roundNumber?: number;
   }>;
   maxVisible?: number;
   size?: number;
@@ -340,6 +353,7 @@ export const ShieldBallList: React.FC<ShieldBallListProps> = ({
           teamName={win.favoriteTeam}
           tooltip={`${win.roundName} — Vitória na rodada`}
           size={size}
+          roundNumber={win.roundNumber}
         />
       ))}
       {extra > 0 && (

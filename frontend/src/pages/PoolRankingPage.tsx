@@ -12,6 +12,7 @@ import {
   getRoundRanking,
   getPoolMatches,
   getPoolRoundWinners,
+  computePoolRoundWinners,
   type RankingEntry,
   type RoundRankingEntry,
   type Round,
@@ -111,7 +112,13 @@ export default function PoolRankingPage() {
     );
     if (finishedRounds.length === 0) return;
     try {
-      const winners = await getPoolRoundWinners(id);
+      let winners = await getPoolRoundWinners(id);
+
+      if (!winners || winners.length === 0) {
+        const computed = await computePoolRoundWinners(id);
+        winners = computed.winners;
+      }
+
       setRoundWinners(winners);
     } catch {
       setRoundWinners([]);
@@ -171,6 +178,7 @@ return (
     roundExacts?: number;
     roundOutcomes?: number;
     favoriteTeam?: string | null;
+    heartTeamScore?: number;
   }> = filterRoundId === 'geral'
     ? ranking.map((e) => ({
         userId: e.userId,
@@ -179,6 +187,7 @@ return (
         exactScores: e.exactScores ?? 0,
         correctOutcomes: e.correctOutcomes ?? 0,
         favoriteTeam: e.favoriteTeam ?? null,
+        heartTeamScore: e.heartTeamScore ?? 0,
       }))
     : roundRanking.map((e) => ({
         userId: e.userId,
@@ -190,6 +199,7 @@ return (
         roundExacts: e.exactScores,
         roundOutcomes: e.correctOutcomes,
         favoriteTeam: e.favoriteTeam ?? ranking.find((r) => r.userId === e.userId)?.favoriteTeam ?? null,
+        heartTeamScore: ranking.find((r) => r.userId === e.userId)?.heartTeamScore ?? 0,
       }));
 
   const selectedRound = rounds.find((r) => r.id === filterRoundId);
