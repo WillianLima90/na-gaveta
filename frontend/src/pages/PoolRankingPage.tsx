@@ -539,6 +539,20 @@ return (
         </div>
       </div>
 
+      <details className="md:hidden mt-3 rounded-xl border border-zinc-700 bg-zinc-900/95 px-3 py-2 shadow-2xl">
+        <summary className="cursor-pointer list-none text-[11px] font-bold text-zinc-400 flex items-center justify-between">
+          <span>Critérios de desempate</span>
+          <span className="text-zinc-500">⌄</span>
+        </summary>
+        <div className="mt-2 space-y-1 text-[11px] leading-5 text-left">
+          <div className="flex items-center gap-2 text-white"><span className="font-black text-zinc-500">1.</span><span>Mais pontos</span></div>
+          <div className="flex items-center gap-2 text-zinc-300"><span className="font-black text-zinc-500">2.</span><span>Mais acertos exatos</span></div>
+          <div className="flex items-center gap-2 text-zinc-300"><span className="font-black text-zinc-500">3.</span><span>Mais pontos do time do coração</span></div>
+          <div className="flex items-center gap-2 text-zinc-300"><span className="font-black text-zinc-500">4.</span><span>Mais resultados certos</span></div>
+          <div className="flex items-center gap-2 text-zinc-300"><span className="font-black text-zinc-500">5.</span><span>Menos erros</span></div>
+        </div>
+      </details>
+
       {/* Tabela desktop */}
       <div className="hidden md:block overflow-x-auto pb-2">
         <div
@@ -736,8 +750,9 @@ return (
         )}
 
         {/* Rodapé */}
-        <div className="px-4 py-2.5 border-t border-zinc-800/40 flex justify-center">
-          <div className="group relative inline-flex items-center gap-1 text-xs text-zinc-500 cursor-help">
+        <div className="px-4 py-2.5 border-t border-zinc-800/40">
+          <div className="flex justify-center">
+            <div className="group relative inline-flex items-center gap-1 text-xs text-zinc-500 cursor-help">
             <span className="w-4 h-4 rounded-full border border-zinc-600 flex items-center justify-center text-[10px]">
               i
             </span>
@@ -773,6 +788,17 @@ return (
                   </div>
                 </div>
               </div>
+            </div>
+            </div>
+          </div>
+
+          <div className="mt-3 rounded-xl border border-zinc-700 bg-zinc-900/95 px-3 py-2 shadow-2xl md:hidden">
+            <div className="space-y-1 text-[11px] leading-5 text-left">
+              <div className="flex items-center gap-2 text-white"><span className="font-black text-zinc-500">1.</span><span>Mais pontos</span></div>
+              <div className="flex items-center gap-2 text-zinc-300"><span className="font-black text-zinc-500">2.</span><span>Mais acertos exatos</span></div>
+              <div className="flex items-center gap-2 text-zinc-300"><span className="font-black text-zinc-500">3.</span><span>Mais pontos do time do coração</span></div>
+              <div className="flex items-center gap-2 text-zinc-300"><span className="font-black text-zinc-500">4.</span><span>Mais resultados certos</span></div>
+              <div className="flex items-center gap-2 text-zinc-300"><span className="font-black text-zinc-500">5.</span><span>Menos erros</span></div>
             </div>
           </div>
         </div>
