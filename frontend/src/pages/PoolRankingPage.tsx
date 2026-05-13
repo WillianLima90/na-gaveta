@@ -62,10 +62,10 @@ export default function PoolRankingPage() {
 
   async function handleShareBiggestScores() {
     const text = [
-      '🏆 Maiores pontuações — Na Gaveta',
+      'TOP Maiores pontuações — Na Gaveta',
       '',
       ...sortedBiggestRoundScores.slice(0, 5).map((score, index) => {
-        const medal = ['🥇', '🥈', '🥉'][index] ?? '⚽';
+        const medal = [`#${index + 1}`][0];
 
         return `${medal} ${score.playerName} — ${score.points} pts (Rodada ${score.roundNumber})`;
       }),
