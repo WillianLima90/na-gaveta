@@ -554,9 +554,14 @@ return (
                     {/* Melhor da rodada */}
                     <div className="flex items-center justify-center min-w-0">
                       {userWins && userWins.wins.length > 0 ? (
-                        <ShieldList wins={userWins.wins} maxVisible={12} size={22} />
+                        <div className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/5 px-2 py-1">
+                          <ShieldList wins={userWins.wins} maxVisible={8} size={22} />
+                          <span className="text-[11px] font-black text-yellow-300 tabular-nums">
+                            {userWins.wins.length}x
+                          </span>
+                        </div>
                       ) : (
-                        <span className="text-xs text-zinc-800 opacity-60">0</span>
+                        <span className="text-xs text-zinc-700">—</span>
                       )}
                     </div>
 
@@ -582,22 +587,48 @@ return (
         )}
 
         {/* Rodapé */}
-        <div className="px-4 py-2.5 border-t border-zinc-800/40">
-          <p className="text-xs text-zinc-500 text-center font-medium">
-            {filterRoundId === 'geral'
-              ? 'Desempate do melhor da rodada: pontos · acertos exatos · time do coração · resultados certos · menos erros'
-              : `${selectedRound?.name ?? 'Rodada'} — Desempate do melhor da rodada: pontos · acertos exatos · time do coração · resultados certos`
-            }
-          </p>
+        <div className="px-4 py-2.5 border-t border-zinc-800/40 flex justify-center">
+          <div className="group relative inline-flex items-center gap-1 text-xs text-zinc-500 cursor-help">
+            <span className="w-4 h-4 rounded-full border border-zinc-600 flex items-center justify-center text-[10px]">
+              i
+            </span>
+
+            <span>Critérios de desempate</span>
+
+            <div className="absolute bottom-full mb-2 hidden group-hover:block z-20">
+              <div className="rounded-xl border border-zinc-700 bg-zinc-900/95 px-3 py-2 shadow-2xl backdrop-blur whitespace-nowrap">
+                <div className="space-y-1 text-[11px] leading-5">
+                  <div className="flex items-center gap-2 text-white">
+                    <span className="font-black text-zinc-500">1.</span>
+                    <span>Mais pontos</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-zinc-300">
+                    <span className="font-black text-zinc-500">2.</span>
+                    <span>Mais acertos exatos</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-zinc-300">
+                    <span className="font-black text-zinc-500">3.</span>
+                    <span>Mais pontos do time do coração</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-zinc-300">
+                    <span className="font-black text-zinc-500">4.</span>
+                    <span>Mais resultados certos</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-zinc-300">
+                    <span className="font-black text-zinc-500">5.</span>
+                    <span>Menos erros</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Legenda */}
-      <div className="mt-4 flex flex-wrap gap-3 text-xs text-zinc-400">
-        <span className="flex items-center gap-1"><Target size={11} className="text-zinc-300" /> Placar exato</span>
-        <span className="flex items-center gap-1"><CheckCircle size={11} className="text-green-500" /> Resultado certo</span>
-        <span className="flex items-center gap-1"><span className="text-xs">🛡️</span> Vitória de rodada</span>
-      </div>
 
       {/* Resumo de vitórias de rodada com escudos */}
       {roundWinners.length > 0 && (
@@ -624,8 +655,21 @@ return (
                       className="text-sm font-semibold flex-shrink-0"
                       style={{ color: isCurrentUser ? '#FFFFFF' : '#E5E7EB' }}
                     >
-                      {entry.name.split(' ')[0]}
-                      {isCurrentUser && <span className="text-xs ml-1 opacity-50">você</span>}
+                      <span className="flex items-center gap-2">
+                        {entry.favoriteTeam && getTeamLogo(entry.favoriteTeam) && (
+                          <img
+                            src={getTeamLogo(entry.favoriteTeam)!}
+                            alt={entry.favoriteTeam}
+                            className="w-4 h-4 object-contain flex-shrink-0"
+                          />
+                        )}
+
+                        <span className="truncate">
+                          {entry.name}
+                        </span>
+
+                        {isCurrentUser && <span className="text-xs opacity-50">você</span>}
+                      </span>
                     </span>
                     <div className="flex items-center gap-2">
                       <ShieldList wins={winner.wins} maxVisible={6} size={22} />
@@ -693,9 +737,20 @@ return (
                     <Trophy size={14} className="text-yellow-400 flex-shrink-0" />
                   )}
 
-                  <span className="text-sm font-semibold text-white truncate">
-                    {score.playerName}
-                  </span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    {ranking.find((r) => r.userId === score.userId)?.favoriteTeam &&
+                      getTeamLogo(ranking.find((r) => r.userId === score.userId)?.favoriteTeam || '') && (
+                      <img
+                        src={getTeamLogo(ranking.find((r) => r.userId === score.userId)?.favoriteTeam || '')!}
+                        alt=""
+                        className="w-4 h-4 object-contain flex-shrink-0"
+                      />
+                    )}
+
+                    <span className="text-sm font-semibold text-white truncate">
+                      {score.playerName}
+                    </span>
+                  </div>
                 </div>
 
                 <span className="text-right text-sm font-black text-brand tabular-nums">
