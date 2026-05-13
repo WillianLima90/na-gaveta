@@ -409,24 +409,164 @@ return (
         </div>
       )}
 
-      {/* Tabela */}
+      {/* Tabela mobile */}
       <div
-        className="rounded-3xl overflow-hidden shadow-2xl"
+        className="md:hidden rounded-3xl overflow-hidden shadow-2xl"
         style={{ background: 'linear-gradient(180deg, rgba(39,39,42,0.92), rgba(24,24,27,0.96))', border: '1px solid rgba(255,255,255,0.08)' }}
       >
+        <div className="flex">
+          <div className="w-[158px] flex-shrink-0 border-r border-zinc-800/70 bg-zinc-950/30">
+            <div className="grid grid-cols-[34px_1fr] items-center gap-2 px-2 py-3 h-[54px] border-b border-zinc-800/70 bg-white/[0.02]">
+              <span className="text-[10px] uppercase tracking-wider text-zinc-400 text-center">#</span>
+              <span className="text-[10px] uppercase tracking-wider text-zinc-400">Jogador</span>
+            </div>
+
+            {(roundLoading || roundDataLoading) ? (
+              <div className="flex justify-center py-6"><Spinner size="sm" /></div>
+            ) : (
+              <div className="divide-y divide-zinc-800/30">
+                {displayRanking.map((entry, i) => {
+                  const isCurrentUser = entry.userId === user?.id;
+                  const pos = i + 1;
+                  const medalEmoji = pos <= 3 ? MEDAL_EMOJI[pos - 1] : null;
+
+                  return (
+                    <div
+                      key={`mobile-left-${entry.userId}`}
+                      className="grid grid-cols-[34px_1fr] items-center gap-2 px-2 h-[62px]"
+                      style={{
+                        background: pos === 1
+                          ? 'linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))'
+                          : isCurrentUser
+                            ? 'linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015))'
+                            : 'transparent',
+                      }}
+                    >
+                      <div className="flex items-center justify-center">
+                        {medalEmoji ? (
+                          <span className="text-sm leading-none">{medalEmoji}</span>
+                        ) : (
+                          <span className="text-[11px] text-zinc-300 font-medium">{pos}º</span>
+                        )}
+                      </div>
+
+                      <div className="min-w-0 flex items-center gap-1.5">
+                        {entry.favoriteTeam && getTeamLogo(entry.favoriteTeam) ? (
+                          <img
+                            src={getTeamLogo(entry.favoriteTeam)!}
+                            alt={entry.favoriteTeam}
+                            className="w-5 h-5 object-contain flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-300 flex-shrink-0">
+                            {entry.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+
+                        <span className="text-xs font-semibold text-white truncate">
+                          {entry.name.split(' ')[0]}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="overflow-x-auto flex-1">
+            <div className="min-w-[470px]">
+              <div
+                className="grid items-center gap-2 px-2 py-3 h-[54px] border-b border-zinc-800/70 bg-white/[0.02]"
+                style={{ gridTemplateColumns: filterRoundId === 'geral' ? '80px 80px 90px 150px' : '80px 80px 90px 150px 90px' }}
+              >
+                <span className="text-[10px] uppercase tracking-wider font-bold text-zinc-300 text-center"><span className="block">Pontos</span><span className="block">Geral</span></span>
+                <span className="text-[10px] uppercase tracking-wider font-bold text-zinc-300 text-center"><span className="block">Acertos</span><span className="block">Exatos</span></span>
+                <span className="text-[10px] uppercase tracking-wider font-bold text-zinc-300 text-center"><span className="block">Time do</span><span className="block">Coração</span></span>
+                <span className="text-[10px] uppercase tracking-wider font-bold text-zinc-300 text-center"><span className="block">Melhor da</span><span className="block">Rodada</span></span>
+                {filterRoundId !== 'geral' && (
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-zinc-300 text-center"><span className="block">Pontos da</span><span className="block">Rodada</span></span>
+                )}
+              </div>
+
+              {(roundLoading || roundDataLoading) ? null : (
+                <div className="divide-y divide-zinc-800/30">
+                  {displayRanking.map((entry, i) => {
+                    const userWins = winsMap.get(entry.userId);
+                    const pos = i + 1;
+                    const isCurrentUser = entry.userId === user?.id;
+
+                    return (
+                      <div
+                        key={`mobile-stats-${entry.userId}`}
+                        className="grid items-center gap-2 px-2 h-[62px]"
+                        style={{
+                          gridTemplateColumns: filterRoundId === 'geral' ? '80px 80px 90px 150px' : '80px 80px 90px 150px 90px',
+                          background: pos === 1
+                            ? 'linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))'
+                            : isCurrentUser
+                              ? 'linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015))'
+                              : 'transparent',
+                        }}
+                      >
+                        <span className="text-center text-sm font-black text-white tabular-nums">{entry.totalPoints}</span>
+                        <span className="text-center text-xs font-semibold text-zinc-300 tabular-nums">{filterRoundId === 'geral' ? (entry.exactScores ?? 0) : (entry.roundExacts ?? 0)}</span>
+                        <span className="text-center text-xs font-semibold text-zinc-300 tabular-nums">{entry.heartTeamScore ?? 0}</span>
+
+                        <div className="flex items-center justify-center min-w-0">
+                          {userWins && userWins.wins.length > 0 ? (
+                            <div className="inline-flex items-center gap-1 rounded-full border border-yellow-400/20 bg-yellow-400/5 px-1.5 py-1">
+                              <ShieldList wins={userWins.wins} maxVisible={5} size={20} />
+                              <span className="text-[10px] font-black text-yellow-300 tabular-nums">
+                                {userWins.wins.length}x
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-zinc-700">—</span>
+                          )}
+                        </div>
+
+                        {filterRoundId !== 'geral' && (
+                          <span className="text-center text-sm font-black text-white tabular-nums">{entry.roundPoints ?? 0}</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabela desktop */}
+      <div className="hidden md:block overflow-x-auto pb-2">
+        <div
+          className="rounded-3xl overflow-hidden shadow-2xl min-w-[900px]"
+          style={{ background: 'linear-gradient(180deg, rgba(39,39,42,0.92), rgba(24,24,27,0.96))', border: '1px solid rgba(255,255,255,0.08)' }}
+        >
         {/* Cabeçalho */}
         <div
-          className="grid gap-x-6 px-5 py-3 border-b border-zinc-800/70 bg-white/[0.02] backdrop-blur"
-          style={{ gridTemplateColumns: filterRoundId === 'geral' ? '36px minmax(300px,1fr) 130px 130px 140px 170px' : '36px minmax(300px,1fr) 130px 130px 140px 170px 120px' }}
+          className="grid gap-x-2 px-3 py-3 border-b border-zinc-800/70 bg-white/[0.02] backdrop-blur"
+          style={{
+            gridTemplateColumns:
+              window.innerWidth < 768
+                ? (filterRoundId === 'geral'
+                    ? '36px 120px 90px 90px 100px 150px'
+                    : '36px 120px 90px 90px 100px 150px 90px')
+                : (filterRoundId === 'geral'
+                    ? '36px 280px 140px 140px 155px 210px'
+                    : '36px 280px 140px 140px 155px 210px 110px')
+          }}
         >
           <span className="text-[11px] uppercase tracking-wider text-zinc-400 text-center">#</span>
-          <span className="text-[11px] uppercase tracking-wider text-zinc-400">Jogador</span>
-          <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center" title="Pontos totais">Pontos Geral</span>
-          <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center" title="Placares exatos">Acertos Exatos</span>
-          <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center" title="Pontos nos jogos do time do coração">Time do Coração</span>
-          <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center" title="Melhores da rodada">Melhor da Rodada</span>
+          <span className="text-[11px] uppercase tracking-wider text-zinc-400 text-center">Jogador</span>
+          <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center" title="Pontos totais"><span className="block">Pontos</span><span className="block">Geral</span></span>
+          <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center" title="Placares exatos"><span className="block">Acertos</span><span className="block">Exatos</span></span>
+          <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center" title="Pontos nos jogos do time do coração"><span className="block">Time do</span><span className="block">Coração</span></span>
+          <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center" title="Melhores da rodada"><span className="block">Melhor da</span><span className="block">Rodada</span></span>
           {filterRoundId !== 'geral' && (
-            <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center">Pontos da Rodada</span>
+            <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center"><span className="block">Pontos da</span><span className="block">Rodada</span></span>
           )}
         </div>
 
@@ -447,7 +587,7 @@ return (
               return (
                 <div
                   key={entry.userId}
-                  className="px-5 py-4 transition-all hover:bg-white/[0.04] border-b border-white/[0.04]"
+                  className="px-3 md:px-5 py-4 transition-all hover:bg-white/[0.04] border-b border-white/[0.04] text-sm md:text-base"
                   style={{
                     background: isLeader
                       ? 'linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))'
@@ -460,8 +600,17 @@ return (
                 >
                   {/* Linha principal */}
                   <div
-                    className="grid gap-x-6 items-center"
-                    style={{ gridTemplateColumns: filterRoundId === 'geral' ? '36px minmax(300px,1fr) 130px 130px 140px 170px' : '36px minmax(300px,1fr) 130px 130px 140px 170px 120px' }}
+                    className="grid gap-x-2 items-center"
+                    style={{
+                      gridTemplateColumns:
+                        window.innerWidth < 768
+                          ? (filterRoundId === 'geral'
+                              ? '36px 120px 90px 90px 100px 150px'
+                              : '36px 120px 90px 90px 100px 150px 90px')
+                          : (filterRoundId === 'geral'
+                              ? '36px 280px 140px 140px 155px 210px'
+                              : '36px 280px 140px 140px 155px 210px 110px')
+                    }}
                   >
                     {/* Posição */}
                     <div className="flex items-center justify-center">
@@ -500,7 +649,7 @@ return (
                             className="text-sm font-semibold tracking-tight truncate text-white"
                             style={{ color: '#FFFFFF' }}
                           >
-                            {entry.name}
+                            {window.innerWidth < 768 ? entry.name.split(' ')[0] : entry.name}
                           </span>
 
                           {(() => {
@@ -528,9 +677,9 @@ return (
                     </div>
 
                     {/* Pontos totais */}
-                    <div className="text-center">
+                    <div className="flex items-center justify-center text-center w-full">
                       <span
-                        className="text-base font-black tracking-tight tabular-nums text-center"
+                        className="text-base font-black tracking-tight tabular-nums text-center mx-auto"
                         style={{ color: '#FFFFFF' }}
                       >
                         {entry.totalPoints}
@@ -538,15 +687,15 @@ return (
                     </div>
 
                     {/* Acertos exatos */}
-                    <div className="text-center">
-                      <span className="text-xs font-semibold text-zinc-300 tabular-nums text-center">
+                    <div className="flex items-center justify-center text-center w-full">
+                      <span className="text-xs font-semibold text-zinc-300 tabular-nums text-center mx-auto">
                         {filterRoundId === 'geral' ? (entry.exactScores ?? 0) : (entry.roundExacts ?? 0)}
                       </span>
                     </div>
 
                     {/* Time do coração */}
-                    <div className="text-center">
-                      <span className="text-xs font-semibold text-zinc-300 tabular-nums text-center">
+                    <div className="flex items-center justify-center text-center w-full">
+                      <span className="text-xs font-semibold text-zinc-300 tabular-nums text-center mx-auto">
                         {entry.heartTeamScore ?? 0}
                       </span>
                     </div>
@@ -554,7 +703,7 @@ return (
                     {/* Melhor da rodada */}
                     <div className="flex items-center justify-center min-w-0">
                       {userWins && userWins.wins.length > 0 ? (
-                        <div className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/5 px-2 py-1">
+                        <div className="inline-flex items-center gap-1 rounded-full border border-yellow-400/20 bg-yellow-400/5 px-1.5 py-1">
                           <ShieldList wins={userWins.wins} maxVisible={8} size={22} />
                           <span className="text-[11px] font-black text-yellow-300 tabular-nums">
                             {userWins.wins.length}x
@@ -569,9 +718,9 @@ return (
 
                     {/* Pts rodada (apenas no filtro por rodada) */}
                     {filterRoundId !== 'geral' && (
-                      <div className="text-center">
+                      <div className="flex items-center justify-center text-center w-full">
                         <span
-                          className="text-base font-black tracking-tight tabular-nums text-center"
+                          className="text-base font-black tracking-tight tabular-nums text-center mx-auto"
                           style={{ color: '#FFFFFF' }}
                         >
                           {entry.roundPoints ?? 0}
@@ -627,6 +776,7 @@ return (
             </div>
           </div>
         </div>
+        </div>
       </div>
 
 
@@ -665,7 +815,7 @@ return (
                         )}
 
                         <span className="truncate">
-                          {entry.name}
+                          {window.innerWidth < 768 ? entry.name.split(' ')[0] : entry.name}
                         </span>
 
                         {isCurrentUser && <span className="text-xs opacity-50">você</span>}
