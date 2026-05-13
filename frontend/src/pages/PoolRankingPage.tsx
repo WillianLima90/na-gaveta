@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Trophy, Target, CheckCircle, Flame } from 'lucide-react';
+import { ArrowLeft, Trophy, Target, CheckCircle, Flame, Share2 } from 'lucide-react';
 import {
   getPoolRanking,
   getRoundRanking,
@@ -58,6 +58,40 @@ export default function PoolRankingPage() {
       key,
       direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc',
     }));
+  }
+
+  async function handleShareBiggestScores() {
+    const text = [
+      '🏆 Maiores pontuações — Na Gaveta',
+      '',
+      ...sortedBiggestRoundScores.slice(0, 5).map((score, index) => {
+        const medal = ['🥇', '🥈', '🥉'][index] ?? '⚽';
+
+        return `${medal} ${score.playerName} — ${score.points} pts (Rodada ${score.roundNumber})`;
+      }),
+      '',
+      'https://nagaveta.com',
+    ].join('\n');
+
+    try {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+      if (navigator.share && isMobile) {
+        await navigator.share({
+          title: 'Maiores pontuações — Na Gaveta',
+          text,
+        });
+
+        return;
+      }
+
+      window.open(
+        `https://wa.me/?text=${encodeURIComponent(text)}`,
+        '_blank'
+      );
+    } catch {
+      // ignorar cancelamento
+    }
   }
 
   const loadData = useCallback(async () => {
@@ -612,9 +646,20 @@ return (
           className="mt-4 rounded-2xl overflow-hidden"
           style={{ background: 'linear-gradient(180deg, rgba(39,39,42,0.92), rgba(24,24,27,0.96))', border: '1px solid rgba(255,255,255,0.08)' }}
         >
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-zinc-800/60">
-            <Trophy size={14} className="text-brand" />
-            <span className="font-black text-white text-sm">Maiores pontuações em rodada</span>
+          <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-zinc-800/60">
+            <div className="flex items-center gap-2">
+              <Trophy size={14} className="text-brand" />
+              <span className="font-black text-white text-sm">Maiores pontuações em rodada</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleShareBiggestScores}
+              className="flex items-center gap-1 rounded-lg border border-zinc-700 px-2.5 py-1.5 text-[11px] font-bold text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+            >
+              <Share2 size={12} />
+              Compartilhar
+            </button>
           </div>
 
           <div
