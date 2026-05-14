@@ -15,6 +15,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Badge, Spinner } from '../components/ui';
 import { myPools as getMyPools, type Pool } from '../services/pool.service';
 import { getUserSummary, getUserHistory, type UserSummary, type UserPoolHistory } from '../services/match.service';
+import { authService } from '../services/auth.service';
 
 // ── Tipos locais ─────────────────────────────────────────────
 interface PoolProfile {
@@ -47,10 +48,13 @@ function getAvatarColor(name: string) {
 
 // ── Componente principal ──────────────────────────────────────
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [pools, setPools] = useState<PoolProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPoolId, setSelectedPoolId] = useState<string | null>(null);
+  const [displayNameInput, setDisplayNameInput] = useState(user?.displayName || '');
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
 
   // Estatísticas agregadas
   const [totalPoints, setTotalPoints] = useState(0);
@@ -113,6 +117,27 @@ export default function ProfilePage() {
 
   useEffect(() => { loadProfile(); }, [loadProfile]);
 
+  useEffect(() => {
+    setDisplayNameInput(user?.displayName || '');
+  }, [user?.displayName]);
+
+  const handleSaveProfile = async () => {
+    if (!user || savingProfile) return;
+    setSavingProfile(true);
+    setProfileSaved(false);
+
+    try {
+      const updatedUser = await authService.updateProfile({
+        displayName: displayNameInput.trim() || null,
+      });
+      updateUser(updatedUser);
+      setProfileSaved(true);
+      setTimeout(() => setProfileSaved(false), 1800);
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
@@ -153,7 +178,38 @@ export default function ProfilePage() {
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-black text-white truncate">{user?.name}</h1>
           <p className="text-sm text-zinc-500 truncate">{user?.email}</p>
-          <div className="flex items-center gap-2 mt-1.5">
+
+          <div className="mt-3 flex flex-col gap-2">
+            <label className="text-[11px] font-bold uppercase tracking-wide text-zinc-500">
+              Nome de jogo
+            </label>
+
+            <div className="flex gap-2">
+              <input
+                value={displayNameInput}
+                onChange={(e) => setDisplayNameInput(e.target.value.slice(0, 22))}
+                placeholder="Ex: MestreDosPalpites"
+                className="flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white outline-none focus:border-brand"
+              />
+
+              <button
+                type="button"
+                onClick={handleSaveProfile}
+                disabled={savingProfile}
+                className="rounded-xl bg-brand px-3 py-2 text-sm font-bold text-white transition-opacity disabled:opacity-60"
+              >
+                {savingProfile ? '...' : 'Salvar'}
+              </button>
+            </div>
+
+            {profileSaved && (
+              <span className="text-[11px] font-semibold text-green-400">
+                Nome atualizado
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 mt-3">
             <Badge variant="default">{pools.length} {pools.length === 1 ? 'bolão' : 'bolões'}</Badge>
             {bestPosition === 1 && <Badge variant="success">🏆 Líder em algum bolão</Badge>}
             {maxStreak >= 3 && (
@@ -328,7 +384,7 @@ export default function ProfilePage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-medium text-white truncate">{round.roundName}</p>
-                        {round.id === pool?.bonusRoundId && (
+                        {round.id === selectedPool.pool?.bonusRoundId && (
                           <Star size={10} className="text-brand flex-shrink-0" />
                         )}
                       </div>

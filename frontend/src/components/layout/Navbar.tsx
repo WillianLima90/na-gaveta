@@ -213,8 +213,9 @@ export function Navbar() {
                   )}
                 </div>
 
-                <div
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-bg-elevated border border-border-subtle"
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-bg-elevated border border-border-subtle hover:border-brand/40 transition-colors"
                 >
                   <div className="w-6 h-6 rounded-full bg-brand/20 flex items-center justify-center">
                     <User className="w-3 h-3 text-brand" />
@@ -225,7 +226,7 @@ export function Navbar() {
                       {user?.name}
                     </span>
                   </span>
-                </div>
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-colors"

@@ -21,6 +21,11 @@ export const authService = {
     return data.user;
   },
 
+  async updateProfile(payload: { displayName?: string | null }): Promise<User> {
+    const { data } = await api.patch<{ user: User }>('/auth/me', payload);
+    return data.user;
+  },
+
   // Persistir sessão no localStorage
   saveSession(token: string, user: User): void {
     localStorage.setItem('ng_token', token);

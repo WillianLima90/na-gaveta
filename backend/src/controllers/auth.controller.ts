@@ -26,7 +26,7 @@ export async function register(req: Request, res: Response): Promise<void> {
 
     const user = await prisma.user.create({
       data: { name, email, passwordHash },
-      select: { id: true, name: true, email: true, role: true, createdAt: true },
+      select: { id: true, name: true, displayName: true, email: true, role: true, createdAt: true },
     });
 
     // Gerar token JWT
@@ -67,6 +67,7 @@ export async function login(req: Request, res: Response): Promise<void> {
       user: {
         id: user.id,
         name: user.name,
+        displayName: user.displayName,
         email: user.email,
         avatarUrl: user.avatarUrl,
         role: user.role,
@@ -88,6 +89,7 @@ export async function getProfile(req: AuthRequest, res: Response): Promise<void>
       select: {
         id: true,
         name: true,
+        displayName: true,
         email: true,
         avatarUrl: true,
         createdAt: true,
@@ -106,6 +108,41 @@ export async function getProfile(req: AuthRequest, res: Response): Promise<void>
   } catch (err) {
     console.error('[Auth] Erro ao buscar perfil:', err);
     res.status(500).json({ error: 'Erro ao buscar perfil' });
+  }
+}
+
+
+// ── Atualizar perfil do usuário autenticado ──────────────────
+export async function updateProfile(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user?.userId;
+    const rawDisplayName = typeof req.body.displayName === 'string' ? req.body.displayName.trim() : null;
+
+    if (rawDisplayName !== null && rawDisplayName.length > 22) {
+      res.status(400).json({ error: 'Nome de jogo deve ter no máximo 22 caracteres' });
+      return;
+    }
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        displayName: rawDisplayName && rawDisplayName.length > 0 ? rawDisplayName : null,
+      },
+      select: {
+        id: true,
+        name: true,
+        displayName: true,
+        email: true,
+        avatarUrl: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    res.json({ user });
+  } catch (err) {
+    console.error('[Auth] Erro ao atualizar perfil:', err);
+    res.status(500).json({ error: 'Erro ao atualizar perfil' });
   }
 }
 

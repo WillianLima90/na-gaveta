@@ -40,6 +40,7 @@ interface AuthContextValue {
   isLoading: boolean;
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
+  updateUser: (user: User) => void;
   logout: () => void;
 }
 
@@ -95,6 +96,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(response.user);
   }, []);
 
+  const updateUser = useCallback((nextUser: User) => {
+    if (token) authService.saveSession(token, nextUser);
+    setUser(nextUser);
+  }, [token]);
+
   // ── Context value memoizado ──────────────────────────────
   // Memoizar o value evita que todos os consumers re-renderizem quando o
   // AuthProvider re-renderiza por razões externas (ex: navigate, router updates).
@@ -107,9 +113,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoading,
       login,
       register,
+      updateUser,
       logout,
     }),
-    [user, token, isLoading, login, register, logout]
+    [user, token, isLoading, login, register, updateUser, logout]
   );
 
   return (
