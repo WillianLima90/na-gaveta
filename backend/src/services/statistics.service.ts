@@ -117,7 +117,7 @@ export async function getMemberStats(
   const members = await prisma.poolMember.findMany({
     where: { poolId },
     include: {
-      user: { select: { id: true, name: true, avatarUrl: true, favoriteTeam: true } },
+      user: { select: { id: true, name: true, displayName: true, avatarUrl: true, favoriteTeam: true } },
     },
   });
 
@@ -153,7 +153,7 @@ export async function getMemberStats(
 
       return {
         userId: member.userId,
-        name: member.user.name,
+        name: member.user.displayName || member.user.name,
         avatarUrl: member.user.avatarUrl,
         favoriteTeam: member.favoriteTeam ?? null,
         heartTeamScore: member.heartTeamScore,
@@ -198,7 +198,7 @@ export async function getRoundRanking(
   const members = await prisma.poolMember.findMany({
     where: { poolId },
     include: {
-      user: { select: { id: true, name: true, avatarUrl: true, favoriteTeam: true } },
+      user: { select: { id: true, name: true, displayName: true, avatarUrl: true, favoriteTeam: true } },
     },
   });
 
@@ -255,7 +255,7 @@ export async function getRoundRanking(
 
     return {
       userId: member.userId,
-      name: member.user.name,
+      name: member.user.displayName || member.user.name,
       avatarUrl: member.user.avatarUrl,
       favoriteTeam: member.user.favoriteTeam ?? null,
       roundPoints,
@@ -683,7 +683,7 @@ export async function getPoolRoundWinners(
   const winners = await prisma.roundWinner.findMany({
     where: { poolId },
     include: {
-      user: { select: { id: true, name: true, avatarUrl: true, favoriteTeam: true } },
+      user: { select: { id: true, name: true, displayName: true, avatarUrl: true, favoriteTeam: true } },
       round: { select: { id: true, number: true, name: true } },
     },
     orderBy: { round: { number: 'asc' } },
@@ -696,7 +696,7 @@ export async function getPoolRoundWinners(
     if (!byUser.has(w.userId)) {
       byUser.set(w.userId, {
         userId: w.userId,
-        name: w.user.name,
+        name: w.user.displayName || w.user.name,
         avatarUrl: w.user.avatarUrl,
         wins: [],
         totalWins: 0,
@@ -709,7 +709,7 @@ export async function getPoolRoundWinners(
       roundName: w.round.name,
       roundNumber: w.round.number,
       userId: w.userId,
-      name: w.user.name,
+      name: w.user.displayName || w.user.name,
       avatarUrl: w.user.avatarUrl,
       favoriteTeam: w.favoriteTeam ?? w.user.favoriteTeam ?? null,
       roundPoints: w.roundPoints,

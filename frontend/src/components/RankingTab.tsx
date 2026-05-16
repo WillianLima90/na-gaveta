@@ -226,11 +226,11 @@ function GeneralRankingRow({ entry, highlight = false }: { entry: RankingEntry; 
       <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0 ${
         entry.isCurrentUser ? 'bg-brand/20 text-brand border border-brand/30' : 'bg-zinc-800 text-zinc-400'
       }`}>
-        {entry.name.charAt(0).toUpperCase()}
+        {(entry.displayName || entry.name).charAt(0).toUpperCase()}
       </div>
       <div className="flex-1 min-w-0">
         <p className={`text-sm font-semibold truncate ${entry.isCurrentUser ? 'text-brand' : 'text-white'}`}>
-          {entry.name}
+          {(entry.displayName || entry.name)}
           {entry.isCurrentUser && <span className="ml-1.5 text-xs font-normal text-brand/70">(você)</span>}
         </p>
         <div className="flex items-center gap-2 text-xs text-zinc-500">
@@ -310,11 +310,11 @@ function RoundRankingRow({ entry }: { entry: RoundRankingEntry }) {
       <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0 ${
         entry.isCurrentUser ? 'bg-brand/20 text-brand border border-brand/30' : 'bg-zinc-800 text-zinc-400'
       }`}>
-        {entry.name.charAt(0).toUpperCase()}
+        {(entry.displayName || entry.name).charAt(0).toUpperCase()}
       </div>
       <div className="flex-1 min-w-0">
         <p className={`text-sm font-semibold truncate ${entry.isCurrentUser ? 'text-brand' : 'text-white'}`}>
-          {entry.name}
+          {(entry.displayName || entry.name)}
           {entry.isCurrentUser && <span className="ml-1.5 text-xs font-normal text-brand/70">(você)</span>}
         </p>
         <div className="flex items-center gap-2 text-xs text-zinc-500">

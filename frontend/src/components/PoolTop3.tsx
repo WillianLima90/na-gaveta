@@ -98,13 +98,13 @@ export function PoolTop3({ poolId, currentUserId, onViewFullRanking }: PoolTop3P
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${
                 isCurrentUser ? 'bg-brand/20 text-brand border border-brand/30' : 'bg-zinc-800 text-zinc-400'
               }`}>
-                {entry.name.charAt(0).toUpperCase()}
+                {(entry.displayName || entry.name).charAt(0).toUpperCase()}
               </div>
 
               {/* Nome */}
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-semibold truncate ${isCurrentUser ? 'text-brand' : 'text-white'}`}>
-                  {entry.name}
+                  {(entry.displayName || entry.name)}
                   {isCurrentUser && <span className="ml-1 text-xs font-normal text-brand/60">(você)</span>}
                 </p>
                 {entry.exactScores > 0 && (

@@ -80,6 +80,7 @@ export interface RankingEntry {
   position: number;
   userId: string;
   name: string;
+  displayName?: string | null;
   avatarUrl?: string | null;
   favoriteTeam?: string | null;
   heartTeamScore: number;
@@ -97,6 +98,7 @@ export interface RoundRankingEntry {
   position: number;
   userId: string;
   name: string;
+  displayName?: string | null;
   avatarUrl?: string | null;
   favoriteTeam?: string | null;
   roundPoints: number;

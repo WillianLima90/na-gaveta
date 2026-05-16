@@ -459,12 +459,12 @@ return (
                           />
                         ) : (
                           <div className="w-5 h-5 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-300 flex-shrink-0">
-                            {entry.name.charAt(0).toUpperCase()}
+                            {(entry.displayName || entry.name).charAt(0).toUpperCase()}
                           </div>
                         )}
 
                         <span className="text-xs font-semibold text-white truncate">
-                          {entry.name.split(' ')[0]}
+                          {(entry.displayName || entry.name).split(' ')[0]}
                         </span>
                       </div>
                     </div>
@@ -653,7 +653,7 @@ return (
                                 : { background: '#27272A', color: '#A1A1AA' }
                             }
                           >
-                            {entry.name.charAt(0).toUpperCase()}
+                            {(entry.displayName || entry.name).charAt(0).toUpperCase()}
                           </div>
                         )}
                       </div>
@@ -663,7 +663,7 @@ return (
                             className="text-sm font-semibold tracking-tight truncate text-white"
                             style={{ color: '#FFFFFF' }}
                           >
-                            {window.innerWidth < 768 ? entry.name.split(' ')[0] : entry.name}
+                            {window.innerWidth < 768 ? (entry.displayName || entry.name).split(' ')[0] : (entry.displayName || entry.name)}
                           </span>
 
                           {(() => {
@@ -841,7 +841,7 @@ return (
                         )}
 
                         <span className="truncate">
-                          {window.innerWidth < 768 ? entry.name.split(' ')[0] : entry.name}
+                          {window.innerWidth < 768 ? (entry.displayName || entry.name).split(' ')[0] : (entry.displayName || entry.name)}
                         </span>
 
                         {isCurrentUser && <span className="text-xs opacity-50">você</span>}

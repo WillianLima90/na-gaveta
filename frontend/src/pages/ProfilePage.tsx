@@ -154,8 +154,9 @@ export default function ProfilePage() {
     ? Math.round((totalExact / totalPredictions) * 100)
     : 0;
 
-  const avatarColor = user ? getAvatarColor(user.name) : 'bg-brand';
-  const initials = user ? getInitials(user.name) : '?';
+  const publicName = user?.displayName || user?.name || 'Jogador';
+  const avatarColor = user ? getAvatarColor(publicName) : 'bg-brand';
+  const initials = getInitials(publicName);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 animate-fade-in">
@@ -170,16 +171,30 @@ export default function ProfilePage() {
       </Link>
 
       {/* ── CABEÇALHO DO PERFIL ─────────────────────────────── */}
-      <div className="flex items-center gap-4 mb-6 p-5 bg-zinc-900 border border-zinc-800 rounded-2xl">
-        {/* Avatar */}
-        <div className={`w-16 h-16 rounded-2xl ${avatarColor} flex items-center justify-center flex-shrink-0 shadow-lg`}>
-          <span className="text-2xl font-black text-white">{initials}</span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-black text-white truncate">{user?.name}</h1>
-          <p className="text-sm text-zinc-500 truncate">{user?.email}</p>
+      <div className="mb-6 p-5 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl">
+        <div className="flex items-center gap-4">
+          {/* Avatar */}
+          <div className={`w-[72px] h-[72px] rounded-3xl ${avatarColor} flex items-center justify-center flex-shrink-0 shadow-lg ring-2 ring-white/10`}>
+            <span className="text-2xl font-black text-white">{initials}</span>
+          </div>
 
-          <div className="mt-3 flex flex-col gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-black text-white truncate">{publicName}</h1>
+              {user?.displayName && (
+                <span className="rounded-full border border-brand/30 bg-brand/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand">
+                  Nome de jogo
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-zinc-500 truncate">{user?.name}</p>
+            <p className="text-xs text-zinc-600 truncate">{user?.email}</p>
+          </div>
+        </div>
+
+        <div className="mt-5">
+
+          <div className="flex flex-col gap-2">
             <label className="text-[11px] font-bold uppercase tracking-wide text-zinc-500">
               Nome de jogo
             </label>
@@ -209,7 +224,7 @@ export default function ProfilePage() {
             )}
           </div>
 
-          <div className="flex items-center gap-2 mt-3">
+          <div className="flex flex-wrap items-center gap-2 mt-4">
             <Badge variant="default">{pools.length} {pools.length === 1 ? 'bolão' : 'bolões'}</Badge>
             {bestPosition === 1 && <Badge variant="success">🏆 Líder em algum bolão</Badge>}
             {maxStreak >= 3 && (
