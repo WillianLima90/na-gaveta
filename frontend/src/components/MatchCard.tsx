@@ -379,8 +379,8 @@ const canPredict = isAuthenticated && isMember && !locked;
   // Pontos
   const finalPts = match.myPrediction?.points ?? null;
   const dynPts = hasPrediction && hasScore && result ? calcPoints(match.myPrediction!, match, round, result) : null;
-  const pts = finalPts !== null ? finalPts : dynPts;
-  const isLivePts = match.status === 'LIVE' && finalPts === null && dynPts !== null;
+  const pts = match.status === 'LIVE' && dynPts !== null ? dynPts : finalPts;
+  const isLivePts = match.status === 'LIVE' && dynPts !== null;
 
   async function handleSave() {
     if (homeInput === '' && awayInput === '') {
