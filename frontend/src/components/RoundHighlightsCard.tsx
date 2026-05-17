@@ -29,7 +29,7 @@ export function RoundHighlightsCard({ highlights }: Props) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs text-brand font-semibold uppercase tracking-wide">Melhor da Rodada</p>
-              <p className="text-white font-bold truncate">{highlights.bestUser.name}</p>
+              <p className="text-white font-bold truncate">{highlights.bestUser.displayName || highlights.bestUser.name}</p>
               <p className="text-sm text-zinc-400">
                 {highlights.bestUser.roundPoints} pts
                 {highlights.bestUser.exactScores > 0 && (

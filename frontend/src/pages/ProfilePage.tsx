@@ -315,7 +315,7 @@ export default function ProfilePage() {
                       {summary && !isLeader && summary.rival && (
                         <span className="flex items-center gap-1 text-zinc-400">
                           <Swords size={9} />
-                          {summary.rival.diffToRival} pts atrás de {summary.rival.name.split(' ')[0]}
+                          {summary.rival.diffToRival} pts atrás de {summary.rival.displayName?.split(' ')[0] || summary.rival.name.split(' ')[0]}
                         </span>
                       )}
                     </div>
@@ -374,7 +374,7 @@ export default function ProfilePage() {
               {selectedPool.summary.rival ? (
                 <>
                   <p className="text-base font-black text-white truncate">
-                    {selectedPool.summary.rival.name.split(' ')[0]}
+                    {selectedPool.summary.rival.displayName?.split(' ')[0] || selectedPool.summary.rival.name.split(' ')[0]}
                   </p>
                   <p className="text-xs text-zinc-500 mt-0.5">
                     {selectedPool.summary.rival.diffToRival} pts à frente

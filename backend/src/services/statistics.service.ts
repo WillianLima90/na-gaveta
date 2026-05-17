@@ -335,7 +335,7 @@ export async function getUserPoolHistory(
 ): Promise<UserPoolHistory> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, name: true },
+    select: { id: true, name: true, displayName: true },
   });
 
   if (!user) throw new Error('Usuário não encontrado');
@@ -413,7 +413,7 @@ export async function getUserPoolHistory(
 
   return {
     userId,
-    name: user.name,
+    name: user.displayName || user.name,
     totalPoints,
     exactScores: totalExact,
     correctOutcomes: totalOutcomes,

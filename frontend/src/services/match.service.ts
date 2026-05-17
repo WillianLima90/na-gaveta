@@ -116,6 +116,7 @@ export interface RoundHighlights {
   bestUser: {
     userId: string;
     name: string;
+    displayName?: string | null;
     avatarUrl?: string | null;
     roundPoints: number;
     exactScores: number;
@@ -272,6 +273,7 @@ export interface UserSummary {
   rival: {
     userId: string;
     name: string;
+    displayName?: string | null;
     points: number;
     diffToRival: number;
   } | null;

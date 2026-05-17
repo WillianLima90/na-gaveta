@@ -110,7 +110,7 @@ export function DashboardPage() {
         <div>
           <p className="text-zinc-500 text-sm">{greeting()},</p>
           <h1 className="text-2xl font-black text-white">
-            {user?.name.split(' ')[0]} 👋
+            {user?.displayName?.split(' ')[0] || user?.name.split(' ')[0]} 👋
           </h1>
         </div>
         <Link to="/pools">
@@ -240,7 +240,7 @@ export function DashboardPage() {
                         {s && !isLeader && s.rival && (
                           <span className="flex items-center gap-1 text-zinc-400">
                             <Swords size={10} />
-                            {s.rival.diffToRival} pts atrás de {s.rival.name.split(' ')[0]}
+                            {s.rival.diffToRival} pts atrás de {s.rival.displayName?.split(' ')[0] || s.rival.name.split(' ')[0]}
                           </span>
                         )}
                       </div>

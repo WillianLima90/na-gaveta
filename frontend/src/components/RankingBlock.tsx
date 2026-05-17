@@ -46,6 +46,7 @@ const MEDAL_TEXT = ['#FFD700', '#F4F4F5', '#CD7F32'];
 interface RoundEntry {
   userId: string;
   name: string;
+  displayName?: string | null;
   favoriteTeam?: string | null;
   roundPoints: number;
   exactScores: number;
@@ -107,6 +108,7 @@ export function RankingBlock({
               const entries: RoundEntry[] = data.ranking.map((e) => ({
                 userId: e.userId,
                 name: e.name,
+                displayName: e.displayName ?? null,
                 favoriteTeam: e.favoriteTeam ?? null,
                 roundPoints: e.roundPoints ?? 0,
                 exactScores: e.exactScores ?? 0,
