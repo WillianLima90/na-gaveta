@@ -116,7 +116,7 @@ export default function PoolRankingPage() {
   const loadRoundsData = useCallback(async () => {
     if (!id) return;
     const finishedRounds = rounds.filter((r) =>
-      r.matches.some((m) => m.status === 'FINISHED')
+      r.matches.some((m) => m.status === 'FINISHED' || m.status === 'LIVE')
     );
     if (finishedRounds.length === 0) return;
 
@@ -212,6 +212,21 @@ return (
   const winsMap = new Map<string, UserRoundWins>();
   roundWinners.forEach((w) => winsMap.set(w.userId, w));
 
+  const startingRound = rounds.find((round) => round.id === pool.startingRoundId);
+  const validFinishedRounds = (
+    startingRound
+      ? finishedRounds.filter((round) => round.number >= startingRound.number)
+      : finishedRounds
+  ).sort((a, b) => b.number - a.number);
+
+  const currentRound =
+    validFinishedRounds.find((round) => round.matches.some((m) => m.status === 'LIVE')) ??
+    [...validFinishedRounds].sort((a, b) => b.number - a.number)[0];
+
+  const currentRoundPoints = currentRound ? roundPointsData.get(currentRound.id) : null;
+
+  const selectedRound = validFinishedRounds.find((round) => round.id === filterRoundId);
+
   // Ranking para exibição
   const displayRanking: Array<{
     userId: string;
@@ -224,33 +239,62 @@ return (
     roundOutcomes?: number;
     favoriteTeam?: string | null;
     heartTeamScore?: number;
-  }> = filterRoundId === 'geral'
-    ? ranking.map((e) => ({
+  }> = ranking
+    .map((e) => {
+      const selectedRoundMap = selectedRound ? roundPointsData.get(selectedRound.id) : null;
+      const currentRoundStats = currentRoundPoints?.get(e.userId);
+
+      if (filterRoundId === 'geral' || !selectedRound) {
+        return {
+          userId: e.userId,
+          name: e.name,
+          totalPoints: e.totalPoints,
+          exactScores: e.exactScores ?? 0,
+          correctOutcomes: e.correctOutcomes ?? 0,
+          roundPoints: currentRoundStats?.points ?? 0,
+          roundExacts: currentRoundStats?.exactScores ?? 0,
+          roundOutcomes: currentRoundStats?.correctOutcomes ?? 0,
+          favoriteTeam: e.favoriteTeam ?? null,
+          heartTeamScore: e.heartTeamScore ?? 0,
+        };
+      }
+
+      const laterRounds = validFinishedRounds.filter((round) => round.number > selectedRound.number);
+
+      const laterTotals = laterRounds.reduce(
+        (acc, round) => {
+          const stats = roundPointsData.get(round.id)?.get(e.userId);
+
+          return {
+            points: acc.points + (stats?.points ?? 0),
+            exactScores: acc.exactScores + (stats?.exactScores ?? 0),
+            correctOutcomes: acc.correctOutcomes + (stats?.correctOutcomes ?? 0),
+          };
+        },
+        { points: 0, exactScores: 0, correctOutcomes: 0 }
+      );
+
+      const selectedStats = selectedRoundMap?.get(e.userId);
+
+      return {
         userId: e.userId,
         name: e.name,
-        totalPoints: e.totalPoints,
-        exactScores: e.exactScores ?? 0,
-        correctOutcomes: e.correctOutcomes ?? 0,
+        totalPoints: e.totalPoints - laterTotals.points,
+        exactScores: (e.exactScores ?? 0) - laterTotals.exactScores,
+        correctOutcomes: (e.correctOutcomes ?? 0) - laterTotals.correctOutcomes,
+        roundPoints: selectedStats?.points ?? 0,
+        roundExacts: selectedStats?.exactScores ?? 0,
+        roundOutcomes: selectedStats?.correctOutcomes ?? 0,
         favoriteTeam: e.favoriteTeam ?? null,
         heartTeamScore: e.heartTeamScore ?? 0,
-      }))
-    : roundRanking.map((e) => ({
-        userId: e.userId,
-        name: e.name,
-        totalPoints: ranking.find((r) => r.userId === e.userId)?.totalPoints ?? 0,
-        exactScores: ranking.find((r) => r.userId === e.userId)?.exactScores ?? 0,
-        correctOutcomes: ranking.find((r) => r.userId === e.userId)?.correctOutcomes ?? 0,
-        roundPoints: e.roundPoints,
-        roundExacts: e.exactScores,
-        roundOutcomes: e.correctOutcomes,
-        favoriteTeam: e.favoriteTeam ?? ranking.find((r) => r.userId === e.userId)?.favoriteTeam ?? null,
-        heartTeamScore: ranking.find((r) => r.userId === e.userId)?.heartTeamScore ?? 0,
-      }));
-
-  const startingRound = rounds.find((round) => round.id === pool.startingRoundId);
-  const validFinishedRounds = startingRound
-    ? finishedRounds.filter((round) => round.number >= startingRound.number)
-    : finishedRounds;
+      };
+    })
+    .sort((a, b) => {
+      if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+      if (b.exactScores !== a.exactScores) return b.exactScores - a.exactScores;
+      if ((b.heartTeamScore ?? 0) !== (a.heartTeamScore ?? 0)) return (b.heartTeamScore ?? 0) - (a.heartTeamScore ?? 0);
+      return b.correctOutcomes - a.correctOutcomes;
+    });
 
   const biggestRoundScores = validFinishedRounds
     .map((round) => {
@@ -393,7 +437,7 @@ return (
           >
             Geral
           </button>
-          {finishedRounds.map((r) => (
+          {validFinishedRounds.map((r) => (
             <button
               key={r.id}
               onClick={() => handleSelectRound(r.id)}
@@ -478,15 +522,15 @@ return (
             <div className="min-w-[470px]">
               <div
                 className="grid items-center gap-2 px-2 py-3 h-[54px] border-b border-zinc-800/70 bg-white/[0.02]"
-                style={{ gridTemplateColumns: filterRoundId === 'geral' ? '80px 80px 90px 150px' : '80px 80px 90px 150px 90px' }}
+                style={{ gridTemplateColumns: filterRoundId === 'geral' ? '80px 80px 80px 90px 150px' : '80px 80px 90px 150px 90px' }}
               >
                 <span className="text-[10px] uppercase tracking-wider font-bold text-zinc-300 text-center"><span className="block">Pontos</span><span className="block">Geral</span></span>
+                {filterRoundId === 'geral' && currentRoundPoints && (
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-zinc-300 text-center"><span className="block">Rodada</span><span className="block">Atual</span></span>
+                )}
                 <span className="text-[10px] uppercase tracking-wider font-bold text-zinc-300 text-center"><span className="block">Acertos</span><span className="block">Exatos</span></span>
                 <span className="text-[10px] uppercase tracking-wider font-bold text-zinc-300 text-center"><span className="block">Time do</span><span className="block">Coração</span></span>
                 <span className="text-[10px] uppercase tracking-wider font-bold text-zinc-300 text-center"><span className="block">Melhor da</span><span className="block">Rodada</span></span>
-                {filterRoundId !== 'geral' && (
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-zinc-300 text-center"><span className="block">Pontos da</span><span className="block">Rodada</span></span>
-                )}
               </div>
 
               {(roundLoading || roundDataLoading) ? null : (
@@ -510,6 +554,11 @@ return (
                         }}
                       >
                         <span className="text-center text-sm font-black text-white tabular-nums">{entry.totalPoints}</span>
+
+                        {filterRoundId === 'geral' && currentRoundPoints && (
+                          <span className="text-center text-sm font-black text-brand tabular-nums">{entry.roundPoints ?? 0}</span>
+                        )}
+
                         <span className="text-center text-xs font-semibold text-zinc-300 tabular-nums">{filterRoundId === 'geral' ? (entry.exactScores ?? 0) : (entry.roundExacts ?? 0)}</span>
                         <span className="text-center text-xs font-semibold text-zinc-300 tabular-nums">{entry.heartTeamScore ?? 0}</span>
 
@@ -525,10 +574,6 @@ return (
                             <span className="text-xs text-zinc-700">—</span>
                           )}
                         </div>
-
-                        {filterRoundId !== 'geral' && (
-                          <span className="text-center text-sm font-black text-white tabular-nums">{entry.roundPoints ?? 0}</span>
-                        )}
                       </div>
                     );
                   })}
@@ -566,22 +611,40 @@ return (
             gridTemplateColumns:
               window.innerWidth < 768
                 ? (filterRoundId === 'geral'
-                    ? '36px 120px 90px 90px 100px 150px'
+                    ? '36px 120px 80px 80px 90px 150px 80px'
                     : '36px 120px 90px 90px 100px 150px 90px')
                 : (filterRoundId === 'geral'
-                    ? '36px 280px 140px 140px 155px 210px'
-                    : '36px 280px 140px 140px 155px 210px 110px')
+                    ? '36px 280px 120px 120px 140px 155px 210px'
+                    : '36px 280px 140px 140px 120px 140px 155px 210px')
           }}
         >
           <span className="text-[11px] uppercase tracking-wider text-zinc-400 text-center">#</span>
           <span className="text-[11px] uppercase tracking-wider text-zinc-400 text-center">Jogador</span>
-          <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center" title="Pontos totais"><span className="block">Pontos</span><span className="block">Geral</span></span>
+          {filterRoundId === 'geral' ? (
+            <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center" title="Pontos totais">
+              <span className="block">Pontos</span>
+              <span className="block">Geral</span>
+            </span>
+          ) : (
+            <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center">
+              <span className="block">Geral até</span>
+              <span className="block">{selectedRound?.name.replace('Rodada ', 'R') ?? ''}</span>
+            </span>
+          )}
+          {filterRoundId === 'geral' && currentRoundPoints && (
+            <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center"><span className="block">Rodada</span><span className="block">Atual</span></span>
+          )}
+
+          {filterRoundId !== 'geral' && (
+            <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center">
+              <span className="block">Pontos</span>
+              <span className="block">{selectedRound?.name ?? 'Rodada'}</span>
+            </span>
+          )}
+
           <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center" title="Placares exatos"><span className="block">Acertos</span><span className="block">Exatos</span></span>
           <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center" title="Pontos nos jogos do time do coração"><span className="block">Time do</span><span className="block">Coração</span></span>
           <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center" title="Melhores da rodada"><span className="block">Melhor da</span><span className="block">Rodada</span></span>
-          {filterRoundId !== 'geral' && (
-            <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center"><span className="block">Pontos da</span><span className="block">Rodada</span></span>
-          )}
         </div>
 
         {/* Linhas */}
@@ -619,11 +682,11 @@ return (
                       gridTemplateColumns:
                         window.innerWidth < 768
                           ? (filterRoundId === 'geral'
-                              ? '36px 120px 90px 90px 100px 150px'
+                              ? '36px 120px 80px 80px 90px 150px 80px'
                               : '36px 120px 90px 90px 100px 150px 90px')
                           : (filterRoundId === 'geral'
-                              ? '36px 280px 140px 140px 155px 210px'
-                              : '36px 280px 140px 140px 155px 210px 110px')
+                              ? '36px 280px 120px 120px 140px 155px 210px'
+                              : '36px 280px 140px 140px 120px 140px 155px 210px')
                     }}
                   >
                     {/* Posição */}
@@ -700,6 +763,26 @@ return (
                       </span>
                     </div>
 
+                    {/* Rodada atual */}
+                    {filterRoundId === 'geral' && currentRoundPoints && (
+                      <div className="flex items-center justify-center text-center w-full">
+                        <span
+                          className="text-base font-black tracking-tight tabular-nums text-center mx-auto text-brand"
+                        >
+                          {entry.roundPoints ?? 0}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Pontos da rodada */}
+                    {filterRoundId !== 'geral' && (
+                      <div className="flex items-center justify-center text-center w-full">
+                        <span className="text-base font-black tracking-tight tabular-nums text-brand">
+                          {entry.roundPoints ?? 0}
+                        </span>
+                      </div>
+                    )}
+
                     {/* Acertos exatos */}
                     <div className="flex items-center justify-center text-center w-full">
                       <span className="text-xs font-semibold text-zinc-300 tabular-nums text-center mx-auto">
@@ -730,17 +813,6 @@ return (
 
 
 
-                    {/* Pts rodada (apenas no filtro por rodada) */}
-                    {filterRoundId !== 'geral' && (
-                      <div className="flex items-center justify-center text-center w-full">
-                        <span
-                          className="text-base font-black tracking-tight tabular-nums text-center mx-auto"
-                          style={{ color: '#FFFFFF' }}
-                        >
-                          {entry.roundPoints ?? 0}
-                        </span>
-                      </div>
-                    )}
                   </div>
 
                 </div>
