@@ -219,6 +219,23 @@ return (
       : finishedRounds
   ).sort((a, b) => b.number - a.number);
 
+
+  const roundWinnerUserIds = new Map<string, string[]>();
+
+  validFinishedRounds.forEach((round) => {
+    const roundMap = roundPointsData.get(round.id);
+    if (!roundMap) return;
+
+    const topPoints = Math.max(...[...roundMap.values()].map((stats) => stats.points), 0);
+    if (topPoints <= 0) return;
+
+    const winners = [...roundMap.entries()]
+      .filter(([, stats]) => stats.points === topPoints)
+      .map(([userId]) => userId);
+
+    roundWinnerUserIds.set(round.id, winners);
+  });
+
   const currentRound =
     validFinishedRounds.find((round) => round.matches.some((m) => m.status === 'LIVE')) ??
     [...validFinishedRounds].sort((a, b) => b.number - a.number)[0];
@@ -291,6 +308,7 @@ return (
     })
     .sort((a, b) => {
       if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+      if (filterRoundId !== 'geral' && (b.roundPoints ?? 0) !== (a.roundPoints ?? 0)) return (b.roundPoints ?? 0) - (a.roundPoints ?? 0);
       if (b.exactScores !== a.exactScores) return b.exactScores - a.exactScores;
       if ((b.heartTeamScore ?? 0) !== (a.heartTeamScore ?? 0)) return (b.heartTeamScore ?? 0) - (a.heartTeamScore ?? 0);
       return b.correctOutcomes - a.correctOutcomes;
@@ -337,7 +355,12 @@ return (
 
   const highestBiggestRoundScore = Math.max(...biggestRoundScores.map((score) => score.points), 0);
 
-  const sortedBiggestRoundScores = [...biggestRoundScores].sort((a, b) => {
+  const visibleBiggestRoundScores =
+    filterRoundId !== 'geral' && selectedRound
+      ? biggestRoundScores.filter((score) => score.roundNumber <= selectedRound.number)
+      : biggestRoundScores;
+
+  const sortedBiggestRoundScores = [...visibleBiggestRoundScores].sort((a, b) => {
     const direction = biggestScoresSort.direction === 'asc' ? 1 : -1;
 
     if (biggestScoresSort.key === 'round') {
@@ -381,6 +404,71 @@ return (
       });
     }
   }
+
+  const computedWinsMap = new Map<string, { userId: string; wins: Array<{ roundNumber: number; points: number; favoriteTeam?: string | null }> }>();
+
+  validFinishedRounds.forEach((round) => {
+    const roundMap = roundPointsData.get(round.id);
+    if (!roundMap) return;
+
+    const roundSnapshot = ranking
+      .map((entry) => {
+        const laterRounds = validFinishedRounds.filter((r) => r.number > round.number);
+
+        const laterTotals = laterRounds.reduce(
+          (acc, laterRound) => {
+            const stats = roundPointsData.get(laterRound.id)?.get(entry.userId);
+
+            return {
+              points: acc.points + (stats?.points ?? 0),
+              exactScores: acc.exactScores + (stats?.exactScores ?? 0),
+              correctOutcomes: acc.correctOutcomes + (stats?.correctOutcomes ?? 0),
+            };
+          },
+          { points: 0, exactScores: 0, correctOutcomes: 0 }
+        );
+
+        const stats = roundMap.get(entry.userId);
+
+        return {
+          userId: entry.userId,
+          favoriteTeam: entry.favoriteTeam ?? null,
+          totalPoints: entry.totalPoints - laterTotals.points,
+          exactScores: (entry.exactScores ?? 0) - laterTotals.exactScores,
+          correctOutcomes: (entry.correctOutcomes ?? 0) - laterTotals.correctOutcomes,
+          heartTeamScore: entry.heartTeamScore ?? 0,
+          roundPoints: stats?.points ?? 0,
+        };
+      })
+      .sort((a, b) => {
+        if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+        if ((b.roundPoints ?? 0) !== (a.roundPoints ?? 0)) return (b.roundPoints ?? 0) - (a.roundPoints ?? 0);
+        if (b.exactScores !== a.exactScores) return b.exactScores - a.exactScores;
+        if ((b.heartTeamScore ?? 0) !== (a.heartTeamScore ?? 0)) return (b.heartTeamScore ?? 0) - (a.heartTeamScore ?? 0);
+        return b.correctOutcomes - a.correctOutcomes;
+      });
+
+    const winner = roundSnapshot[0];
+    if (!winner) return;
+
+    const current = computedWinsMap.get(winner.userId) ?? { userId: winner.userId, wins: [] };
+    current.wins.push({
+      roundNumber: round.number,
+      points: winner.roundPoints ?? 0,
+      favoriteTeam: winner.favoriteTeam ?? null,
+    });
+    computedWinsMap.set(winner.userId, current);
+  });
+
+  const computedRoundWinners = [...computedWinsMap.values()];
+
+  const displayedRoundWinners =
+    filterRoundId !== 'geral' && selectedRound && displayRanking.length > 0
+      ? [{
+          userId: displayRanking[0].userId,
+          wins: [{ roundNumber: selectedRound.number, points: displayRanking[0].roundPoints ?? 0, favoriteTeam: displayRanking[0].favoriteTeam ?? null }],
+        }]
+      : computedRoundWinners;
 
   const getPositionChange = (currentIndex: number, userId: string) => {
     const prev = previousPositions.get(userId);
@@ -536,7 +624,7 @@ return (
               {(roundLoading || roundDataLoading) ? null : (
                 <div className="divide-y divide-zinc-800/30">
                   {displayRanking.map((entry, i) => {
-                    const userWins = winsMap.get(entry.userId);
+                    const userWins = computedWinsMap.get(entry.userId);
                     const pos = i + 1;
                     const isCurrentUser = entry.userId === user?.id;
 
@@ -654,7 +742,11 @@ return (
           <div className="divide-y divide-zinc-800/30">
             {displayRanking.map((entry, i) => {
               const isCurrentUser = entry.userId === user?.id;
-              const userWins = winsMap.get(entry.userId);
+              const userWins = computedWinsMap.get(entry.userId);
+              const isSelectedRoundWinner =
+                filterRoundId !== 'geral' &&
+                selectedRound &&
+                displayRanking[0]?.userId === entry.userId;
               const pos = i + 1;
               const isLeader = pos === 1;
               const medalColor = pos <= 3 ? MEDAL_TEXT_COLOR[pos - 1] : undefined;
@@ -799,7 +891,16 @@ return (
 
                     {/* Melhor da rodada */}
                     <div className="flex items-center justify-center min-w-0">
-                      {userWins && userWins.wins.length > 0 ? (
+                      {filterRoundId !== 'geral' && selectedRound ? (
+                        isSelectedRoundWinner ? (
+                          <div className="inline-flex items-center gap-1 rounded-full border border-yellow-400/20 bg-yellow-400/5 px-1.5 py-1">
+                            <ShieldList wins={[{ roundNumber: selectedRound.number, points: entry.roundPoints ?? 0, favoriteTeam: entry.favoriteTeam ?? null }]} maxVisible={1} size={22} />
+                            <span className="text-[11px] font-black text-yellow-300 tabular-nums">1x</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-zinc-700">—</span>
+                        )
+                      ) : userWins && userWins.wins.length > 0 ? (
                         <div className="inline-flex items-center gap-1 rounded-full border border-yellow-400/20 bg-yellow-400/5 px-1.5 py-1">
                           <ShieldList wins={userWins.wins} maxVisible={8} size={22} />
                           <span className="text-[11px] font-black text-yellow-300 tabular-nums">
@@ -879,7 +980,7 @@ return (
 
 
       {/* Resumo de vitórias de rodada com escudos */}
-      {roundWinners.length > 0 && (
+      {displayedRoundWinners.length > 0 && (
         <div
           className="mt-4 rounded-2xl p-4"
           style={{ background: 'linear-gradient(180deg, rgba(39,39,42,0.92), rgba(24,24,27,0.96))', border: '1px solid rgba(255,255,255,0.08)' }}
@@ -889,7 +990,7 @@ return (
             <span className="font-black text-white text-sm">Vitórias de rodada</span>
           </div>
           <div className="space-y-3">
-            {[...roundWinners]
+            {[...displayedRoundWinners]
               .sort((a, b) => b.wins.length - a.wins.length)
               .map((winner) => {
                 const entry = ranking.find((e) => e.userId === winner.userId);
@@ -933,7 +1034,7 @@ return (
       )}
 
       {/* Maiores pontuações em rodada */}
-      {biggestRoundScores.length > 0 && (
+      {visibleBiggestRoundScores.length > 0 && (
         <div
           className="mt-4 rounded-2xl overflow-hidden"
           style={{ background: 'linear-gradient(180deg, rgba(39,39,42,0.92), rgba(24,24,27,0.96))', border: '1px solid rgba(255,255,255,0.08)' }}
