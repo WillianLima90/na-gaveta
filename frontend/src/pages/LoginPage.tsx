@@ -70,6 +70,7 @@ export function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
 
             <Input
+              name="email"
               label="E-mail"
               type="email"
               placeholder="seu@email.com"
@@ -83,6 +84,7 @@ export function LoginPage() {
 
             <div className="relative">
               <Input
+                name="password"
                 label="Senha"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Sua senha"
