@@ -152,7 +152,7 @@ export async function updateProfile(req: AuthRequest, res: Response): Promise<vo
 // ── Helper: gerar JWT ────────────────────────────────────────
 function generateToken(userId: string, email: string, role: string): string {
   const secret = process.env.JWT_SECRET!;
-  const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
+  const expiresIn = process.env.JWT_EXPIRES_IN || '30d';
 
   return jwt.sign({ userId, email, role }, secret, { expiresIn } as jwt.SignOptions);
 }
