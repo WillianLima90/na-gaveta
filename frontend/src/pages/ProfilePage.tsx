@@ -206,7 +206,7 @@ export default function ProfilePage() {
           <div className="flex flex-col items-center gap-2 flex-shrink-0">
             <label className="relative cursor-pointer group">
               {avatarPreview ? (
-                <div className="w-[72px] h-[72px] rounded-2xl overflow-hidden shadow-lg ring-2 ring-white/10 bg-zinc-900">
+                <div className="w-[64px] h-[64px] sm:w-[72px] sm:h-[72px] rounded-2xl overflow-hidden shadow-lg ring-2 ring-white/10 bg-zinc-900">
                   <img
                     src={avatarPreview}
                     alt={publicName}
@@ -218,7 +218,7 @@ export default function ProfilePage() {
                   />
                 </div>
               ) : (
-                <div className={`w-[72px] h-[72px] rounded-2xl ${avatarColor} flex items-center justify-center shadow-lg ring-2 ring-white/10`}>
+                <div className={`w-[64px] h-[64px] sm:w-[72px] sm:h-[72px] rounded-2xl ${avatarColor} flex items-center justify-center shadow-lg ring-2 ring-white/10`}>
                   <span className="text-2xl font-black text-white">
                     {initials}
                   </span>
@@ -264,7 +264,7 @@ export default function ProfilePage() {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-black text-white truncate">{publicName}</h1>
+              <h1 className="text-xl sm:text-2xl font-black text-white truncate">{publicName}</h1>
               {user?.displayName && (
                 <span className="rounded-full border border-brand/30 bg-brand/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand">
                   Nome de jogo
@@ -330,7 +330,7 @@ export default function ProfilePage() {
                 <button
                   key={pool.id}
                   onClick={() => setSelectedPoolId(pool.id)}
-                  className={`min-w-[260px] flex items-center gap-3 p-3 rounded-2xl border transition-all text-left flex-shrink-0 ${
+                  className={`w-full sm:min-w-[260px] flex items-center gap-3 p-3 rounded-2xl border transition-all text-left flex-shrink-0 ${
                     isSelected
                       ? 'bg-brand/15 border-brand shadow-xl shadow-brand/10'
                       : 'bg-zinc-900/70 border-zinc-800 hover:border-zinc-700 opacity-70 hover:opacity-100'

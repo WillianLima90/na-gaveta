@@ -466,7 +466,7 @@ const canPredict = isAuthenticated && isMember && !locked;
             </button>
           )}
           <div className="flex justify-center w-full">
-            <div className="grid grid-cols-[minmax(82px,1fr)_104px_minmax(82px,1fr)] sm:grid-cols-[minmax(180px,1fr)_140px_minmax(180px,1fr)] items-center gap-2 sm:gap-5 w-full max-w-[640px] mx-auto">
+            <div className="grid grid-cols-[minmax(76px,1fr)_116px_minmax(76px,1fr)] sm:grid-cols-[minmax(180px,1fr)_140px_minmax(180px,1fr)] items-center gap-3 sm:gap-5 w-full max-w-[640px] mx-auto">
               <div className="flex items-center justify-end gap-2 min-w-0 translate-y-1">
                 <span className="text-right text-xs sm:text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
                 {getTeamLogo(match.homeTeam) && (

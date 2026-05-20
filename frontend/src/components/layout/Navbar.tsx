@@ -281,12 +281,14 @@ export function Navbar() {
             <div className="pt-2 border-t border-border-subtle mt-2 space-y-2">
               {isAuthenticated ? (
                 <>
-                  <div
-                    className="flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-text-secondary"
+                  <Link
+                    to="/profile"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-text-secondary hover:text-white hover:bg-bg-elevated transition-colors"
                   >
                     <User className="w-4 h-4" />
                     {user?.name}
-                  </div>
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-red-400 hover:bg-red-500/10 transition-colors"

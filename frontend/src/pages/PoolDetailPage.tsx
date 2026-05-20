@@ -20,7 +20,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Users, ArrowLeft, Copy, Check,
-  Lock, UserPlus, BookOpen, X, Trophy,
+  Lock, UserPlus, BookOpen, X,
   ChevronDown, ChevronUp
 } from 'lucide-react';
 import { getPool, joinPoolById, setFavoriteTeam, deletePool, type Pool } from '../services/pool.service';
@@ -370,7 +370,7 @@ export default function PoolDetailPage() {
                 disabled={joining}
                 className="w-full flex items-center justify-center gap-2 py-4 bg-brand hover:bg-brand-light text-white font-black text-lg rounded-2xl transition-colors disabled:opacity-50 shadow-lg shadow-brand/20"
               >
-                {joining ? <Spinner size="sm" /> : <UserPlus size={20} />}
+                {joining ? <Spinner size="sm" /> : <UserPlus size={24} />}
                 {joining ? 'Entrando...' : 'Participar do bolão'}
               </button>
               {joinError && <p className="text-xs text-red-400 text-center mt-2">{joinError}</p>}
@@ -638,9 +638,6 @@ const rightColumn = (
 
       {/* ── CABEÇALHO DO BOLÃO ──────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
-        <div className="w-12 h-12 rounded-xl bg-brand/20 flex items-center justify-center flex-shrink-0">
-          <Trophy size={24} className="text-brand" />
-        </div>
         <div className="flex-1 min-w-0 w-full">
           {pool.championship && (
             <p className="text-xs text-zinc-500 uppercase tracking-wider truncate">
@@ -673,33 +670,31 @@ const rightColumn = (
         </div>
         <button
           onClick={copyCode}
-          className="w-full sm:w-auto flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 transition-colors flex-shrink-0"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-zinc-800/70 hover:bg-zinc-700 transition-colors flex-shrink-0"
           title="Copiar código de convite"
         >
-          <span className="text-[10px] uppercase tracking-wide text-zinc-500 font-bold">Código do convite</span>
-          <span className="font-mono font-black text-lg text-white tracking-widest">{pool.code}</span>
+          
+          <span className="font-mono font-black text-sm sm:text-base text-white tracking-widest">{pool.code}</span>
           <span className="text-xs text-zinc-300 flex items-center gap-1">
             {codeCopied ? <Check size={10} className="text-green-400" /> : <Copy size={10} />}
-            {codeCopied ? 'Copiado!' : 'Clique para copiar'}
+            {codeCopied ? 'Copiado!' : 'Copiar'}
           </span>
         </button>
       </div>
 
       {/* ── Time do coração ───────────────────────── */}
       {isMember && (
-        <div className="mb-4 rounded-xl border border-zinc-800 bg-zinc-900/70 p-3">
+        <div className="mb-2 rounded-xl border border-zinc-800 bg-zinc-900/50 p-2 sm:p-2.5">
           <label className="text-xs text-zinc-400 block mb-1 font-semibold">
-            Escolha seu time do coração
+            Time do coração
           </label>
-          <p className="text-[11px] text-zinc-600 mb-2">
-            Isso personaliza seu perfil no ranking deste bolão.
-          </p>
-          <div className="relative w-full max-w-xs">
+          
+          <div className="relative w-full sm:max-w-xs">
             <button
               type="button"
               disabled={poolAlreadyStarted}
               onClick={() => setFavoriteTeamOpen(v => !v)}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="flex items-center gap-2">
                 {(favoriteTeamDraft || favoriteTeam) ? (
@@ -749,7 +744,7 @@ const rightColumn = (
           )}
 
           {poolAlreadyStarted && (
-            <p className="text-[11px] text-red-400 mt-2">
+            <p className="text-[10px] text-red-400 mt-1">
               O time do coração só pode ser definido antes do início do bolão.
             </p>
           )}
