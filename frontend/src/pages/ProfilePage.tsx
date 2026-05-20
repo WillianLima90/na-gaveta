@@ -189,7 +189,7 @@ export default function ProfilePage() {
   const initials = getInitials(publicName);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 animate-fade-in">
+    <div className="max-w-3xl mx-auto px-6 py-6 overflow-x-hidden animate-fade-in">
 
       {/* ── Voltar ──────────────────────────────────────────── */}
       <Link
@@ -201,12 +201,12 @@ export default function ProfilePage() {
       </Link>
 
       {/* ── CABEÇALHO DO PERFIL ─────────────────────────────── */}
-      <div className="mb-6 p-5 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl">
-        <div className="flex items-center gap-4">          {/* Avatar */}
+      <div className="mb-6 p-4 bg-zinc-900/90 border border-zinc-800 rounded-2xl shadow-xl">
+        <div className="flex items-center gap-3">          {/* Avatar */}
           <div className="flex flex-col items-center gap-2 flex-shrink-0">
             <label className="relative cursor-pointer group">
               {avatarPreview ? (
-                <div className="w-[88px] h-[88px] rounded-3xl overflow-hidden shadow-lg ring-2 ring-white/10 bg-zinc-900">
+                <div className="w-[72px] h-[72px] rounded-2xl overflow-hidden shadow-lg ring-2 ring-white/10 bg-zinc-900">
                   <img
                     src={avatarPreview}
                     alt={publicName}
@@ -218,14 +218,14 @@ export default function ProfilePage() {
                   />
                 </div>
               ) : (
-                <div className={`w-[88px] h-[88px] rounded-3xl ${avatarColor} flex items-center justify-center shadow-lg ring-2 ring-white/10`}>
-                  <span className="text-3xl font-black text-white">
+                <div className={`w-[72px] h-[72px] rounded-2xl ${avatarColor} flex items-center justify-center shadow-lg ring-2 ring-white/10`}>
+                  <span className="text-2xl font-black text-white">
                     {initials}
                   </span>
                 </div>
               )}
 
-              <div className="absolute inset-0 rounded-3xl bg-black/0 group-hover:bg-black/45 transition-all flex items-center justify-center">
+              <div className="absolute inset-0 rounded-2xl bg-black/0 group-hover:bg-black/45 transition-all flex items-center justify-center">
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center">
                   <div className="w-7 h-7 rounded-full bg-white/20 backdrop-blur flex items-center justify-center mb-1">
                     <span className="text-white text-xs">📷</span>
@@ -276,26 +276,24 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="mt-5">
+        <div className="mt-4">
 
           <div className="flex flex-col gap-2">
-            <label className="text-[11px] font-bold uppercase tracking-wide text-zinc-500">
-              Nome de jogo
-            </label>
+            
 
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <input
                 value={displayNameInput}
                 onChange={(e) => setDisplayNameInput(e.target.value.slice(0, 22))}
-                placeholder="Ex: MestreDosPalpites"
-                className="flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white outline-none focus:border-brand"
+                placeholder="Seu nome no jogo"
+                className="flex-1 rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-white outline-none focus:border-brand"
               />
 
               <button
                 type="button"
                 onClick={handleSaveProfile}
                 disabled={savingProfile}
-                className="rounded-xl bg-brand px-3 py-2 text-sm font-bold text-white transition-opacity disabled:opacity-60"
+                className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white shadow-lg shadow-brand/20 transition-opacity disabled:opacity-60"
               >
                 {savingProfile ? '...' : 'Salvar'}
               </button>
@@ -334,7 +332,7 @@ export default function ProfilePage() {
                   onClick={() => setSelectedPoolId(pool.id)}
                   className={`min-w-[260px] flex items-center gap-3 p-3 rounded-2xl border transition-all text-left flex-shrink-0 ${
                     isSelected
-                      ? 'bg-brand/15 border-brand shadow-xl shadow-brand/10 scale-[1.02]'
+                      ? 'bg-brand/15 border-brand shadow-xl shadow-brand/10'
                       : 'bg-zinc-900/70 border-zinc-800 hover:border-zinc-700 opacity-70 hover:opacity-100'
                   }`}
                 >
@@ -415,7 +413,7 @@ export default function ProfilePage() {
                 <Award size={14} className="text-brand" />
                 <span className="text-xs text-zinc-500">Posição</span>
               </div>
-              <p className="text-3xl font-black text-white">
+              <p className="text-2xl font-black text-white">
                 {selectedPool.summary.position === 1 ? '🏆' : ordinal(selectedPool.summary.position)}
               </p>
               <p className="text-xs text-zinc-500 mt-0.5">
