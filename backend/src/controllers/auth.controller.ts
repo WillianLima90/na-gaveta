@@ -117,6 +117,8 @@ export async function updateProfile(req: AuthRequest, res: Response): Promise<vo
   try {
     const userId = req.user?.userId;
     const rawDisplayName = typeof req.body.displayName === 'string' ? req.body.displayName.trim() : null;
+    const hasAvatarUrl = Object.prototype.hasOwnProperty.call(req.body, 'avatarUrl');
+    const avatarUrl = typeof req.body.avatarUrl === 'string' ? req.body.avatarUrl : null;
 
     if (rawDisplayName !== null && rawDisplayName.length > 22) {
       res.status(400).json({ error: 'Nome de jogo deve ter no máximo 22 caracteres' });
@@ -127,6 +129,7 @@ export async function updateProfile(req: AuthRequest, res: Response): Promise<vo
       where: { id: userId },
       data: {
         displayName: rawDisplayName && rawDisplayName.length > 0 ? rawDisplayName : null,
+        ...(hasAvatarUrl ? { avatarUrl } : {}),
       },
       select: {
         id: true,

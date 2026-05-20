@@ -21,7 +21,7 @@ export const authService = {
     return data.user;
   },
 
-  async updateProfile(payload: { displayName?: string | null }): Promise<User> {
+  async updateProfile(payload: { displayName?: string | null; avatarUrl?: string | null }): Promise<User> {
     const { data } = await api.patch<{ user: User }>('/auth/me', payload);
     return data.user;
   },

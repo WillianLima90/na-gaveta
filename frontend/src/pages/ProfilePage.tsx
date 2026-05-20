@@ -53,6 +53,9 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [selectedPoolId, setSelectedPoolId] = useState<string | null>(null);
   const [displayNameInput, setDisplayNameInput] = useState(user?.displayName || '');
+  const [avatarPreview, setAvatarPreview] = useState(user?.avatarUrl || '');
+  const [avatarScale, setAvatarScale] = useState(1);
+  const [avatarOffsetY, setAvatarOffsetY] = useState(0);
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
 
@@ -119,7 +122,34 @@ export default function ProfilePage() {
 
   useEffect(() => {
     setDisplayNameInput(user?.displayName || '');
-  }, [user?.displayName]);
+    setAvatarPreview(user?.avatarUrl || '');
+  }, [user?.displayName, user?.avatarUrl]);
+
+
+  const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = async () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+
+      setAvatarPreview(result);
+
+      try {
+        const updatedUser = await authService.updateProfile({
+          avatarUrl: result,
+        });
+
+        updateUser(updatedUser);
+      } catch {
+        // noop
+      }
+    };
+
+    reader.readAsDataURL(file);
+  };
 
   const handleSaveProfile = async () => {
     if (!user || savingProfile) return;
@@ -172,10 +202,64 @@ export default function ProfilePage() {
 
       {/* ── CABEÇALHO DO PERFIL ─────────────────────────────── */}
       <div className="mb-6 p-5 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl">
-        <div className="flex items-center gap-4">
-          {/* Avatar */}
-          <div className={`w-[72px] h-[72px] rounded-3xl ${avatarColor} flex items-center justify-center flex-shrink-0 shadow-lg ring-2 ring-white/10`}>
-            <span className="text-2xl font-black text-white">{initials}</span>
+        <div className="flex items-center gap-4">          {/* Avatar */}
+          <div className="flex flex-col items-center gap-2 flex-shrink-0">
+            <label className="relative cursor-pointer group">
+              {avatarPreview ? (
+                <div className="w-[88px] h-[88px] rounded-3xl overflow-hidden shadow-lg ring-2 ring-white/10 bg-zinc-900">
+                  <img
+                    src={avatarPreview}
+                    alt={publicName}
+                    className="w-full h-full object-cover"
+                    style={{
+                      transform: `scale(${avatarScale}) translateY(${avatarOffsetY}px)`,
+                      transformOrigin: 'center',
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className={`w-[88px] h-[88px] rounded-3xl ${avatarColor} flex items-center justify-center shadow-lg ring-2 ring-white/10`}>
+                  <span className="text-3xl font-black text-white">
+                    {initials}
+                  </span>
+                </div>
+              )}
+
+              <div className="absolute inset-0 rounded-3xl bg-black/0 group-hover:bg-black/45 transition-all flex items-center justify-center">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center">
+                  <div className="w-7 h-7 rounded-full bg-white/20 backdrop-blur flex items-center justify-center mb-1">
+                    <span className="text-white text-xs">📷</span>
+                  </div>
+
+                  <span className="text-[10px] font-bold text-white">
+                    Trocar
+                  </span>
+                </div>
+              </div>
+
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarUpload}
+              />
+            </label>
+            {avatarPreview && (
+              <button
+                type="button"
+                onClick={async () => {
+                  const updatedUser = await authService.updateProfile({
+                    avatarUrl: null,
+                  });
+
+                  updateUser(updatedUser);
+                  setAvatarPreview('');
+                }}
+                className="mt-2 text-[11px] text-zinc-500 hover:text-red-400 transition-colors"
+              >
+                Remover foto
+              </button>
+            )}
           </div>
 
           <div className="flex-1 min-w-0">
@@ -225,67 +309,22 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 mt-4">
-            <Badge variant="default">{pools.length} {pools.length === 1 ? 'bolão' : 'bolões'}</Badge>
-            {bestPosition === 1 && <Badge variant="success">🏆 Líder em algum bolão</Badge>}
-            {maxStreak >= 3 && (
-              <Badge variant="brand">
-                <Flame size={10} className="mr-1" />
-                Sequência de {maxStreak}
-              </Badge>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ── ESTATÍSTICAS GERAIS ─────────────────────────────── */}
-      <div className="mb-6">
-        <h2 className="font-bold text-white text-base mb-3 flex items-center gap-2">
-          <BarChart2 size={16} className="text-brand" />
-          Estatísticas gerais
-        </h2>
-        <div className="grid grid-cols-2 gap-2 mb-2">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
-            <p className="text-3xl font-black text-brand">{totalPoints}</p>
-            <p className="text-xs text-zinc-500 mt-1 flex items-center gap-1">
-              <Trophy size={10} />
-              Pontos totais
-            </p>
-          </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
-            <p className="text-3xl font-black text-live">{totalExact}</p>
-            <p className="text-xs text-zinc-500 mt-1 flex items-center gap-1">
-              <Target size={10} />
-              Placares exatos
-            </p>
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 text-center">
-            <p className="text-xl font-black text-zinc-200">{accuracy}%</p>
-            <p className="text-xs text-zinc-500 mt-0.5">Acertos</p>
-          </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 text-center">
-            <p className="text-xl font-black text-zinc-200">{exactRate}%</p>
-            <p className="text-xs text-zinc-500 mt-0.5">Exatos</p>
-          </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 text-center">
-            <p className="text-xl font-black text-zinc-200">{maxStreak || '—'}</p>
-            <p className="text-xs text-zinc-500 mt-0.5 flex items-center justify-center gap-0.5">
-              <Flame size={9} />
-              Sequência
-            </p>
+            <Badge variant="default">
+              {pools.length} {pools.length === 1 ? 'bolão' : 'bolões'}
+            </Badge>
           </div>
         </div>
       </div>
 
       {/* ── MEUS BOLÕES ─────────────────────────────────────── */}
+
       {pools.length > 0 && (
         <div className="mb-6">
-          <h2 className="font-bold text-white text-base mb-3 flex items-center gap-2">
+          <h2 className="font-bold text-white text-base mb-2 flex items-center gap-2">
             <Trophy size={16} className="text-brand" />
             Meus bolões
           </h2>
-          <div className="space-y-2">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             {pools.map(({ pool, summary }) => {
               const isLeader = summary?.position === 1;
               const isSelected = pool.id === selectedPoolId;
@@ -293,13 +332,13 @@ export default function ProfilePage() {
                 <button
                   key={pool.id}
                   onClick={() => setSelectedPoolId(pool.id)}
-                  className={`w-full flex items-center gap-3 p-4 rounded-2xl border transition-all text-left ${
+                  className={`min-w-[260px] flex items-center gap-3 p-3 rounded-2xl border transition-all text-left flex-shrink-0 ${
                     isSelected
-                      ? 'bg-zinc-800 border-brand/50'
-                      : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
+                      ? 'bg-brand/15 border-brand shadow-xl shadow-brand/10 scale-[1.02]'
+                      : 'bg-zinc-900/70 border-zinc-800 hover:border-zinc-700 opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center flex-shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-brand/10 flex items-center justify-center flex-shrink-0">
                     <Trophy size={18} className="text-brand" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -321,6 +360,12 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0">
+                    {isSelected && (
+                      <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-brand">
+                        Selecionado
+                      </div>
+                    )}
+
                     {summary && (
                       <>
                         <p className="font-black text-brand text-base">{summary.totalPoints} pts</p>
@@ -338,8 +383,19 @@ export default function ProfilePage() {
 
       {/* ── DETALHE DO BOLÃO SELECIONADO ────────────────────── */}
       {selectedPool && selectedPool.summary && (
+        <>
+          <div className="mb-3 flex items-center gap-3">
+            <div className="h-px flex-1 bg-zinc-800" />
+
+            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500 whitespace-nowrap">
+              Bolão selecionado
+            </span>
+
+            <div className="h-px flex-1 bg-zinc-800" />
+          </div>
+
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2">
             <h2 className="font-bold text-white text-base flex items-center gap-2">
               <TrendingUp size={16} className="text-brand" />
               {selectedPool.pool.name}
@@ -353,13 +409,13 @@ export default function ProfilePage() {
           </div>
 
           {/* Posição e rival */}
-          <div className="grid grid-cols-2 gap-2 mb-3">
+          <div className="grid grid-cols-2 gap-2 mb-2">
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-1">
                 <Award size={14} className="text-brand" />
                 <span className="text-xs text-zinc-500">Posição</span>
               </div>
-              <p className="text-2xl font-black text-white">
+              <p className="text-3xl font-black text-white">
                 {selectedPool.summary.position === 1 ? '🏆' : ordinal(selectedPool.summary.position)}
               </p>
               <p className="text-xs text-zinc-500 mt-0.5">
@@ -386,15 +442,68 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Métricas do bolão */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3">
+              <p className="text-2xl font-black text-brand">
+                {selectedPool.summary.totalPoints}
+              </p>
+
+              <p className="text-xs text-zinc-500 mt-1">
+                Pontos
+              </p>
+            </div>
+
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3">
+              <p className="text-2xl font-black text-live">
+                {selectedPool.summary.exactScores}
+              </p>
+
+              <p className="text-xs text-zinc-500 mt-1">
+                Exatos
+              </p>
+            </div>
+
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3">
+              <p className="text-2xl font-black text-white">
+                {Math.round((selectedPool.summary.correctOutcomes / Math.max(selectedPool.summary.totalPredictions, 1)) * 100)}%
+              </p>
+
+              <p className="text-xs text-zinc-500 mt-1">
+                Aproveitamento
+              </p>
+            </div>
+
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3">
+              <p className="text-2xl font-black text-orange-400">
+                {selectedPool.summary.streak || '—'}
+              </p>
+
+              <p className="text-xs text-zinc-500 mt-1">
+                Sequência
+              </p>
+            </div>
+
+          </div>
+
           {/* Histórico por rodada */}
           {selectedPool.history && selectedPool.history.rounds.length > 0 && (
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
               <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
                 <Calendar size={14} className="text-zinc-400" />
-                <span className="font-bold text-white text-sm">Histórico por rodada</span>
+                <span className="font-bold text-white text-sm">Últimas rodadas</span>
               </div>
               <div className="divide-y divide-zinc-800">
-                {selectedPool.history.rounds.map((round) => (
+                {selectedPool.history.rounds
+                  .filter((round) =>
+                    round.points > 0 ||
+                    round.totalPredictions > 0 ||
+                    round.correctOutcomes > 0 ||
+                    round.exactScores > 0
+                  )
+                  .sort((a, b) => b.roundNumber - a.roundNumber)
+                  .map((round) => (
                   <div key={round.roundId} className="flex items-center justify-between px-4 py-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -429,12 +538,13 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+        </>
       )}
 
       {/* ── ESTADO VAZIO ────────────────────────────────────── */}
       {pools.length === 0 && (
         <div className="rounded-2xl border border-dashed border-zinc-700 p-10 text-center">
-          <Trophy size={36} className="text-zinc-600 mx-auto mb-3" />
+          <Trophy size={36} className="text-zinc-600 mx-auto mb-2" />
           <p className="text-zinc-400 text-sm mb-4">Você ainda não participa de nenhum bolão</p>
           <Link to="/pools">
             <button className="flex items-center gap-2 mx-auto px-5 py-2.5 bg-brand hover:bg-brand-light text-white font-bold text-sm rounded-xl transition-colors">
