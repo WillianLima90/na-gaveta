@@ -523,6 +523,31 @@ export async function listPendingMembers(req: AuthRequest, res: Response): Promi
   }
 }
 
+// ── GET /api/pools/:id/members/approved ────────────────────
+export async function listApprovedMembers(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user!.userId;
+    const { id: poolId } = req.params;
+
+    const isOwner = await assertPoolOwner(poolId, userId);
+    if (!isOwner) {
+      res.status(403).json({ error: 'Apenas o admin do bolão pode ver participantes.' });
+      return;
+    }
+
+    const members = await prisma.poolMember.findMany({
+      where: { poolId, status: 'APPROVED' },
+      include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } },
+      orderBy: { joinedAt: 'asc' },
+    });
+
+    res.json({ members });
+  } catch (err) {
+    console.error('[Pool] Erro ao listar participantes:', err);
+    res.status(500).json({ error: 'Erro ao listar participantes.' });
+  }
+}
+
 // ── PATCH /api/pools/:id/members/:memberId/approve ──────────
 export async function approveMember(req: AuthRequest, res: Response): Promise<void> {
   try {
@@ -570,5 +595,48 @@ export async function rejectMember(req: AuthRequest, res: Response): Promise<voi
   } catch (err) {
     console.error('[Pool] Erro ao rejeitar participante:', err);
     res.status(500).json({ error: 'Erro ao rejeitar participante.' });
+  }
+}
+
+// ── DELETE /api/pools/:id/members/:memberId ─────────────────
+export async function removeMember(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user!.userId;
+    const { id: poolId, memberId } = req.params;
+
+    const isOwner = await assertPoolOwner(poolId, userId);
+    if (!isOwner) {
+      res.status(403).json({ error: 'Apenas o admin do bolão pode remover participantes.' });
+      return;
+    }
+
+    const member = await prisma.poolMember.findUnique({
+      where: { id: memberId },
+      select: { id: true, userId: true, poolId: true },
+    });
+
+    if (!member || member.poolId !== poolId) {
+      res.status(404).json({ error: 'Participante não encontrado neste bolão.' });
+      return;
+    }
+
+    if (member.userId === userId) {
+      res.status(400).json({ error: 'O admin do bolão não pode remover a si mesmo.' });
+      return;
+    }
+
+    await prisma.prediction.deleteMany({
+      where: { userId: member.userId, poolId },
+    });
+
+    await prisma.poolMember.update({
+      where: { id: memberId },
+      data: { status: 'REMOVED' },
+    });
+
+    res.json({ message: 'Participante removido do bolão.' });
+  } catch (err) {
+    console.error('[Pool] Erro ao remover participante:', err);
+    res.status(500).json({ error: 'Erro ao remover participante.' });
   }
 }

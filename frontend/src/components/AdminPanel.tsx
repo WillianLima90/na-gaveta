@@ -6,110 +6,61 @@
 // ============================================================
 
 import { useEffect, useState } from 'react';
-import { Terminal, Zap, Check, ChevronDown, ChevronUp, Users, CheckCircle2, XCircle } from 'lucide-react';
-import type { Round, Match } from '../services/match.service';
-import { setMatchResult } from '../services/match.service';
-import { Spinner } from './ui';
+import { ChevronDown, ChevronUp, Users, CheckCircle2, XCircle } from 'lucide-react';
 import api from "../services/api";
 
 interface AdminPanelProps {
-  poolId: string;
-  rounds: Round[];
-  onResultSet: () => void; // callback para recarregar dados após registrar resultado
+poolId: string;
+onResultSet: () => void;
 }
 
-interface ResultForm {
-  homeScore: string;
-  awayScore: string;
-  status: 'FINISHED' | 'LIVE' | 'SCHEDULED';
+interface PoolMemberAdmin {
+id: string;
+joinedAt: string;
+user: {
+id: string;
+name: string;
+email: string;
+avatarUrl?: string;
+};
 }
 
-interface PendingMember {
-  id: string;
-  joinedAt: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    avatarUrl?: string;
-  };
-}
-
-export function AdminPanel({ poolId, rounds, onResultSet }: AdminPanelProps) {
+export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
   const [expanded, setExpanded] = useState(false);
-  const [pendingMembers, setPendingMembers] = useState<PendingMember[]>([]);
-  
-  const [forms, setForms] = useState<Record<string, ResultForm>>({});
-  const [loading, setLoading] = useState<Record<string, boolean>>({});
-  const [results, setResults] = useState<Record<string, string>>({});
+  const [pendingMembers, setPendingMembers] = useState<PoolMemberAdmin[]>([]);
+  const [approvedMembers, setApprovedMembers] = useState<PoolMemberAdmin[]>([]);
 
-  // Apenas partidas agendadas ou ao vivo (não encerradas)
-  const editableMatches = rounds.flatMap((r) =>
-    r.matches
-      .filter((m) => m.status !== 'FINISHED' && m.status !== 'CANCELLED')
-      .map((m) => ({ ...m, roundName: r.name }))
-  );
 
-  function getForm(matchId: string): ResultForm {
-    return forms[matchId] ?? { homeScore: '', awayScore: '', status: 'FINISHED' };
-  }
-
-  function updateForm(matchId: string, field: keyof ResultForm, value: string) {
-    setForms((prev) => ({
-      ...prev,
-      [matchId]: { ...getForm(matchId), [field]: value },
-    }));
-  }
-
-  async function handleSetResult(match: Match & { roundName: string }) {
-    const form = getForm(match.id);
-    const home = parseInt(form.homeScore);
-    const away = parseInt(form.awayScore);
-
-    if (isNaN(home) || isNaN(away) || home < 0 || away < 0) {
-      setResults((prev) => ({ ...prev, [match.id]: '❌ Informe placares válidos' }));
-      return;
-    }
-
-    setLoading((prev) => ({ ...prev, [match.id]: true }));
-    setResults((prev) => ({ ...prev, [match.id]: '' }));
-
+  async function loadMembersAdmin() {
     try {
-      const res = await setMatchResult(match.id, {
-        homeScore: home,
-        awayScore: away,
-        status: form.status,
-      });
-      setResults((prev) => ({
-        ...prev,
-        [match.id]: `✅ ${res.message}`,
-      }));
-      onResultSet();
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
-      setResults((prev) => ({ ...prev, [match.id]: `❌ ${msg ?? 'Erro ao registrar'}` }));
-    } finally {
-      setLoading((prev) => ({ ...prev, [match.id]: false }));
-    }
-  }
+      const [pendingRes, approvedRes] = await Promise.all([
+        api.get(`/pools/${poolId}/members/pending`),
+        api.get(`/pools/${poolId}/members/approved`),
+      ]);
 
-  async function loadPendingMembers() {
-        try {
-      const { data } = await api.get(`/pools/${poolId}/members/pending`);
-      setPendingMembers(data.members ?? []);
+      setPendingMembers(pendingRes.data.members ?? []);
+      setApprovedMembers(approvedRes.data.members ?? []);
     } catch {
       setPendingMembers([]);
-    } finally {
+      setApprovedMembers([]);
     }
   }
 
   useEffect(() => {
-    if (expanded) loadPendingMembers();
+    if (expanded) loadMembersAdmin();
   }, [expanded, poolId]);
 
   async function handleModerateMember(memberId: string, action: "approve" | "reject") {
     await api.patch(`/pools/${poolId}/members/${memberId}/${action}`);
-    setPendingMembers((prev) => prev.filter((member) => member.id !== memberId));
+    await loadMembersAdmin();
+    onResultSet();
+  }
+
+  async function handleRemoveMember(memberId: string) {
+    if (!confirm("Remover este participante do bolão? Os palpites dele serão apagados deste bolão.")) return;
+
+    await api.delete(`/pools/${poolId}/members/${memberId}`);
+    await loadMembersAdmin();
     onResultSet();
   }
 
@@ -120,10 +71,11 @@ export function AdminPanel({ poolId, rounds, onResultSet }: AdminPanelProps) {
         className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-zinc-800/40 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <Terminal size={13} className="text-zinc-500" />
-          <span className="text-xs font-medium text-zinc-500">Admin — Registrar resultados</span>
-          <span className="text-xs text-zinc-600 bg-zinc-800 px-1.5 py-0.5 rounded-full">
-            {editableMatches.length} jogo{editableMatches.length !== 1 ? 's' : ''}
+          <Users size={13} className={pendingMembers.length > 0 ? "text-yellow-400" : "text-zinc-500"} />
+          <span className={pendingMembers.length > 0 ? "text-xs font-black text-yellow-300 animate-pulse" : "text-xs font-medium text-zinc-500"}>
+            {pendingMembers.length > 0
+              ? `Admin — ${pendingMembers.length} solicitação${pendingMembers.length !== 1 ? "ões" : ""} pendente${pendingMembers.length !== 1 ? "s" : ""}`
+              : "Administração do bolão"}
           </span>
         </div>
         {expanded ? (
@@ -181,82 +133,42 @@ export function AdminPanel({ poolId, rounds, onResultSet }: AdminPanelProps) {
             </div>
           )}
 
-          {editableMatches.length === 0 ? (
-            <div className="px-4 py-6 text-center text-zinc-500 text-sm">
-              Todos os jogos já foram encerrados.
-            </div>
-          ) : (
-            <div className="divide-y divide-zinc-800">
-              {editableMatches.map((match) => {
-                const form = getForm(match.id);
-                const isLoading = loading[match.id] ?? false;
-                const resultMsg = results[match.id];
+          {approvedMembers.length > 0 && (
+            <div className="border-b border-zinc-800 bg-zinc-950/40 px-4 py-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Users size={14} className="text-zinc-400" />
+                <span className="text-sm font-bold text-zinc-300">
+                  Participantes aprovados ({approvedMembers.length})
+                </span>
+              </div>
 
-                return (
-                  <div key={match.id} className="px-4 py-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <p className="text-sm font-bold text-text-primary">
-                          {match.homeTeam} × {match.awayTeam}
-                        </p>
-                        <p className="text-xs text-zinc-500">{match.roundName}</p>
-                      </div>
-                      {match.isJoker && (
-                        <span className="text-xs font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <Zap size={10} /> Coringa
-                        </span>
-                      )}
+              <div className="space-y-2">
+                {approvedMembers.map((member) => (
+                  <div
+                    key={member.id}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 py-2"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-white truncate">
+                        {member.user.name}
+                      </p>
+                      <p className="text-xs text-zinc-500 truncate">
+                        {member.user.email}
+                      </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min="0"
-                        max="99"
-                        value={form.homeScore}
-                        onChange={(e) => updateForm(match.id, 'homeScore', e.target.value)}
-                        placeholder="0"
-                        className="w-14 text-center text-lg font-black py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-text-primary focus:outline-none focus:border-zinc-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      />
-                      <span className="text-zinc-500 font-bold">×</span>
-                      <input
-                        type="number"
-                        min="0"
-                        max="99"
-                        value={form.awayScore}
-                        onChange={(e) => updateForm(match.id, 'awayScore', e.target.value)}
-                        placeholder="0"
-                        className="w-14 text-center text-lg font-black py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-text-primary focus:outline-none focus:border-zinc-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      />
-
-                      <select
-                        value={form.status}
-                        onChange={(e) => updateForm(match.id, 'status', e.target.value)}
-                        className="flex-1 py-2 px-2 rounded-lg bg-zinc-800 border border-zinc-700 text-text-primary text-xs focus:outline-none focus:border-zinc-500"
-                      >
-                        <option value="FINISHED">Encerrado</option>
-                        <option value="LIVE">Ao vivo</option>
-                        <option value="SCHEDULED">Agendado</option>
-                      </select>
-
-                      <button
-                        onClick={() => handleSetResult(match)}
-                        disabled={isLoading || form.homeScore === '' || form.awayScore === ''}
-                        className="flex items-center gap-1 px-3 py-2 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isLoading ? <Spinner size="sm" /> : <Check size={14} />}
-                        {isLoading ? '' : 'OK'}
-                      </button>
-                    </div>
-
-                    {resultMsg && (
-                      <p className="mt-2 text-xs text-zinc-400">{resultMsg}</p>
-                    )}
+                    <button
+                      onClick={() => handleRemoveMember(member.id)}
+                      className="shrink-0 rounded-lg border border-red-500/30 bg-red-500/10 px-2 py-1 text-xs font-bold text-red-300 hover:bg-red-500/20 transition-colors"
+                    >
+                      Remover
+                    </button>
                   </div>
-                );
-              })}
+                ))}
+              </div>
             </div>
           )}
+
         </div>
       )}
     </div>
