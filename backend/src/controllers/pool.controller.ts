@@ -392,6 +392,11 @@ export async function setFavoriteTeam(req: AuthRequest, res: Response): Promise<
       return;
     }
 
+    if (member.favoriteTeam) {
+      res.status(400).json({ error: 'O time do coração já foi definido e não pode ser alterado.' });
+      return;
+    }
+
     const now = new Date();
     const lockMinutesBefore = 10;
 

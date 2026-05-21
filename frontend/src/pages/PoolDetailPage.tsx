@@ -693,7 +693,7 @@ const rightColumn = (
           <div className="relative w-full sm:max-w-xs">
             <button
               type="button"
-              disabled={false}
+              disabled={Boolean(favoriteTeam)}
               onClick={() => setFavoriteTeamOpen(v => !v)}
               className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -712,7 +712,7 @@ const rightColumn = (
               <ChevronDown size={14} />
             </button>
 
-            {favoriteTeamOpen && (
+            {favoriteTeamOpen && !favoriteTeam && (
               <div className="absolute mt-1 w-full bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg z-50 max-h-60 overflow-auto">
                 {favoriteTeamOptions.map(team => (
                   <button
@@ -734,7 +734,7 @@ const rightColumn = (
             )}
           </div>
 
-          {favoriteTeamDraft && favoriteTeamDraft !== favoriteTeam && (
+          {!favoriteTeam && favoriteTeamDraft && favoriteTeamDraft !== favoriteTeam && (
             <button
               type="button"
               onClick={handleSaveFavoriteTeam}
