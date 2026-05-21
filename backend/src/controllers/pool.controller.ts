@@ -221,10 +221,10 @@ export async function joinPoolById(req: AuthRequest, res: Response): Promise<voi
       return;
     }
 
-    await prisma.poolMember.create({ data: { userId, poolId } });
+    await prisma.poolMember.create({ data: { userId, poolId, status: "PENDING" } });
 
     res.status(201).json({
-      message: 'Entrou no bolão com sucesso!',
+      message: 'Solicitação enviada para aprovação do administrador!',
       poolId: pool.id,
       poolName: pool.name,
     });
