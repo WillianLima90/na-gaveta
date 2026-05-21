@@ -56,6 +56,7 @@ export async function getPool(req: AuthRequest, res: Response): Promise<void> {
 
     // Verificar se o usuário autenticado já é membro
     let isMember = false;
+    let membershipStatus: string | null = null;
     let myFavoriteTeam: string | null = null;
 
     if (userId) {
@@ -63,11 +64,12 @@ export async function getPool(req: AuthRequest, res: Response): Promise<void> {
         where: { userId_poolId: { userId, poolId: id } },
       });
 
-      isMember = !!membership;
+      isMember = membership?.status === "APPROVED";
+      membershipStatus = membership?.status ?? null;
       myFavoriteTeam = membership?.favoriteTeam ?? null;
     }
 
-    res.json({ pool: { ...pool, isMember, myFavoriteTeam } });
+    res.json({ pool: { ...pool, isMember, membershipStatus, myFavoriteTeam } });
   } catch (err) {
     console.error('[Pool] Erro ao buscar bolão:', err);
     res.status(500).json({ error: 'Erro ao buscar bolão' });
@@ -128,7 +130,7 @@ export async function createPool(req: AuthRequest, res: Response): Promise<void>
         championshipId,
         startingRoundId: startingRound?.id ?? null,
         // Criador entra automaticamente como membro
-        members: { create: { userId } },
+        members: { create: { userId, status: "APPROVED" } },
         // Regras padrão do bolão
         scoreRule: {
           create: {
@@ -180,10 +182,10 @@ export async function joinPool(req: AuthRequest, res: Response): Promise<void> {
       return;
     }
 
-    await prisma.poolMember.create({ data: { userId, poolId: pool.id } });
+    await prisma.poolMember.create({ data: { userId, poolId: pool.id, status: "PENDING" } });
 
     res.status(201).json({
-      message: 'Entrou no bolão com sucesso!',
+      message: 'Solicitação enviada para aprovação do administrador!',
       poolId: pool.id,
       poolName: pool.name,
     });
@@ -385,25 +387,50 @@ export async function setFavoriteTeam(req: AuthRequest, res: Response): Promise<
       }
     });
 
-    if (!member) {
-      res.status(404).json({ error: 'Usuário não está no bolão.' });
+    if (!member || member.status !== 'APPROVED') {
+      res.status(403).json({ error: 'Você precisa estar aprovado no bolão para definir o time do coração.' });
       return;
     }
 
-    const startedMatch = await prisma.match.findFirst({
+    const now = new Date();
+    const lockMinutesBefore = 10;
+
+    const nextRound = await prisma.round.findFirst({
       where: {
-        roundId: member.pool.startingRoundId || undefined,
-        OR: [
-          { status: 'LIVE' },
-          { status: 'FINISHED' },
-          { matchDate: { lte: new Date() } }
-        ]
+        championshipId: member.pool.championshipId,
+        matches: {
+          some: {
+            status: 'SCHEDULED',
+            matchDate: { gt: now }
+          }
+        }
       },
-      select: { id: true }
+      orderBy: { number: 'asc' },
+      include: {
+        matches: {
+          where: {
+            status: 'SCHEDULED',
+            matchDate: { gt: now }
+          },
+          orderBy: { matchDate: 'asc' },
+          take: 1
+        }
+      }
     });
 
-    if (startedMatch) {
-      res.status(400).json({ error: 'O time do coração não pode ser alterado após o início do primeiro jogo do bolão.' });
+    const firstMatch = nextRound?.matches?.[0];
+
+    if (!firstMatch) {
+      res.status(400).json({ error: 'Não há próxima rodada disponível para definir o time do coração.' });
+      return;
+    }
+
+    const lockTime = new Date(firstMatch.matchDate.getTime() - lockMinutesBefore * 60 * 1000);
+
+    if (lockTime <= now) {
+      res.status(400).json({
+        error: 'O prazo para definir o time do coração desta rodada já encerrou.'
+      });
       return;
     }
 
@@ -418,7 +445,6 @@ export async function setFavoriteTeam(req: AuthRequest, res: Response): Promise<
     res.status(500).json({ error: 'Erro ao definir time do coração.' });
   }
 }
-
 
 export async function deletePool(req: AuthRequest, res: Response): Promise<void> {
   try {
@@ -455,5 +481,89 @@ export async function deletePool(req: AuthRequest, res: Response): Promise<void>
   } catch (err) {
     console.error('[Pool] Erro ao deletar bolão:', err);
     res.status(500).json({ error: 'Erro ao deletar bolão' });
+  }
+}
+
+async function assertPoolOwner(poolId: string, userId: string): Promise<boolean> {
+  const pool = await prisma.pool.findUnique({
+    where: { id: poolId },
+    select: { ownerId: true },
+  });
+
+  return pool?.ownerId === userId;
+}
+
+// ── GET /api/pools/:id/members/pending ─────────────────────
+export async function listPendingMembers(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user!.userId;
+    const { id: poolId } = req.params;
+
+    const isOwner = await assertPoolOwner(poolId, userId);
+    if (!isOwner) {
+      res.status(403).json({ error: 'Apenas o admin do bolão pode ver solicitações pendentes.' });
+      return;
+    }
+
+    const members = await prisma.poolMember.findMany({
+      where: { poolId, status: 'PENDING' },
+      include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } },
+      orderBy: { joinedAt: 'asc' },
+    });
+
+    res.json({ members });
+  } catch (err) {
+    console.error('[Pool] Erro ao listar solicitações pendentes:', err);
+    res.status(500).json({ error: 'Erro ao listar solicitações pendentes.' });
+  }
+}
+
+// ── PATCH /api/pools/:id/members/:memberId/approve ──────────
+export async function approveMember(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user!.userId;
+    const { id: poolId, memberId } = req.params;
+
+    const isOwner = await assertPoolOwner(poolId, userId);
+    if (!isOwner) {
+      res.status(403).json({ error: 'Apenas o admin do bolão pode aprovar participantes.' });
+      return;
+    }
+
+    const member = await prisma.poolMember.update({
+      where: { id: memberId },
+      data: { status: 'APPROVED' },
+      include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } },
+    });
+
+    res.json({ member, message: 'Participante aprovado.' });
+  } catch (err) {
+    console.error('[Pool] Erro ao aprovar participante:', err);
+    res.status(500).json({ error: 'Erro ao aprovar participante.' });
+  }
+}
+
+// ── PATCH /api/pools/:id/members/:memberId/reject ───────────
+export async function rejectMember(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user!.userId;
+    const { id: poolId, memberId } = req.params;
+
+    const isOwner = await assertPoolOwner(poolId, userId);
+    if (!isOwner) {
+      res.status(403).json({ error: 'Apenas o admin do bolão pode rejeitar participantes.' });
+      return;
+    }
+
+    const member = await prisma.poolMember.update({
+      where: { id: memberId },
+      data: { status: 'REJECTED' },
+      include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } },
+    });
+
+    res.json({ member, message: 'Solicitação rejeitada.' });
+  } catch (err) {
+    console.error('[Pool] Erro ao rejeitar participante:', err);
+    res.status(500).json({ error: 'Erro ao rejeitar participante.' });
   }
 }

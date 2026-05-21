@@ -5,13 +5,15 @@
 // Visível apenas para o dono do bolão.
 // ============================================================
 
-import { useState } from 'react';
-import { Terminal, Zap, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Terminal, Zap, Check, ChevronDown, ChevronUp, Users, CheckCircle2, XCircle } from 'lucide-react';
 import type { Round, Match } from '../services/match.service';
 import { setMatchResult } from '../services/match.service';
 import { Spinner } from './ui';
+import api from "../services/api";
 
 interface AdminPanelProps {
+  poolId: string;
   rounds: Round[];
   onResultSet: () => void; // callback para recarregar dados após registrar resultado
 }
@@ -22,8 +24,21 @@ interface ResultForm {
   status: 'FINISHED' | 'LIVE' | 'SCHEDULED';
 }
 
-export function AdminPanel({ rounds, onResultSet }: AdminPanelProps) {
+interface PendingMember {
+  id: string;
+  joinedAt: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    avatarUrl?: string;
+  };
+}
+
+export function AdminPanel({ poolId, rounds, onResultSet }: AdminPanelProps) {
   const [expanded, setExpanded] = useState(false);
+  const [pendingMembers, setPendingMembers] = useState<PendingMember[]>([]);
+  
   const [forms, setForms] = useState<Record<string, ResultForm>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [results, setResults] = useState<Record<string, string>>({});
@@ -78,6 +93,26 @@ export function AdminPanel({ rounds, onResultSet }: AdminPanelProps) {
     }
   }
 
+  async function loadPendingMembers() {
+        try {
+      const { data } = await api.get(`/pools/${poolId}/members/pending`);
+      setPendingMembers(data.members ?? []);
+    } catch {
+      setPendingMembers([]);
+    } finally {
+    }
+  }
+
+  useEffect(() => {
+    if (expanded) loadPendingMembers();
+  }, [expanded, poolId]);
+
+  async function handleModerateMember(memberId: string, action: "approve" | "reject") {
+    await api.patch(`/pools/${poolId}/members/${memberId}/${action}`);
+    setPendingMembers((prev) => prev.filter((member) => member.id !== memberId));
+    onResultSet();
+  }
+
   return (
     <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl overflow-hidden">
       <button
@@ -94,12 +129,58 @@ export function AdminPanel({ rounds, onResultSet }: AdminPanelProps) {
         {expanded ? (
           <ChevronUp size={13} className="text-zinc-600" />
         ) : (
+
           <ChevronDown size={13} className="text-zinc-600" />
         )}
       </button>
 
       {expanded && (
         <div className="border-t border-zinc-800">
+          {pendingMembers.length > 0 && (
+            <div className="border-b border-zinc-800 bg-yellow-500/5 px-4 py-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Users size={14} className="text-yellow-400" />
+                <span className="text-sm font-bold text-yellow-300">
+                  Solicitações pendentes ({pendingMembers.length})
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {pendingMembers.map((member) => (
+                  <div
+                    key={member.id}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-900/70 px-3 py-2"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-white truncate">
+                        {member.user.name}
+                      </p>
+                      <p className="text-xs text-zinc-500 truncate">
+                        {member.user.email}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => handleModerateMember(member.id, "approve")}
+                        className="flex items-center gap-1 rounded-lg bg-green-500/15 hover:bg-green-500/25 border border-green-500/30 px-2 py-1 text-xs font-bold text-green-300 transition-colors"
+                      >
+                        <CheckCircle2 size={12} /> Aprovar
+                      </button>
+
+                      <button
+                        onClick={() => handleModerateMember(member.id, "reject")}
+                        className="flex items-center gap-1 rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 px-2 py-1 text-xs font-bold text-red-300 transition-colors"
+                      >
+                        <XCircle size={12} /> Recusar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {editableMatches.length === 0 ? (
             <div className="px-4 py-6 text-center text-zinc-500 text-sm">
               Todos os jogos já foram encerrados.

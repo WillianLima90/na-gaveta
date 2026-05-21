@@ -18,6 +18,7 @@ export interface Pool {
   bonusRoundId?: string | null;
   createdAt: string;
   isMember?: boolean;
+  membershipStatus?: "PENDING" | "APPROVED" | "REJECTED" | "REMOVED" | null;
   owner?: { id: string; name: string; avatarUrl?: string };
   championship?: { id: string; name: string; slug?: string; season?: string; logoUrl?: string };
   members?: Array<{

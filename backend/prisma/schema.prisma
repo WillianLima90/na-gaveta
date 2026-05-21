@@ -77,6 +77,13 @@ model Pool {
 // MEMBRO DO BOLÃO — tabela de junção User <-> Pool
 // score = total de pontos acumulados neste bolão
 // ============================================================
+enum PoolMemberStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REMOVED
+}
+
 model PoolMember {
   id       String   @id @default(uuid())
   userId   String   @map("user_id")
@@ -85,6 +92,7 @@ model PoolMember {
   score          Int      @default(0)
   favoriteTeam   String?  @map("favorite_team")
   heartTeamScore Int      @default(0) @map("heart_team_score")
+  status         PoolMemberStatus @default(APPROVED)
 
   // Relações
   user User @relation(fields: [userId], references: [id])

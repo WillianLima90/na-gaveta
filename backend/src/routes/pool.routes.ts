@@ -16,7 +16,7 @@
 // ============================================================
 
 import { Router } from 'express';
-import { listPools, getPool, createPool, joinPool, joinPoolById, myPools, drawBonusRound, setFavoriteTeam } from '../controllers/pool.controller';
+import { listPools, getPool, createPool, joinPool, joinPoolById, myPools, drawBonusRound, setFavoriteTeam, listPendingMembers, approveMember, rejectMember } from '../controllers/pool.controller';
 import { deletePool } from '../controllers/pool.controller';
 import { authenticate, optionalAuthenticate } from '../middlewares/auth.middleware';
 import { poolMatchesRouter } from './match.routes';
@@ -39,6 +39,9 @@ router.post('/', authenticate, createPool);
 router.post('/:id/join', authenticate, joinPoolById);
 router.patch('/:id/favorite-team', authenticate, setFavoriteTeam);
 router.post('/:id/bonus/draw', authenticate, drawBonusRound);
+router.get("/:id/members/pending", authenticate, listPendingMembers);
+router.patch("/:id/members/:memberId/approve", authenticate, approveMember);
+router.patch("/:id/members/:memberId/reject", authenticate, rejectMember);
 
 // ── Sub-rotas aninhadas ──────────────────────────────────────
 router.use('/:id/matches', poolMatchesRouter);   // partidas com palpites

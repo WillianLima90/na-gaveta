@@ -612,7 +612,7 @@ const rightColumn = (
       {/* ── ADMIN (apenas dono) ─────────────────────────────── */}
       {isOwner && (
         <div className="mt-1">
-          <AdminPanel rounds={rounds}
+          <AdminPanel poolId={id!} rounds={rounds}
  onResultSet={loadData} />
         </div>
       )}
@@ -657,6 +657,7 @@ const rightColumn = (
             )}
             {isOwner && <Badge variant="brand">Admin do bolão</Badge>}
             {isMember && !isOwner && <Badge variant="success">Participando</Badge>}
+            {!isMember && pool.membershipStatus === "PENDING" && <Badge variant="warning">Aguardando aprovação</Badge>}
             {(user as any)?.role === 'ADMIN' && (
               <button
                 onClick={handleDeletePool}
@@ -692,7 +693,7 @@ const rightColumn = (
           <div className="relative w-full sm:max-w-xs">
             <button
               type="button"
-              disabled={poolAlreadyStarted}
+              disabled={false}
               onClick={() => setFavoriteTeamOpen(v => !v)}
               className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -711,7 +712,7 @@ const rightColumn = (
               <ChevronDown size={14} />
             </button>
 
-            {favoriteTeamOpen && !poolAlreadyStarted && (
+            {favoriteTeamOpen && (
               <div className="absolute mt-1 w-full bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg z-50 max-h-60 overflow-auto">
                 {favoriteTeamOptions.map(team => (
                   <button
@@ -733,7 +734,7 @@ const rightColumn = (
             )}
           </div>
 
-          {!poolAlreadyStarted && favoriteTeamDraft && favoriteTeamDraft !== favoriteTeam && (
+          {favoriteTeamDraft && favoriteTeamDraft !== favoriteTeam && (
             <button
               type="button"
               onClick={handleSaveFavoriteTeam}

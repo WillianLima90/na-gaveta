@@ -90,7 +90,7 @@ export async function upsertPrediction(req: AuthRequest, res: Response): Promise
       where: { userId_poolId: { userId, poolId } },
     });
 
-    if (!membership) {
+    if (!membership || membership.status !== "APPROVED") {
       res.status(403).json({ error: 'Você precisa participar do bolão para palpitar' });
       return;
     }

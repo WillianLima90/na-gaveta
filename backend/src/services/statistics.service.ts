@@ -115,7 +115,7 @@ export async function getMemberStats(
   currentUserId?: string
 ): Promise<RankingEntry[]> {
   const members = await prisma.poolMember.findMany({
-    where: { poolId },
+    where: { poolId, status: "APPROVED" },
     include: {
       user: { select: { id: true, name: true, displayName: true, avatarUrl: true, favoriteTeam: true } },
     },
@@ -196,7 +196,7 @@ export async function getRoundRanking(
 ): Promise<RoundRankingEntry[]> {
   // Buscar membros do bolão
   const members = await prisma.poolMember.findMany({
-    where: { poolId },
+    where: { poolId, status: "APPROVED" },
     include: {
       user: { select: { id: true, name: true, displayName: true, avatarUrl: true, favoriteTeam: true } },
     },
