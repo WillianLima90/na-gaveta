@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Search, Shield, UserCog, UserCheck, UserX, Loader2 } from 'lucide-react';
+import { Search, Shield, UserCog, UserCheck, UserX, Loader2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 interface User {
@@ -185,6 +185,14 @@ export function AdminUsersPage() {
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="mb-6">
+          <button
+            onClick={() => navigate('/pools')}
+            className="mb-4 inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs font-bold text-zinc-300 hover:text-white hover:border-zinc-700 transition"
+          >
+            <ArrowLeft size={14} />
+            Voltar para bolões
+          </button>
+
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-2xl bg-brand/15 border border-brand/20 flex items-center justify-center">
               <UserCog size={18} className="text-brand" />

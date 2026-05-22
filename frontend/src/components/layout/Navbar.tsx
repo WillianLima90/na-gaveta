@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Trophy, LogOut, User, LayoutDashboard, Bell, AlertTriangle, Clock, Info } from 'lucide-react';
+import { Menu, X, Trophy, LogOut, User, LayoutDashboard, Bell, AlertTriangle, Clock, Info, Shield } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../ui';
 
@@ -64,6 +64,13 @@ export function Navbar() {
     ? [
         { to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
         { to: '/pools', label: 'Bolões', icon: <Trophy className="w-4 h-4" /> },
+        ...((user as any)?.role === 'ADMIN'
+          ? [{
+              to: '/admin/users',
+              label: 'Admin',
+              icon: <Shield className="w-4 h-4" />,
+            }]
+          : []),
       ]
     : [];
 
