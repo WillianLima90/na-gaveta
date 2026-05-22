@@ -26,6 +26,23 @@ export async function listUsers(req: AuthRequest, res: Response): Promise<void> 
             predictions: true,
           },
         },
+        ownedPools: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        poolMembers: {
+          where: { status: 'APPROVED' },
+          select: {
+            pool: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });

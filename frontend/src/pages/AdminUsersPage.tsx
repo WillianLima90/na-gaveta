@@ -10,6 +10,22 @@ interface User {
   email: string;
   role: string;
   isActive: boolean;
+  createdAt: string;
+  _count: {
+    ownedPools: number;
+    poolMembers: number;
+    predictions: number;
+  };
+  ownedPools?: Array<{
+    id: string;
+    name: string;
+  }>;
+  poolMembers?: Array<{
+    pool: {
+      id: string;
+      name: string;
+    };
+  }>;
 }
 
 function roleBadge(role: string) {
@@ -34,6 +50,7 @@ export function AdminUsersPage() {
 
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE' | 'ADMIN' | 'POOL_ADMIN'>('ACTIVE');
   const [savingId, setSavingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -149,9 +166,18 @@ export function AdminUsersPage() {
     loadUsers();
   }, []);
 
-  const filtered = users.filter((u) =>
-    `${u.name} ${u.email}`.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = users.filter((u) => {
+    const matchesSearch = `${u.name} ${u.email}`.toLowerCase().includes(search.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === 'ALL' ||
+      (statusFilter === 'ACTIVE' && u.isActive) ||
+      (statusFilter === 'INACTIVE' && !u.isActive) ||
+      (statusFilter === 'ADMIN' && u.role === 'ADMIN') ||
+      (statusFilter === 'POOL_ADMIN' && u.role === 'POOL_ADMIN');
+
+    return matchesSearch && matchesStatus;
+  });
 
   const activeCount = users.filter((u) => u.isActive).length;
 
@@ -189,6 +215,28 @@ export function AdminUsersPage() {
               {syncLoading ? 'Sincronizando...' : 'Sincronizar Resultados'}
             </button>
           </div>
+        </div>
+
+        <div className="mb-4 flex flex-wrap gap-2">
+          {[
+            ['ACTIVE', 'Ativos'],
+            ['ALL', 'Todos'],
+            ['INACTIVE', 'Inativos'],
+            ['ADMIN', 'Admins'],
+            ['POOL_ADMIN', 'Admins de bolão'],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              onClick={() => setStatusFilter(value as typeof statusFilter)}
+              className={`rounded-xl border px-3 py-2 text-xs font-bold transition ${
+                statusFilter === value
+                  ? 'border-brand/40 bg-brand/15 text-brand'
+                  : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-white'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         <div className="mb-5 relative">
@@ -291,6 +339,83 @@ export function AdminUsersPage() {
                     </div>
 
                     <p className="text-sm text-zinc-400 break-all">{user.email}</p>
+
+                    <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div className="rounded-xl border border-zinc-800 bg-black/25 px-3 py-2">
+                        <p className="text-[10px] uppercase tracking-wide text-zinc-500">Criado em</p>
+                        <p className="text-xs font-bold text-zinc-200">
+                          {new Date(user.createdAt).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-zinc-800 bg-black/25 px-3 py-2">
+                        <p className="text-[10px] uppercase tracking-wide text-zinc-500">Bolões criados</p>
+                        <p className="text-xs font-bold text-zinc-200">{user._count?.ownedPools ?? 0}</p>
+                      </div>
+                      <div className="rounded-xl border border-zinc-800 bg-black/25 px-3 py-2">
+                        <p className="text-[10px] uppercase tracking-wide text-zinc-500">Participações</p>
+                        <p className="text-xs font-bold text-zinc-200">{user._count?.poolMembers ?? 0}</p>
+                      </div>
+                      <div className="rounded-xl border border-zinc-800 bg-black/25 px-3 py-2">
+                        <p className="text-[10px] uppercase tracking-wide text-zinc-500">Palpites</p>
+                        <p className="text-xs font-bold text-zinc-200">{user._count?.predictions ?? 0}</p>
+                      </div>
+                    </div>
+
+                    <details className="mt-3 rounded-xl border border-zinc-800 bg-black/20">
+                      <summary className="cursor-pointer px-3 py-2 text-xs font-bold text-zinc-300 hover:text-white">
+                        Ver bolões do usuário
+                      </summary>
+
+                      <div className="border-t border-zinc-800 px-3 py-3 space-y-3">
+                        {(user.ownedPools?.length || 0) > 0 && (
+                          <div>
+                            <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-brand">
+                              Criados por ele
+                            </p>
+
+                            <div className="flex flex-wrap gap-1">
+                              {user.ownedPools?.map((pool) => (
+                                <button
+                                  key={pool.id}
+                                  onClick={() => navigate(`/pools/${pool.id}`)}
+                                  className="rounded-full border border-brand/20 bg-brand/10 px-2 py-1 text-[11px] text-brand hover:bg-brand/20 transition"
+                                >
+                                  {pool.name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {(user.poolMembers?.length || 0) > 0 && (
+                          <div>
+                            <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-zinc-500">
+                              Participa
+                            </p>
+
+                            <div className="flex flex-wrap gap-1">
+                              {user.poolMembers?.map((member) => (
+                                <button
+                                  key={member.pool.id}
+                                  onClick={() => navigate(`/pools/${member.pool.id}`)}
+                                  className="rounded-full border border-zinc-700 bg-zinc-900 px-2 py-1 text-[11px] text-zinc-300 hover:bg-zinc-800 transition"
+                                >
+                                  {member.pool.name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {(user.ownedPools?.length || 0) === 0 &&
+                          (user.poolMembers?.length || 0) === 0 && (
+                            <p className="text-xs text-zinc-500">
+                              Este usuário ainda não possui vínculo com bolões.
+                            </p>
+                        )}
+                      </div>
+                    </details>
+
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
