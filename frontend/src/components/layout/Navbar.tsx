@@ -65,11 +65,18 @@ export function Navbar() {
         { to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
         { to: '/pools', label: 'Bolões', icon: <Trophy className="w-4 h-4" /> },
         ...((user as any)?.role === 'ADMIN'
-          ? [{
-              to: '/admin/users',
-              label: 'Admin',
-              icon: <Shield className="w-4 h-4" />,
-            }]
+          ? [
+              {
+                to: '/admin/users',
+                label: 'Admin Users',
+                icon: <Shield className="w-4 h-4" />,
+              },
+              {
+                to: '/admin/pools',
+                label: 'Admin Pools',
+                icon: <Trophy className="w-4 h-4" />,
+              },
+            ]
           : []),
       ]
     : [];
