@@ -23,7 +23,7 @@ import {
   Lock, UserPlus, BookOpen, X,
   ChevronDown, ChevronUp
 } from 'lucide-react';
-import { getPool, joinPoolById, setFavoriteTeam, deletePool, type Pool } from '../services/pool.service';
+import { getPool, joinPoolById, joinPoolByCode, setFavoriteTeam, deletePool, type Pool } from '../services/pool.service';
 import {
   getPoolMatches,
   savePrediction,
@@ -81,6 +81,7 @@ export default function PoolDetailPage() {
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
+  const [inviteCode, setInviteCode] = useState('');
   const [codeCopied, setCodeCopied] = useState(false);
   const [hasUpdatesAvailable, setHasUpdatesAvailable] = useState(false);
 
@@ -193,6 +194,30 @@ export default function PoolDetailPage() {
 
     return () => window.clearInterval(interval);
   }, []);
+
+
+  async function handleJoinByCode() {
+    if (!inviteCode.trim()) {
+      setJoinError('Digite um código de convite.');
+      return;
+    }
+
+    setJoining(true);
+    setJoinError(null);
+
+    try {
+      await joinPoolByCode(inviteCode.trim());
+
+      setPool((prev) => prev ? { ...prev, isMember: true } : prev);
+
+      await loadData();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+      setJoinError(msg || 'Código inválido.');
+    } finally {
+      setJoining(false);
+    }
+  }
 
   async function handleJoin() {
     if (!isAuthenticated) {
@@ -390,9 +415,38 @@ export default function PoolDetailPage() {
               {joinError && <p className="text-xs text-red-400 text-center mt-2">{joinError}</p>}
             </>
           ) : (
-            <div className="flex items-center gap-2 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl text-sm text-zinc-400">
-              <Lock size={14} />
-              <span>Bolão privado — use o código de convite para entrar</span>
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
+              <div className="flex items-center gap-2 text-sm text-zinc-300 mb-3">
+                <Lock size={14} />
+                <span className="font-semibold">Bolão privado</span>
+              </div>
+
+              <p className="text-xs text-zinc-500 mb-4">
+                Digite o código de convite enviado pelo administrador do bolão.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                  placeholder="Código do convite"
+                  className="flex-1 rounded-xl border border-zinc-700 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-brand"
+                />
+
+                <button
+                  onClick={handleJoinByCode}
+                  disabled={joining}
+                  className="rounded-xl bg-brand px-4 py-3 text-sm font-bold text-white hover:bg-brand-light transition disabled:opacity-50"
+                >
+                  {joining ? 'Entrando...' : 'Entrar'}
+                </button>
+              </div>
+
+              {joinError && (
+                <p className="mt-3 text-xs text-red-400">
+                  {joinError}
+                </p>
+              )}
             </div>
           )}
         </div>
