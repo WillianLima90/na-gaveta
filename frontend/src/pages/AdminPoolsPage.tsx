@@ -62,6 +62,24 @@ export function AdminPoolsPage() {
     }
   }
 
+  async function togglePoolVisibility(pool: AdminPool) {
+    const nextLabel = pool.isPublic ? 'privado' : 'público';
+
+    if (!window.confirm(`Tem certeza que deseja tornar o bolão "${pool.name}" ${nextLabel}?`)) return;
+
+    try {
+      setError('');
+      await axios.patch(
+        `/api/admin/pools/${pool.id}/visibility`,
+        { isPublic: !pool.isPublic },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await loadPools();
+    } catch (err: any) {
+      setError(err?.response?.data?.error || 'Erro ao atualizar visibilidade do bolão.');
+    }
+  }
+
   useEffect(() => {
     if (!currentUser || currentUser.role !== 'ADMIN') {
       navigate('/dashboard');
@@ -226,6 +244,13 @@ export function AdminPoolsPage() {
                   >
                     <Shield size={14} />
                     Abrir bolão
+                  </button>
+
+                  <button
+                    onClick={() => togglePoolVisibility(pool)}
+                    className="inline-flex items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-bold text-zinc-200 hover:bg-zinc-800 transition"
+                  >
+                    {pool.isPublic ? 'Tornar privado' : 'Tornar público'}
                   </button>
 
                   <button

@@ -29,6 +29,7 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
   const [expanded, setExpanded] = useState(false);
   const [pendingMembers, setPendingMembers] = useState<PoolMemberAdmin[]>([]);
   const [approvedMembers, setApprovedMembers] = useState<PoolMemberAdmin[]>([]);
+  const [isPublic, setIsPublic] = useState(true);
 
 
   async function loadMembersAdmin() {
@@ -40,6 +41,9 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
 
       setPendingMembers(pendingRes.data.members ?? []);
       setApprovedMembers(approvedRes.data.members ?? []);
+
+      const poolRes = await api.get(`/pools/${poolId}`);
+      setIsPublic(!!poolRes.data.pool?.isPublic);
     } catch {
       setPendingMembers([]);
       setApprovedMembers([]);
@@ -88,6 +92,43 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
 
       {expanded && (
         <div className="border-t border-zinc-800">
+
+          <div className="border-b border-zinc-800 bg-zinc-950/40 px-4 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold text-white">
+                  Visibilidade do bolão
+                </p>
+                <p className="text-[11px] text-zinc-500 mt-1">
+                  Público permite solicitações abertas. Privado exige código ou convite.
+                </p>
+              </div>
+
+              <button
+                onClick={async () => {
+                  const next = !isPublic;
+
+                  if (!window.confirm(
+                    `Tem certeza que deseja tornar este bolão ${next ? 'público' : 'privado'}?`
+                  )) return;
+
+                  await api.patch(`/pools/${poolId}/visibility`, {
+                    isPublic: next,
+                  });
+
+                  setIsPublic(next);
+                  onResultSet();
+                }}
+                className={`rounded-xl px-3 py-2 text-xs font-bold transition ${
+                  isPublic
+                    ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25'
+                    : 'bg-green-500/15 text-green-300 border border-green-500/30 hover:bg-green-500/25'
+                }`}
+              >
+                {isPublic ? 'Tornar privado' : 'Tornar público'}
+              </button>
+            </div>
+          </div>
           {pendingMembers.length > 0 && (
             <div className="border-b border-zinc-800 bg-yellow-500/5 px-4 py-4">
               <div className="flex items-center gap-2 mb-3">

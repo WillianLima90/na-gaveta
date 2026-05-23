@@ -640,3 +640,37 @@ export async function removeMember(req: AuthRequest, res: Response): Promise<voi
     res.status(500).json({ error: 'Erro ao remover participante.' });
   }
 }
+
+// ── PATCH /api/pools/:id/visibility ─────────────────────────
+export async function updatePoolVisibility(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user!.userId;
+    const { id: poolId } = req.params;
+    const { isPublic } = req.body as { isPublic?: boolean };
+
+    if (typeof isPublic !== 'boolean') {
+      res.status(400).json({ error: 'isPublic deve ser true ou false.' });
+      return;
+    }
+
+    const isOwner = await assertPoolOwner(poolId, userId);
+    if (!isOwner && req.user?.role !== 'ADMIN') {
+      res.status(403).json({ error: 'Apenas o admin do bolão pode alterar público/privado.' });
+      return;
+    }
+
+    const pool = await prisma.pool.update({
+      where: { id: poolId },
+      data: { isPublic },
+      select: { id: true, name: true, isPublic: true },
+    });
+
+    res.json({
+      pool,
+      message: `Bolão alterado para ${isPublic ? 'público' : 'privado'} com sucesso.`,
+    });
+  } catch (err) {
+    console.error('[Pool] Erro ao alterar visibilidade:', err);
+    res.status(500).json({ error: 'Erro ao alterar visibilidade do bolão.' });
+  }
+}

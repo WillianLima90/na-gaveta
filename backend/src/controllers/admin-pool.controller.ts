@@ -75,3 +75,48 @@ export async function updateAdminPoolActive(req: AuthRequest, res: Response): Pr
     res.status(500).json({ error: 'Erro ao atualizar status do bolão.' });
   }
 }
+
+export async function updateAdminPoolVisibility(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    if (!req.user || req.user.role !== 'ADMIN') {
+      res.status(403).json({ error: 'Apenas ADMIN pode alterar visibilidade de bolões.' });
+      return;
+    }
+
+    const { id } = req.params;
+    const { isPublic } = req.body as { isPublic?: boolean };
+
+    if (typeof isPublic !== 'boolean') {
+      res.status(400).json({ error: 'isPublic deve ser true ou false.' });
+      return;
+    }
+
+    const pool = await prisma.pool.findUnique({
+      where: { id },
+      select: { id: true, name: true },
+    });
+
+    if (!pool) {
+      res.status(404).json({ error: 'Bolão não encontrado.' });
+      return;
+    }
+
+    const updatedPool = await prisma.pool.update({
+      where: { id },
+      data: { isPublic },
+      select: {
+        id: true,
+        name: true,
+        isPublic: true,
+      },
+    });
+
+    res.json({
+      message: `Bolão alterado para ${isPublic ? 'público' : 'privado'} com sucesso.`,
+      pool: updatedPool,
+    });
+  } catch (err) {
+    console.error('[AdminPools] Erro ao atualizar visibilidade do bolão:', err);
+    res.status(500).json({ error: 'Erro ao atualizar visibilidade do bolão.' });
+  }
+}
