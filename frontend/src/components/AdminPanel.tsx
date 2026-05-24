@@ -51,8 +51,8 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
   }
 
   useEffect(() => {
-    if (expanded) loadMembersAdmin();
-  }, [expanded, poolId]);
+    loadMembersAdmin();
+  }, [poolId]);
 
   async function handleModerateMember(memberId: string, action: "approve" | "reject") {
     await api.patch(`/pools/${poolId}/members/${memberId}/${action}`);

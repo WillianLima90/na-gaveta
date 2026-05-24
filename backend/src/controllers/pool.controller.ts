@@ -178,11 +178,23 @@ export async function joinPool(req: AuthRequest, res: Response): Promise<void> {
       where: { userId_poolId: { userId, poolId: pool.id } },
     });
     if (existing) {
-      res.status(409).json({ error: 'Você já participa deste bolão' });
-      return;
-    }
+      if (existing.status === 'PENDING') {
+        res.status(409).json({ error: 'Você já solicitou entrada neste bolão. Aguarde aprovação.' });
+        return;
+      }
 
-    await prisma.poolMember.create({ data: { userId, poolId: pool.id, status: "PENDING" } });
+      if (existing.status === 'APPROVED') {
+        res.status(409).json({ error: 'Você já participa deste bolão.' });
+        return;
+      }
+
+      await prisma.poolMember.update({
+        where: { userId_poolId: { userId, poolId: pool.id } },
+        data: { status: 'PENDING' },
+      });
+    } else {
+      await prisma.poolMember.create({ data: { userId, poolId: pool.id, status: "PENDING" } });
+    }
 
     res.status(201).json({
       message: 'Solicitação enviada para aprovação do administrador!',
@@ -217,11 +229,23 @@ export async function joinPoolById(req: AuthRequest, res: Response): Promise<voi
       where: { userId_poolId: { userId, poolId } },
     });
     if (existing) {
-      res.status(409).json({ error: 'Você já participa deste bolão' });
-      return;
-    }
+      if (existing.status === 'PENDING') {
+        res.status(409).json({ error: 'Você já solicitou entrada neste bolão. Aguarde aprovação.' });
+        return;
+      }
 
-    await prisma.poolMember.create({ data: { userId, poolId, status: "PENDING" } });
+      if (existing.status === 'APPROVED') {
+        res.status(409).json({ error: 'Você já participa deste bolão.' });
+        return;
+      }
+
+      await prisma.poolMember.update({
+        where: { userId_poolId: { userId, poolId } },
+        data: { status: 'PENDING' },
+      });
+    } else {
+      await prisma.poolMember.create({ data: { userId, poolId, status: "PENDING" } });
+    }
 
     res.status(201).json({
       message: 'Solicitação enviada para aprovação do administrador!',
