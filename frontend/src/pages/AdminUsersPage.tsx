@@ -9,6 +9,7 @@ interface User {
   name: string;
   email: string;
   role: string;
+  plan: string;
   isActive: boolean;
   createdAt: string;
   _count: {
@@ -127,6 +128,29 @@ export function AdminUsersPage() {
       setError(err?.response?.data?.error || 'Erro no sync')
     } finally {
       setSyncLoading(false)
+    }
+  }
+
+  async function changePlan(user: User, plan: string) {
+    if (plan === user.plan) return;
+
+    try {
+      setSavingId(user.id);
+      setError('');
+      setMessage('');
+
+      await axios.patch(
+        `/api/admin/users/${user.id}/plan`,
+        { plan },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setMessage('Plano atualizado com sucesso.');
+      await loadUsers();
+    } catch (err: any) {
+      setError(err?.response?.data?.error || 'Erro ao atualizar plano.');
+    } finally {
+      setSavingId(null);
     }
   }
 
@@ -339,6 +363,10 @@ export function AdminUsersPage() {
                         {user.isActive ? 'ATIVO' : 'INATIVO'}
                       </span>
 
+                      <span className="inline-flex items-center rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-1 text-xs font-semibold text-blue-300">
+                        {user.plan}
+                      </span>
+
                       {isSelf && (
                         <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold bg-brand/15 text-brand border border-brand/20">
                           Você
@@ -436,6 +464,17 @@ export function AdminUsersPage() {
                       <option value="USER">USER</option>
                       <option value="POOL_ADMIN">POOL_ADMIN</option>
                       <option value="ADMIN">ADMIN</option>
+                    </select>
+
+                    <select
+                      value={user.plan}
+                      disabled={isSaving}
+                      onChange={(e) => changePlan(user, e.target.value)}
+                      className="h-10 min-w-[140px] rounded-xl bg-zinc-800 border border-zinc-700 px-3 text-sm text-white focus:outline-none focus:border-zinc-500 disabled:opacity-60"
+                    >
+                      <option value="FREE">FREE</option>
+                      <option value="PRO">PRO</option>
+                      <option value="BUSINESS">BUSINESS</option>
                     </select>
 
                     <button

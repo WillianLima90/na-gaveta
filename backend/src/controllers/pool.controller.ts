@@ -106,9 +106,26 @@ export async function createPool(req: AuthRequest, res: Response): Promise<void>
 
     const isPlatformAdmin = currentUser.role === 'ADMIN';
 
-    if (!isPlatformAdmin && currentUser.plan === 'FREE' && currentUser._count.ownedPools >= 1) {
+    const poolLimits = {
+      FREE: 1,
+      PRO: 5,
+      BUSINESS: Infinity,
+    };
+
+    const maxPoolsAllowed =
+      poolLimits[currentUser.plan as keyof typeof poolLimits] ?? 1;
+
+    if (
+      !isPlatformAdmin &&
+      currentUser._count.ownedPools >= maxPoolsAllowed
+    ) {
+      const limitText =
+        maxPoolsAllowed === Infinity
+          ? 'ilimitados'
+          : maxPoolsAllowed;
+
       res.status(403).json({
-        error: 'Plano FREE permite criar apenas 1 bolão. Faça upgrade para criar mais bolões.',
+        error: `Plano ${currentUser.plan} permite criar até ${limitText} bolão${maxPoolsAllowed === 1 ? '' : 'ões'}. Faça upgrade para aumentar seu limite.`,
       });
       return;
     }
