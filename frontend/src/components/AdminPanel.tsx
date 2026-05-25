@@ -30,6 +30,7 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
   const [pendingMembers, setPendingMembers] = useState<PoolMemberAdmin[]>([]);
   const [approvedMembers, setApprovedMembers] = useState<PoolMemberAdmin[]>([]);
   const [isPublic, setIsPublic] = useState(true);
+  const [memberError, setMemberError] = useState("");
 
 
   async function loadMembersAdmin() {
@@ -55,9 +56,19 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
   }, [poolId]);
 
   async function handleModerateMember(memberId: string, action: "approve" | "reject") {
-    await api.patch(`/pools/${poolId}/members/${memberId}/${action}`);
-    await loadMembersAdmin();
-    onResultSet();
+    try {
+      setMemberError("");
+
+      await api.patch(`/pools/${poolId}/members/${memberId}/${action}`);
+
+      await loadMembersAdmin();
+      onResultSet();
+    } catch (err: any) {
+      setMemberError(
+        err?.response?.data?.error ||
+        "Erro ao moderar participante."
+      );
+    }
   }
 
   async function handleRemoveMember(memberId: string) {
@@ -92,6 +103,11 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
 
       {expanded && (
         <div className="border-t border-zinc-800">
+          {memberError && (
+            <div className="mx-4 mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-300">
+              {memberError}
+            </div>
+          )}
 
           <div className="border-b border-zinc-800 bg-zinc-950/40 px-4 py-3">
             <div className="flex items-center justify-between gap-3">

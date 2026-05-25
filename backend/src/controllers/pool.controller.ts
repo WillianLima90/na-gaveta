@@ -10,7 +10,7 @@ import { AuthRequest } from '../types';
 export async function listPools(req: AuthRequest, res: Response): Promise<void> {
   try {
     const pools = await prisma.pool.findMany({
-      where: { isPublic: true },
+      where: { isPublic: true, isActive: true },
       include: {
         owner: { select: { id: true, name: true, avatarUrl: true } },
         championship: { select: { id: true, name: true, logoUrl: true } },
@@ -84,6 +84,32 @@ export async function createPool(req: AuthRequest, res: Response): Promise<void>
 
     if (!name || !championshipId) {
       res.status(400).json({ error: 'Nome e campeonato são obrigatórios' });
+      return;
+    }
+
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        plan: true,
+        role: true,
+        _count: {
+          select: { ownedPools: true },
+        },
+      },
+    });
+
+    if (!currentUser) {
+      res.status(404).json({ error: 'Usuário não encontrado.' });
+      return;
+    }
+
+    const isPlatformAdmin = currentUser.role === 'ADMIN';
+
+    if (!isPlatformAdmin && currentUser.plan === 'FREE' && currentUser._count.ownedPools >= 1) {
+      res.status(403).json({
+        error: 'Plano FREE permite criar apenas 1 bolão. Faça upgrade para criar mais bolões.',
+      });
       return;
     }
 
@@ -174,9 +200,32 @@ export async function joinPool(req: AuthRequest, res: Response): Promise<void> {
       return;
     }
 
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        plan: true,
+        role: true,
+        poolMembers: { where: { status: 'APPROVED', pool: { isActive: true } }, select: { id: true } },
+      },
+    });
+
+    if (!currentUser) {
+      res.status(404).json({ error: 'Usuário não encontrado.' });
+      return;
+    }
+
+    const isPlatformAdmin = currentUser.role === 'ADMIN';
+
     const existing = await prisma.poolMember.findUnique({
       where: { userId_poolId: { userId, poolId: pool.id } },
     });
+    if (!existing && !isPlatformAdmin && currentUser.plan === 'FREE' && currentUser.poolMembers.length >= 3) {
+      res.status(403).json({
+        error: 'Plano FREE permite participar de até 3 bolões. Faça upgrade para participar de mais bolões.',
+      });
+      return;
+    }
+
     if (existing) {
       if (existing.status === 'PENDING') {
         res.status(409).json({ error: 'Você já solicitou entrada neste bolão. Aguarde aprovação.' });
@@ -225,9 +274,33 @@ export async function joinPoolById(req: AuthRequest, res: Response): Promise<voi
       return;
     }
 
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        plan: true,
+        role: true,
+        poolMembers: { where: { status: 'APPROVED', pool: { isActive: true } }, select: { id: true } },
+      },
+    });
+
+    if (!currentUser) {
+      res.status(404).json({ error: 'Usuário não encontrado.' });
+      return;
+    }
+
+    const isPlatformAdmin = currentUser.role === 'ADMIN';
+
     const existing = await prisma.poolMember.findUnique({
       where: { userId_poolId: { userId, poolId } },
     });
+
+    if (!existing && !isPlatformAdmin && currentUser.plan === 'FREE' && currentUser.poolMembers.length >= 3) {
+      res.status(403).json({
+        error: 'Plano FREE permite participar de até 3 bolões. Faça upgrade para participar de mais bolões.',
+      });
+      return;
+    }
+
     if (existing) {
       if (existing.status === 'PENDING') {
         res.status(409).json({ error: 'Você já solicitou entrada neste bolão. Aguarde aprovação.' });
@@ -264,7 +337,11 @@ export async function myPools(req: AuthRequest, res: Response): Promise<void> {
     const userId = req.user!.userId;
 
     const memberships = await prisma.poolMember.findMany({
-      where: { userId },
+      where: {
+        userId,
+        status: 'APPROVED',
+        pool: { isActive: true },
+      },
       include: {
         pool: {
           include: {
@@ -581,6 +658,46 @@ export async function approveMember(req: AuthRequest, res: Response): Promise<vo
     const isOwner = await assertPoolOwner(poolId, userId);
     if (!isOwner) {
       res.status(403).json({ error: 'Apenas o admin do bolão pode aprovar participantes.' });
+      return;
+    }
+
+    const pendingMember = await prisma.poolMember.findUnique({
+      where: { id: memberId },
+      select: {
+        id: true,
+        userId: true,
+        poolId: true,
+        user: {
+          select: {
+            plan: true,
+            role: true,
+            poolMembers: {
+              where: {
+                status: 'APPROVED',
+                pool: { isActive: true },
+              },
+              select: { id: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!pendingMember || pendingMember.poolId !== poolId) {
+      res.status(404).json({ error: 'Solicitação não encontrada neste bolão.' });
+      return;
+    }
+
+    const isPlatformAdmin = pendingMember.user.role === 'ADMIN';
+
+    if (
+      !isPlatformAdmin &&
+      pendingMember.user.plan === 'FREE' &&
+      pendingMember.user.poolMembers.length >= 3
+    ) {
+      res.status(403).json({
+        error: 'Este usuário já atingiu o limite de 3 bolões ativos no plano FREE.',
+      });
       return;
     }
 
