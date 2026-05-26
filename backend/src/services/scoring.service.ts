@@ -175,11 +175,12 @@ export async function recalculatePredictionsForMatch(matchId: string): Promise<v
       prediction: {
         homeScoreTip: prediction.homeScoreTip,
         awayScoreTip: prediction.awayScoreTip,
+        isJoker: prediction.isJoker,
       },
       match: {
         homeScore: match.homeScore as number,
         awayScore: match.awayScore as number,
-        isJoker: prediction.isJoker,
+        isJoker: match.isJoker,
       },
       round: {
         isBonusRound: pool?.bonusRoundId === match.round.id,
