@@ -14,6 +14,7 @@ export interface ScoreInput {
   prediction: {
     homeScoreTip: number;
     awayScoreTip: number;
+    isJoker?: boolean;
   };
   match: {
     homeScore: number;
@@ -100,7 +101,7 @@ export function calculateScore(input: ScoreInput): ScoreBreakdown {
 
   // 5. Aplicar multiplicadores (acumulativos)
   let multiplier = 1;
-  const jokerApplied = match.isJoker && basePoints > 0;
+  const jokerApplied = Boolean(prediction.isJoker) && basePoints > 0;
   const bonusRoundApplied = round.isBonusRound && basePoints > 0;
 
   if (jokerApplied) multiplier *= rule.jokerMultiplier;
