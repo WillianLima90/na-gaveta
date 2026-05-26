@@ -124,8 +124,11 @@ export async function createPool(req: AuthRequest, res: Response): Promise<void>
           ? 'ilimitados'
           : maxPoolsAllowed;
 
+      const poolLabel =
+        maxPoolsAllowed === 1 ? 'bolão' : 'bolões';
+
       res.status(403).json({
-        error: `Plano ${currentUser.plan} permite criar até ${limitText} bolão${maxPoolsAllowed === 1 ? '' : 'ões'}. Faça upgrade para aumentar seu limite.`,
+        error: `Plano ${currentUser.plan} permite criar até ${limitText} ${poolLabel}. Faça upgrade para aumentar seu limite.`,
       });
       return;
     }
