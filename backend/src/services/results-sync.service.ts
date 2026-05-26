@@ -153,7 +153,14 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
       localMatch.awayScore === apiMatch.score.fullTime.away &&
       localMatch.status === targetStatus;
 
-    if (sameScore) {
+    // Segurança:
+    // se API já finalizou mas jogo local ainda está LIVE,
+    // força atualização para evitar jogo travado.
+    const needsFinalization =
+      apiMatch.status === 'FINISHED' &&
+      localMatch.status !== 'FINISHED';
+
+    if (sameScore && !needsFinalization) {
       logs.push(`OK unchanged | ${localMatch.homeTeam} x ${localMatch.awayTeam}`);
       continue;
     }
