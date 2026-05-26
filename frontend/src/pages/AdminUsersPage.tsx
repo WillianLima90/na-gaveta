@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Search, Shield, UserCog, UserCheck, UserX, Loader2, ArrowLeft } from 'lucide-react';
@@ -47,7 +47,7 @@ function statusBadge(isActive: boolean) {
 
 export function AdminUsersPage() {
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { token, user: currentUser } = useAuth();
 
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState('');
@@ -58,14 +58,6 @@ export function AdminUsersPage() {
   const [syncLoading, setSyncLoading] = useState(false);
   const [syncSummary, setSyncSummary] = useState<any>(null);
   const [syncLogs, setSyncLogs] = useState<string[]>([]);
-
-  const currentUser = useMemo(() => {
-    try {
-      return JSON.parse(localStorage.getItem('ng_user') || 'null');
-    } catch {
-      return null;
-    }
-  }, []);
 
   async function loadUsers() {
     try {
@@ -183,12 +175,13 @@ export function AdminUsersPage() {
   }
 
   useEffect(() => {
-    if (!currentUser || currentUser.role !== 'ADMIN') {
-      navigate('/dashboard');
+    if (!token) {
+      navigate('/login');
       return;
     }
+
     loadUsers();
-  }, []);
+  }, [token]);
 
   const filtered = users.filter((u) => {
     const matchesSearch = `${u.name} ${u.email}`.toLowerCase().includes(search.toLowerCase());

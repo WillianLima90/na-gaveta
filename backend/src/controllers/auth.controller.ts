@@ -92,6 +92,9 @@ export async function getProfile(req: AuthRequest, res: Response): Promise<void>
         displayName: true,
         email: true,
         avatarUrl: true,
+        role: true,
+        plan: true,
+        isActive: true,
         createdAt: true,
         _count: {
           select: { ownedPools: true, predictions: true },

@@ -66,6 +66,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
+  // ── Sincronizar usuário salvo com backend ────────────────
+  // Garante que mudanças administrativas (plano, role, etc)
+  // reflitam automaticamente sem exigir novo login.
+  useEffect(() => {
+    if (!token) return;
+
+    authService.getProfile()
+      .then((freshUser) => {
+        authService.saveSession(token, freshUser);
+        setUser(freshUser);
+      })
+      .catch(() => {
+        // 401 será tratado pelo interceptor global
+      });
+  }, [token]);
+
   // ── Listener de 401 do interceptor Axios ─────────────────
   // Soft redirect via React Router — não destrói o estado do React
   // isRedirecting evita que múltiplos 401 simultâneos disparem vários redirects

@@ -9,6 +9,9 @@ export interface User {
   displayName?: string | null;
   email: string;
   avatarUrl?: string;
+  role?: string;
+  plan?: string;
+  isActive?: boolean;
   createdAt?: string;
 }
 
