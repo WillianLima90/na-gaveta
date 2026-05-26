@@ -55,7 +55,7 @@ function getAvatarColor(name: string): string {
   return colors[idx];
 }
 
-type PredictionResult = 'exact' | 'outcome' | 'partial' | 'miss' | null;
+type PredictionResult = 'exact' | 'outcome' | 'homeGoal' | 'awayGoal' | 'partial' | 'miss' | null;
 
 function getPredictionResult(
   homeTip: number,
@@ -67,6 +67,8 @@ function getPredictionResult(
   if (homeTip === homeScore && awayTip === awayScore) return 'exact';
   const getOutcome = (h: number, a: number) => (h > a ? 'home' : a > h ? 'away' : 'draw');
   if (getOutcome(homeTip, awayTip) === getOutcome(homeScore, awayScore)) return 'outcome';
+  if (homeTip === homeScore && awayTip !== awayScore) return 'homeGoal';
+  if (awayTip === awayScore && homeTip !== homeScore) return 'awayGoal';
   if (homeTip === homeScore || awayTip === awayScore) return 'partial';
   return 'miss';
 }
@@ -75,6 +77,8 @@ function getPredictionResult(
 const RESULT_STYLES: Record<PredictionResult & string, { border: string; text: string; label: string }> = {
   exact: { border: 'border-zinc-500/40', text: 'text-zinc-200', label: 'Exato' },
   outcome: { border: 'border-zinc-700', text: 'text-zinc-300', label: 'Acertou vencedor' },
+  homeGoal: { border: 'border-zinc-800', text: 'text-zinc-400', label: 'Acertou gol do mandante' },
+  awayGoal: { border: 'border-zinc-800', text: 'text-zinc-400', label: 'Acertou gol do visitante' },
   partial: { border: 'border-zinc-800', text: 'text-zinc-400', label: 'Parcial' },
   miss: { border: 'border-zinc-900', text: 'text-zinc-600', label: 'Errou' },
 };
@@ -129,7 +133,7 @@ export function OpponentPredictionsDrawer({
   // Ordenar por maior pontuação atual; desempate por qualidade do acerto
   const sorted = data
     ? [...data.predictions].sort((a, b) => {
-        const order = { exact: 0, outcome: 1, partial: 2, miss: 3 };
+        const order = { exact: 0, outcome: 1, homeGoal: 2, awayGoal: 2, partial: 2, miss: 3 };
         const ra = getPredictionResult(a.homeScoreTip, a.awayScoreTip, homeScore, awayScore);
         const rb = getPredictionResult(b.homeScoreTip, b.awayScoreTip, homeScore, awayScore);
 
