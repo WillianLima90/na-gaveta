@@ -2,6 +2,7 @@ import axios from 'axios';
 import prisma from '../utils/prisma';
 
 const API_URL = 'https://api.football-data.org/v4/competitions/BSA/matches';
+const MATCH_API_URL = 'https://api.football-data.org/v4/matches';
 const LOCAL_API = 'http://localhost:3001/api';
 
 function normalizeName(name: string | null | undefined): string {
@@ -13,16 +14,50 @@ function normalizeName(name: string | null | undefined): string {
     .toLowerCase();
 }
 
-async function fetchApiMatches() {
-  const apiKey = process.env.FOOTBALL_API_KEY || '';
-  if (!apiKey) throw new Error('FOOTBALL_API_KEY ausente no .env');
+function getFootballDataApiKey() {
+  const apiKey = process.env.FOOTBALL_API_KEY || process.env.FOOTBALL_DATA_API_KEY || '';
+  if (!apiKey) throw new Error('FOOTBALL_API_KEY/FOOTBALL_DATA_API_KEY ausente no .env');
+  return apiKey;
+}
 
-  const res = await axios.get(API_URL, {
+async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchApiMatches(retry = true) {
+  const apiKey = getFootballDataApiKey();
+
+  try {
+    const res = await axios.get(API_URL, {
+      headers: { 'X-Auth-Token': apiKey },
+      timeout: 15000,
+    });
+
+    return res.data.matches || [];
+  } catch (err: any) {
+    if (retry && err?.response?.status === 429) {
+      const waitSeconds = Number(err?.response?.headers?.['x-requestcounter-reset'] || 3);
+
+      console.log(`[SYNC] Rate limit atingido. Aguardando ${waitSeconds}s...`);
+
+      await sleep(waitSeconds * 1000);
+
+      return fetchApiMatches(false);
+    }
+
+    throw err;
+  }
+}
+
+async function fetchApiMatchById(externalMatchId: number) {
+  const apiKey = getFootballDataApiKey();
+
+  const res = await axios.get(`${MATCH_API_URL}/${externalMatchId}`, {
     headers: { 'X-Auth-Token': apiKey },
     timeout: 15000,
   });
 
-  return res.data.matches || [];
+  return res.data;
 }
 
 async function findLocalMatch(apiMatch: any) {
@@ -146,11 +181,32 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
       continue;
     }
 
-    const targetStatus = apiMatch.status === 'FINISHED' ? 'FINISHED' : 'LIVE';
+    let sourceMatch = apiMatch;
+
+    const shouldRefetchFinal =
+      sourceMatch.status === 'FINISHED' &&
+      localMatch.externalMatchId &&
+      (
+        localMatch.status !== 'FINISHED' ||
+        localMatch.homeScore !== sourceMatch.score.fullTime.home ||
+        localMatch.awayScore !== sourceMatch.score.fullTime.away
+      );
+
+    if (shouldRefetchFinal) {
+      try {
+        sourceMatch = await fetchApiMatchById(localMatch.externalMatchId!);
+        logs.push(`REFETCH final | ${localMatch.homeTeam} x ${localMatch.awayTeam}`);
+      } catch (err: any) {
+        const msg = err?.response?.data?.message || err?.message || 'erro desconhecido';
+        logs.push(`REFETCH failed | ${localMatch.homeTeam} x ${localMatch.awayTeam} | ${msg}`);
+      }
+    }
+
+    const targetStatus = sourceMatch.status === 'FINISHED' ? 'FINISHED' : 'LIVE';
 
     const sameScore =
-      localMatch.homeScore === apiMatch.score.fullTime.home &&
-      localMatch.awayScore === apiMatch.score.fullTime.away &&
+      localMatch.homeScore === sourceMatch.score.fullTime.home &&
+      localMatch.awayScore === sourceMatch.score.fullTime.away &&
       localMatch.status === targetStatus;
 
     // Segurança:
@@ -166,7 +222,7 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
     }
 
     try {
-      const res = await pushResult(localMatch.id, apiMatch, adminToken, targetStatus);
+      const res = await pushResult(localMatch.id, sourceMatch, adminToken, targetStatus);
       logs.push(`UPDATED | ${localMatch.homeTeam} x ${localMatch.awayTeam} | ${res.data.message}`);
       updated += 1;
     } catch (err: any) {
