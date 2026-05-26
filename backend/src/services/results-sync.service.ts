@@ -73,6 +73,8 @@ async function findLocalMatch(apiMatch: any) {
       awayScore: true,
       status: true,
       externalMatchId: true,
+      apiStatus: true,
+      apiLastUpdated: true,
       isManualOverride: true,
     },
   });
@@ -93,6 +95,8 @@ async function findLocalMatch(apiMatch: any) {
       awayScore: true,
       status: true,
       externalMatchId: true,
+      apiStatus: true,
+      apiLastUpdated: true,
       isManualOverride: true,
     },
   });
@@ -107,7 +111,11 @@ async function findLocalMatch(apiMatch: any) {
   if (!matched.externalMatchId) {
     await prisma.match.update({
       where: { id: matched.id },
-      data: { externalMatchId },
+      data: {
+        externalMatchId,
+        apiStatus: apiMatch.status,
+        apiLastUpdated: apiMatch.lastUpdated ? new Date(apiMatch.lastUpdated) : null,
+      },
     });
 
     return {
@@ -202,7 +210,17 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
       }
     }
 
-    const targetStatus = sourceMatch.status === 'FINISHED' ? 'FINISHED' : 'LIVE';
+    const apiStatus = sourceMatch.status;
+    const apiLastUpdated = sourceMatch.lastUpdated ? new Date(sourceMatch.lastUpdated) : null;
+
+    // Regra anti-regressão:
+    // se local já está FINISHED, nunca volta para LIVE por inconsistência/cache da API.
+    const targetStatus =
+      localMatch.status === 'FINISHED'
+        ? 'FINISHED'
+        : apiStatus === 'FINISHED'
+          ? 'FINISHED'
+          : 'LIVE';
 
     const sameScore =
       localMatch.homeScore === sourceMatch.score.fullTime.home &&
@@ -222,6 +240,14 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
     }
 
     try {
+      await prisma.match.update({
+        where: { id: localMatch.id },
+        data: {
+          apiStatus,
+          apiLastUpdated,
+        },
+      });
+
       const res = await pushResult(localMatch.id, sourceMatch, adminToken, targetStatus);
       logs.push(`UPDATED | ${localMatch.homeTeam} x ${localMatch.awayTeam} | ${res.data.message}`);
       updated += 1;
