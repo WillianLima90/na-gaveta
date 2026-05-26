@@ -148,47 +148,47 @@ function calcPoints(_prediction: MyPrediction, match: Match, round: Round, resul
 const RESULT_CFG = {
   exact: {
     cardBorder: 'border-zinc-800',
-    cardBg: 'bg-zinc-900/80',
-    scoreBg: 'bg-zinc-900/80',
+    cardBg: 'bg-zinc-950/40',
+    scoreBg: 'bg-zinc-900',
     scoreText: 'text-white',
     scoreBorder: 'border-zinc-700',
-    ptsText: 'text-white',
-    ptsBg: 'bg-zinc-800',
+    ptsText: 'text-emerald-300',
+    ptsBg: 'bg-emerald-500/15',
     label: '🎯 Exato',
-    labelColor: 'text-white',
+    labelColor: 'text-emerald-300',
   },
   outcome: {
-    cardBorder: 'border-green-500/50',
-    cardBg: 'bg-green-500/8',
-    scoreBg: 'bg-green-500/15',
-    scoreText: 'text-green-300',
-    scoreBorder: 'border-green-500/40',
-    ptsText: 'text-green-300',
-    ptsBg: 'bg-green-500/15',
-    label: '✅ Certo',
-    labelColor: 'text-green-300',
+    cardBorder: 'border-zinc-800',
+    cardBg: 'bg-zinc-950/40',
+    scoreBg: 'bg-zinc-900',
+    scoreText: 'text-white',
+    scoreBorder: 'border-zinc-700',
+    ptsText: 'text-amber-300',
+    ptsBg: 'bg-amber-500/15',
+    label: '🏆 Resultado',
+    labelColor: 'text-amber-300',
   },
   partial: {
-    cardBorder: 'border-blue-400/50',
-    cardBg: 'bg-blue-400/8',
-    scoreBg: 'bg-blue-400/15',
-    scoreText: 'text-blue-300',
-    scoreBorder: 'border-blue-400/40',
+    cardBorder: 'border-zinc-800',
+    cardBg: 'bg-zinc-950/40',
+    scoreBg: 'bg-zinc-900',
+    scoreText: 'text-white',
+    scoreBorder: 'border-zinc-700',
     ptsText: 'text-blue-300',
-    ptsBg: 'bg-blue-400/15',
-    label: '~ Parcial',
+    ptsBg: 'bg-blue-500/15',
+    label: '↔ Parcial',
     labelColor: 'text-blue-300',
   },
   miss: {
-    cardBorder: 'border-zinc-700/50',
-    cardBg: 'bg-zinc-900/60',
-    scoreBg: 'bg-zinc-800/60',
-    scoreText: 'text-zinc-500',
-    scoreBorder: 'border-zinc-700/40',
-    ptsText: 'text-zinc-600',
-    ptsBg: 'bg-zinc-800/40',
-    label: '❌ Errou',
-    labelColor: 'text-zinc-500',
+    cardBorder: 'border-zinc-800',
+    cardBg: 'bg-zinc-950/40',
+    scoreBg: 'bg-zinc-900',
+    scoreText: 'text-zinc-400',
+    scoreBorder: 'border-zinc-800',
+    ptsText: 'text-red-400/80',
+    ptsBg: 'bg-red-950/30',
+    label: '✕ Errou',
+    labelColor: 'text-red-400/70',
   },
 };
 
@@ -616,7 +616,7 @@ const canPredict = isAuthenticated && isMember && !locked;
   if (locked && hasPrediction && match.status !== 'FINISHED') {
     const isLive = match.status === 'LIVE';
     return (
-      <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${isLive ? 'border-green-500/40 bg-green-500/8' : 'border-zinc-700/50 bg-zinc-900/70'}`}>
+      <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${isLive ? 'border-zinc-800 bg-zinc-900/70' : 'border-zinc-700/50 bg-zinc-900/70'}`}>
         {/* Linha principal: times + palpite grande + pontos */}
         <div className="flex items-center gap-2 px-4 pt-3.5 pb-1.5">
           <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
@@ -626,11 +626,11 @@ const canPredict = isAuthenticated && isMember && !locked;
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className={`w-11 h-11 flex items-center justify-center text-base font-black rounded-xl tabular-nums shadow-inner ${isLive ? 'text-green-300 bg-green-500/15 border border-green-500/40' : 'text-zinc-200 bg-zinc-800 border border-zinc-700'}`}>
+            <span className={`w-11 h-11 flex items-center justify-center text-base font-black rounded-xl tabular-nums shadow-inner ${isLive ? 'text-zinc-200 bg-zinc-800 border border-zinc-700' : 'text-zinc-200 bg-zinc-800 border border-zinc-700'}`}>
               {match.myPrediction!.homeScoreTip}
             </span>
             <span className="text-zinc-500 text-base font-black">×</span>
-            <span className={`w-11 h-11 flex items-center justify-center text-base font-black rounded-xl tabular-nums shadow-inner ${isLive ? 'text-green-300 bg-green-500/15 border border-green-500/40' : 'text-zinc-200 bg-zinc-800 border border-zinc-700'}`}>
+            <span className={`w-11 h-11 flex items-center justify-center text-base font-black rounded-xl tabular-nums shadow-inner ${isLive ? 'text-zinc-200 bg-zinc-800 border border-zinc-700' : 'text-zinc-200 bg-zinc-800 border border-zinc-700'}`}>
               {match.myPrediction!.awayScoreTip}
             </span>
           </div>
@@ -657,7 +657,7 @@ const canPredict = isAuthenticated && isMember && !locked;
         </div>
         {isLive && hasScore && (
           <div className="flex justify-center -mt-1 mb-1 -translate-x-10">
-            <span className={`text-xs font-bold tabular-nums transition-all duration-300 ${goalFlash ? "text-white scale-125 drop-shadow-[0_0_10px_rgba(52,211,153,0.9)]" : "text-emerald-400"}`}>
+            <span className={`text-xs font-bold tabular-nums transition-all duration-300 ${goalFlash ? "text-white scale-125 drop-shadow-[0_0_10px_rgba(255,255,255,0.35)]" : "text-zinc-300"}`}>
               Ao vivo: {match.homeScore}–{match.awayScore}
             </span>
           </div>
@@ -722,7 +722,7 @@ const canPredict = isAuthenticated && isMember && !locked;
                 <div className="text-[10px] text-zinc-500 uppercase tracking-wide">
                   Resultado
                 </div>
-                <div className="text-base font-bold text-emerald-400">
+                <div className="text-base font-bold text-zinc-200">
                   {match.homeScore}–{match.awayScore}
                 </div>
               </div>
@@ -835,7 +835,7 @@ const canPredict = isAuthenticated && isMember && !locked;
             </div>
           </div>
           <div className="flex flex-col items-center justify-center mt-2">
-            <span className={`text-xs font-bold tabular-nums transition-all duration-300 ${goalFlash ? "text-white scale-125 drop-shadow-[0_0_10px_rgba(52,211,153,0.9)]" : "text-emerald-400"}`}>
+            <span className={`text-xs font-bold tabular-nums transition-all duration-300 ${goalFlash ? "text-white scale-125 drop-shadow-[0_0_10px_rgba(255,255,255,0.35)]" : "text-zinc-300"}`}>
               {match.status === 'LIVE' ? 'Ao vivo: ' : 'Resultado final: '}{match.homeScore ?? '-'}–{match.awayScore ?? '-'}
             </span>
             {match.isManualOverride && (
