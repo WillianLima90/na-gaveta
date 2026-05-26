@@ -72,13 +72,6 @@ function getPredictionResult(
 }
 
 
-function calcLivePoints(result: PredictionResult): number {
-  if (!result || result === 'miss') return 0;
-  if (result === 'exact') return 20;
-  if (result === 'outcome') return 10;
-  return 5;
-}
-
 const RESULT_STYLES: Record<PredictionResult & string, { border: string; text: string; label: string }> = {
   exact: { border: 'border-zinc-500/40', text: 'text-zinc-200', label: 'Exato' },
   outcome: { border: 'border-zinc-700', text: 'text-zinc-300', label: 'Acertou vencedor' },
@@ -242,16 +235,7 @@ export function OpponentPredictionsDrawer({
                   const style = result ? RESULT_STYLES[result] : null;
                   const isCurrentUser = p.userId === currentUserId;
 
-                  const livePoints =
-                    homeScore !== null &&
-                    homeScore !== undefined &&
-                    awayScore !== null &&
-                    awayScore !== undefined
-                      ? calcLivePoints(result)
-                      : null;
-
-                  const displayPoints =
-                    livePoints !== null ? livePoints : p.points;
+                  const displayPoints = p.points ?? 0;
 
                   return (
                     <div
