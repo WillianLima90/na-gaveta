@@ -152,10 +152,10 @@ const RESULT_CFG = {
     scoreBg: 'bg-zinc-900',
     scoreText: 'text-white',
     scoreBorder: 'border-zinc-700',
-    ptsText: 'text-emerald-300',
-    ptsBg: 'bg-emerald-500/15',
-    label: '🎯 Exato',
-    labelColor: 'text-emerald-300',
+    ptsText: 'text-amber-300',
+    ptsBg: 'bg-amber-500/15',
+    label: '🎯 EXATO',
+    labelColor: 'text-amber-300',
   },
   outcome: {
     cardBorder: 'border-zinc-800',
@@ -163,10 +163,10 @@ const RESULT_CFG = {
     scoreBg: 'bg-zinc-900',
     scoreText: 'text-white',
     scoreBorder: 'border-zinc-700',
-    ptsText: 'text-amber-300',
-    ptsBg: 'bg-amber-500/15',
-    label: '🏆 Resultado',
-    labelColor: 'text-amber-300',
+    ptsText: 'text-zinc-300',
+    ptsBg: 'bg-zinc-800',
+    label: 'Resultado',
+    labelColor: 'text-zinc-500',
   },
   partial: {
     cardBorder: 'border-zinc-800',
@@ -174,10 +174,10 @@ const RESULT_CFG = {
     scoreBg: 'bg-zinc-900',
     scoreText: 'text-white',
     scoreBorder: 'border-zinc-700',
-    ptsText: 'text-blue-300',
-    ptsBg: 'bg-blue-500/15',
+    ptsText: 'text-zinc-300',
+    ptsBg: 'bg-zinc-800',
     label: '↔ Parcial',
-    labelColor: 'text-blue-300',
+    labelColor: 'text-zinc-500',
   },
   miss: {
     cardBorder: 'border-zinc-800',
@@ -185,10 +185,10 @@ const RESULT_CFG = {
     scoreBg: 'bg-zinc-900',
     scoreText: 'text-zinc-400',
     scoreBorder: 'border-zinc-800',
-    ptsText: 'text-red-400/80',
-    ptsBg: 'bg-red-950/30',
+    ptsText: 'text-zinc-500',
+    ptsBg: 'bg-zinc-900',
     label: '✕ Errou',
-    labelColor: 'text-red-400/70',
+    labelColor: 'text-zinc-600',
   },
 };
 
@@ -739,6 +739,11 @@ const canPredict = isAuthenticated && isMember && !locked;
           <div className="flex items-center justify-end">
             <span className={`shrink-0 min-w-[58px] text-center text-base font-black tabular-nums px-2.5 py-1.5 rounded-xl ${c.ptsBg} ${c.ptsText}`}>
               {pts !== null ? (pts > 0 ? `+${pts}` : '0') : '—'}
+              {result === 'exact' && (
+                <span className={`block text-[9px] font-semibold uppercase tracking-wide leading-none mt-0.5 ${c.labelColor}`}>
+                  {c.label}
+                </span>
+              )}
               {(result === 'partial' || result === 'miss') && (
                 <span className="block text-[9px] font-semibold uppercase tracking-wide opacity-70 leading-none mt-0.5">
                   {result === 'partial' ? 'parcial' : 'errou'}
@@ -756,7 +761,7 @@ const canPredict = isAuthenticated && isMember && !locked;
           <div className="flex items-center gap-1.5">
             {match.myPrediction?.isJoker && <ModBadge type="joker" />}
             {round.isBonusRound && <ModBadge type="bonus" />}
-            {result && result !== 'partial' && result !== 'miss' && <span className={`text-xs font-semibold ${c.labelColor}`}>{c.label}</span>}
+            {result === 'outcome' && <span className={`text-xs font-semibold ${c.labelColor}`}>{c.label}</span>}
             {isAdmin && match.isManualOverride && (
               <span className="text-xs text-amber-400 font-semibold ml-1">
                 Corrigido
