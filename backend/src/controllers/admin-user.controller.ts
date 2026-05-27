@@ -12,7 +12,7 @@ export async function listUsers(req: AuthRequest, res: Response): Promise<void> 
       return;
     }
 
-    const users = await prisma.user.findMany({
+    const usersRaw = await prisma.user.findMany({
       select: {
         id: true,
         name: true,
@@ -48,6 +48,14 @@ export async function listUsers(req: AuthRequest, res: Response): Promise<void> 
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    const users = usersRaw.map((user) => ({
+      ...user,
+      _count: {
+        ...user._count,
+        poolMembers: user.poolMembers.length,
+      },
+    }));
 
     res.json({ users });
   } catch (err) {
@@ -176,8 +184,11 @@ export async function deleteUser(req: AuthRequest, res: Response): Promise<void>
           select: {
             ownedPools: true,
             predictions: true,
-            poolMembers: true,
           },
+        },
+        poolMembers: {
+          where: { status: { in: ['PENDING', 'APPROVED'] } },
+          select: { id: true },
         },
       },
     });
@@ -195,7 +206,7 @@ export async function deleteUser(req: AuthRequest, res: Response): Promise<void>
     if (
       existingUser._count.ownedPools > 0 ||
       existingUser._count.predictions > 0 ||
-      existingUser._count.poolMembers > 0
+      existingUser.poolMembers.length > 0
     ) {
       res.status(400).json({
         error: 'Usuário possui vínculo com bolões ou palpites. Utilize desativação em vez de exclusão.',
