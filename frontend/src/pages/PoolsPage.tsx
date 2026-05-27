@@ -12,7 +12,7 @@ import { CreatePoolModal } from '../components/CreatePoolModal';
 import { Spinner, Badge } from '../components/ui';
 
 export default function PoolsPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   const [publicPools, setPublicPools] = useState<Pool[]>([]);
@@ -66,6 +66,17 @@ export default function PoolsPage() {
 
   const displayedPools = activeTab === 'mine' ? myPoolsList : publicPools;
 
+  const poolLimits: Record<string, number> = {
+    FREE: 1,
+    PRO: 5,
+    BUSINESS: Infinity,
+  };
+
+  const currentPlan = user?.plan || 'FREE';
+  const activeOwnedPools = user?._count?.ownedPools || 0;
+  const maxOwnedPools = poolLimits[currentPlan] ?? 1;
+  const hasReachedPoolLimit = maxOwnedPools !== Infinity && activeOwnedPools >= maxOwnedPools;
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Header */}
@@ -77,13 +88,22 @@ export default function PoolsPage() {
           </p>
         </div>
         {isAuthenticated && (
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-brand hover:bg-brand-light text-white font-bold rounded-xl transition-colors text-sm"
-          >
-            <Plus size={16} />
-            Criar bolão
-          </button>
+          hasReachedPoolLimit ? (
+            <div className="rounded-2xl border border-brand/25 bg-brand/10 px-4 py-3 text-sm">
+              <p className="font-black text-brand">Limite do plano atingido</p>
+              <p className="mt-0.5 text-xs text-zinc-400">
+                Seu plano {currentPlan} permite {maxOwnedPools} bolão ativo. Faça upgrade para criar mais.
+              </p>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-brand hover:bg-brand-light text-white font-bold rounded-xl transition-colors text-sm"
+            >
+              <Plus size={16} />
+              Criar bolão
+            </button>
+          )
         )}
       </div>
 
