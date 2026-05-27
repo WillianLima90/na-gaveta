@@ -19,6 +19,7 @@ export interface Pool {
   createdAt: string;
   isMember?: boolean;
   membershipStatus?: "PENDING" | "APPROVED" | "REJECTED" | "REMOVED" | null;
+  canEditFavoriteTeam?: boolean;
   owner?: { id: string; name: string; avatarUrl?: string };
   championship?: { id: string; name: string; slug?: string; season?: string; logoUrl?: string };
   members?: Array<{

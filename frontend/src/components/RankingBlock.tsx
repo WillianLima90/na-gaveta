@@ -551,44 +551,6 @@ export function RankingBlock({
           </button>
         </div>
       </div>
-
-      {/* ── MELHOR DA RODADA + RECORDE ───────────────────────── */}
-      {(highlights?.bestUser || recordHolder) && (
-        <div className="grid grid-cols-2 gap-2 mt-2">
-          {highlights?.bestUser && (
-            <div
-              className="rounded-xl px-3 py-2.5"
-              style={{ background: 'rgba(249,115,22,0.07)', border: '1px solid rgba(249,115,22,0.15)' }}
-            >
-              <div className="flex items-center gap-1 mb-1">
-                <Flame size={11} className="text-brand" />
-                <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Melhor rodada</span>
-              </div>
-              <p className="font-bold text-white text-xs truncate">{highlights.bestUser.name.split(' ')[0]}</p>
-              <p className="text-sm font-black text-brand tabular-nums">
-                {highlights.bestUser.roundPoints}
-                <span className="text-xs font-normal text-zinc-600 ml-1">pts</span>
-              </p>
-            </div>
-          )}
-          {recordHolder && (
-            <div
-              className="rounded-xl px-3 py-2.5"
-              style={{ background: 'rgba(255,215,0,0.05)', border: '1px solid rgba(255,215,0,0.12)' }}
-            >
-              <div className="flex items-center gap-1 mb-1">
-                <Star size={11} style={{ color: '#FFD700' }} />
-                <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Recorde</span>
-              </div>
-              <p className="font-bold text-white text-xs truncate">{recordHolder.name.split(' ')[0]}</p>
-              <p className="text-sm font-black tabular-nums" style={{ color: '#FFD700' }}>
-                {recordHolder.totalPoints}
-                <span className="text-xs font-normal text-zinc-600 ml-1">pts</span>
-              </p>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

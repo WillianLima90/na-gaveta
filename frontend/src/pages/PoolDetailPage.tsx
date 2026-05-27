@@ -16,7 +16,7 @@ import { getTeamName, getTeamLogo } from '../utils/teamDisplay';
 //   - Seção Destaques com métricas extras
 // ============================================================
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Users, ArrowLeft, Copy, Check,
@@ -97,6 +97,7 @@ export default function PoolDetailPage() {
   const [favoriteTeam, setFavoriteTeamState] = useState("");
   const [favoriteTeamDraft, setFavoriteTeamDraft] = useState("");
   const [favoriteTeamOpen, setFavoriteTeamOpen] = useState(false);
+  const favoriteTeamRef = useRef<HTMLDivElement | null>(null);
 
   async function handleSaveFavoriteTeam() {
     if (!favoriteTeamDraft || favoriteTeamDraft === favoriteTeam) return;
@@ -109,6 +110,24 @@ export default function PoolDetailPage() {
       setSaveMessage("Erro ao definir time.");
     }
   }
+
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        favoriteTeamRef.current &&
+        !favoriteTeamRef.current.contains(event.target as Node)
+      ) {
+        setFavoriteTeamOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
 
   // ── STAGING: salvar tudo ─────────────────────────────
@@ -325,13 +344,6 @@ export default function PoolDetailPage() {
         .map((m) => ({ match: m, round: currentRound }))
     : [];
 
-  const startingRound = rounds.find(r => r.id === pool?.startingRoundId);
-  const poolAlreadyStarted = Boolean(startingRound?.matches.some(m =>
-    m.status === 'LIVE' ||
-    m.status === 'FINISHED' ||
-    new Date(m.matchDate).getTime() <= Date.now()
-  ));
-
   const favoriteTeamOptions = allRoundMatches
     .flatMap(m => [m.match.homeTeam, m.match.awayTeam])
     .filter((v, i, a) => a.indexOf(v) === i)
@@ -357,29 +369,6 @@ export default function PoolDetailPage() {
 
   const totalOpenCount = openMatches.length;
   const totalPlacedCount = doneMatches.length;
-  
-  function parseDateSafe(dateStr: string): Date {
-    const d = new Date(dateStr);
-    if (!isNaN(d.getTime())) return d;
-    return new Date(dateStr + 'Z');
-  }
-
-  const nextMatch = openMatches
-    .map(({ match }) => match)
-    .sort((a, b) => parseDateSafe(a.matchDate).getTime() - parseDateSafe(b.matchDate).getTime())[0];
-
-  const nextMatchTimeLeft = nextMatch
-    ? Math.floor((parseDateSafe(nextMatch.matchDate).getTime() - Date.now()) / 60000)
-    : null;
-
-  const formatTimeLeft = (minutes: number): string => {
-    if (minutes < 60) return `${minutes} min`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h`;
-    const days = Math.floor(hours / 24);
-    const remainingHours = hours % 24;
-    return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days} dias`;
-  };
 
 
   // ── Coluna da esquerda: palpites ─────────────────────────────
@@ -482,20 +471,6 @@ export default function PoolDetailPage() {
               isAuthenticated={isAuthenticated}
               isMember={isMember}
             />
-          )}
-
-          {totalOpenCount > 0 && (
-            <div className="mb-3 px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 flex items-center justify-between">
-              <span>
-                Você ainda tem <strong className="text-white">{totalOpenCount}</strong> palpites para fazer
-                
-                {nextMatchTimeLeft !== null && nextMatchTimeLeft > 0 && (
-                  <span className="ml-2 text-red-400 font-bold">
-                    · Próximo jogo fecha em {formatTimeLeft(nextMatchTimeLeft)}
-                  </span>
-                )}
-              </span>
-            </div>
           )}
           {/* Header de progresso */}
           <div className="mb-3 flex items-center justify-between">
@@ -711,7 +686,85 @@ const rightColumn = (
               {pool.championship.name} · {pool.championship.season}
             </p>
           )}
-          <h1 className="text-lg font-black text-white leading-tight truncate">{pool.name}</h1>
+          <div className="flex items-center gap-2 min-w-0">
+            <h1 className="text-lg font-black text-white leading-tight truncate">{pool.name}</h1>
+
+            {favoriteTeam && getTeamLogo(favoriteTeam) && (
+              <img
+                src={getTeamLogo(favoriteTeam)!}
+                alt={favoriteTeam}
+                className="w-6 h-6 object-contain shrink-0"
+              />
+            )}
+            {isMember && (
+              <div className="flex items-center gap-2 ml-2 relative shrink-0">
+
+                <div ref={favoriteTeamRef} className="relative">
+                  <button
+                    type="button"
+                    disabled={!pool?.canEditFavoriteTeam}
+                    onClick={() => setFavoriteTeamOpen(v => !v)}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-800/80 border border-zinc-700 hover:bg-zinc-700/80 transition text-sm text-white shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                  {(favoriteTeamDraft || favoriteTeam) && getTeamLogo(favoriteTeamDraft || favoriteTeam) && (
+                    <img
+                      src={getTeamLogo(favoriteTeamDraft || favoriteTeam)!}
+                      alt={getTeamName(favoriteTeamDraft || favoriteTeam)}
+                      className="w-4 h-4 object-contain shrink-0"
+                    />
+                  )}
+
+                    <span className="whitespace-nowrap">
+                      {(favoriteTeamDraft || favoriteTeam)
+                        ? getTeamName(favoriteTeamDraft || favoriteTeam)
+                        : 'Escolher time'}
+                    </span>
+
+                    {pool?.canEditFavoriteTeam && (
+                      <ChevronDown size={12} className="text-zinc-500 shrink-0" />
+                    )}
+                  </button>
+
+                  {favoriteTeamOpen && pool?.canEditFavoriteTeam && (
+                    <div className="absolute top-full left-0 mt-1 w-56 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl z-50 max-h-72 overflow-auto">
+                      {favoriteTeamOptions.map(team => (
+                        <button
+                          type="button"
+                          key={team}
+                          onClick={() => {
+                            setFavoriteTeamDraft(team);
+                            setFavoriteTeamOpen(false);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 hover:bg-zinc-800/80 text-left text-xs text-white"
+                        >
+                          {getTeamLogo(team) && (
+                            <img
+                              src={getTeamLogo(team)!}
+                              alt={getTeamName(team)}
+                              className="w-4 h-4 object-contain shrink-0"
+                            />
+                          )}
+
+                          <span>{getTeamName(team)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {favoriteTeamDraft && favoriteTeamDraft !== favoriteTeam && (
+                    <button
+                      type="button"
+                      onClick={handleSaveFavoriteTeam}
+                      className="absolute top-full left-0 mt-1 px-2 py-1 rounded-md bg-orange-500 hover:bg-orange-400 text-white text-[10px] font-bold whitespace-nowrap"
+                    >
+                      Salvar
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="flex flex-wrap items-center gap-2 mt-1">
             <span className="text-xs text-zinc-500 flex items-center gap-1">
               <Users size={10} />
@@ -750,74 +803,6 @@ const rightColumn = (
         </button>
       </div>
 
-      {/* ── Time do coração ───────────────────────── */}
-      {isMember && (
-        <div className="mb-2 rounded-xl border border-zinc-800 bg-zinc-900/50 p-2 sm:p-2.5">
-          <label className="text-xs text-zinc-400 block mb-1 font-semibold">
-            Time do coração
-          </label>
-          
-          <div className="relative w-full sm:max-w-xs">
-            <button
-              type="button"
-              disabled={Boolean(favoriteTeam)}
-              onClick={() => setFavoriteTeamOpen(v => !v)}
-              className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span className="flex items-center gap-2">
-                {(favoriteTeamDraft || favoriteTeam) ? (
-                  <>
-                    {getTeamLogo(favoriteTeamDraft || favoriteTeam) && (
-                      <img src={getTeamLogo(favoriteTeamDraft || favoriteTeam)!} alt={getTeamName(favoriteTeamDraft || favoriteTeam)} className="w-5 h-5 object-contain shrink-0" />
-                    )}
-                    <span>{getTeamName(favoriteTeamDraft || favoriteTeam)}</span>
-                  </>
-                ) : (
-                  <span className="text-zinc-400">Selecione seu time</span>
-                )}
-              </span>
-              <ChevronDown size={14} />
-            </button>
-
-            {favoriteTeamOpen && !favoriteTeam && (
-              <div className="absolute mt-1 w-full bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg z-50 max-h-60 overflow-auto">
-                {favoriteTeamOptions.map(team => (
-                  <button
-                    type="button"
-                    key={team}
-                    onClick={() => {
-                      setFavoriteTeamDraft(team);
-                      setFavoriteTeamOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 hover:bg-zinc-800/80 text-left text-sm text-white"
-                  >
-                    {getTeamLogo(team) && (
-                      <img src={getTeamLogo(team)!} alt={getTeamName(team)} className="w-5 h-5 object-contain shrink-0" />
-                    )}
-                    <span>{getTeamName(team)}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {!favoriteTeam && favoriteTeamDraft && favoriteTeamDraft !== favoriteTeam && (
-            <button
-              type="button"
-              onClick={handleSaveFavoriteTeam}
-              className="mt-2 px-3 py-2 rounded-lg bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold transition-colors"
-            >
-              Salvar time do coração
-            </button>
-          )}
-
-          {poolAlreadyStarted && (
-            <p className="text-[10px] text-red-400 mt-1">
-              O time do coração só pode ser definido antes do início do bolão.
-            </p>
-          )}
-        </div>
-      )}
 
       {/* ── LAYOUT RESPONSIVO ───────────────────────────────── */}
       <div className="lg:grid lg:grid-cols-[minmax(760px,1fr)_500px] lg:gap-6 xl:grid-cols-[minmax(820px,1fr)_520px]">

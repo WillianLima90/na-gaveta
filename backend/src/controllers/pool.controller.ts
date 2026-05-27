@@ -58,6 +58,7 @@ export async function getPool(req: AuthRequest, res: Response): Promise<void> {
     let isMember = false;
     let membershipStatus: string | null = null;
     let myFavoriteTeam: string | null = null;
+    let canEditFavoriteTeam = false;
 
     if (userId) {
       const membership = await prisma.poolMember.findUnique({
@@ -67,9 +68,49 @@ export async function getPool(req: AuthRequest, res: Response): Promise<void> {
       isMember = membership?.status === "APPROVED";
       membershipStatus = membership?.status ?? null;
       myFavoriteTeam = membership?.favoriteTeam ?? null;
+
+      if (membership?.status === "APPROVED") {
+        const nextRound = await prisma.round.findFirst({
+          where: {
+            championshipId: pool.championshipId,
+            matches: {
+              some: {
+                matchDate: { gt: membership.joinedAt }
+              }
+            }
+          },
+          orderBy: { number: 'asc' },
+          include: {
+            matches: {
+              where: {
+                matchDate: { gt: membership.joinedAt }
+              },
+              orderBy: { matchDate: 'asc' },
+              take: 1
+            }
+          }
+        });
+
+        const firstMatch = nextRound?.matches?.[0];
+
+        if (firstMatch) {
+          const now = new Date();
+          const lockTime = new Date(firstMatch.matchDate.getTime() - 10 * 60 * 1000);
+
+          canEditFavoriteTeam = now < lockTime;
+        }
+      }
     }
 
-    res.json({ pool: { ...pool, isMember, membershipStatus, myFavoriteTeam } });
+    res.json({
+      pool: {
+        ...pool,
+        isMember,
+        membershipStatus,
+        myFavoriteTeam,
+        canEditFavoriteTeam
+      }
+    });
   } catch (err) {
     console.error('[Pool] Erro ao buscar bolão:', err);
     res.status(500).json({ error: 'Erro ao buscar bolão' });
@@ -513,11 +554,6 @@ export async function setFavoriteTeam(req: AuthRequest, res: Response): Promise<
       return;
     }
 
-    if (member.favoriteTeam) {
-      res.status(400).json({ error: 'O time do coração já foi definido e não pode ser alterado.' });
-      return;
-    }
-
     const now = new Date();
     const lockMinutesBefore = 10;
 
@@ -527,7 +563,7 @@ export async function setFavoriteTeam(req: AuthRequest, res: Response): Promise<
         matches: {
           some: {
             status: 'SCHEDULED',
-            matchDate: { gt: now }
+            matchDate: { gt: member.joinedAt }
           }
         }
       },
@@ -536,7 +572,7 @@ export async function setFavoriteTeam(req: AuthRequest, res: Response): Promise<
         matches: {
           where: {
             status: 'SCHEDULED',
-            matchDate: { gt: now }
+            matchDate: { gt: member.joinedAt }
           },
           orderBy: { matchDate: 'asc' },
           take: 1
