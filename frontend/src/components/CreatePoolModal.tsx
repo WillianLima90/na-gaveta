@@ -8,6 +8,7 @@ import { X, Trophy } from 'lucide-react';
 import { createPool } from '../services/pool.service';
 import { listChampionships, type Championship } from '../services/championship.service';
 import { Button, Input, Spinner } from './ui';
+import { useAuth } from '../hooks/useAuth';
 
 interface CreatePoolModalProps {
   isOpen: boolean;
@@ -16,6 +17,8 @@ interface CreatePoolModalProps {
 }
 
 export function CreatePoolModal({ isOpen, onClose, onCreated }: CreatePoolModalProps) {
+  const { user } = useAuth();
+
   const [championships, setChampionships] = useState<Championship[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingChamps, setLoadingChamps] = useState(false);
@@ -39,6 +42,21 @@ export function CreatePoolModal({ isOpen, onClose, onCreated }: CreatePoolModalP
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const poolLimits: Record<string, number> = {
+    FREE: 1,
+    PRO: 5,
+    BUSINESS: Infinity,
+  };
+
+  const currentPlan = user?.plan || 'FREE';
+  const currentPools = user?._count?.ownedPools || 0;
+  const maxPools = poolLimits[currentPlan] ?? 1;
+
+  const usageText =
+    maxPools === Infinity
+      ? 'Ilimitado'
+      : `${currentPools}/${maxPools} bolões ativos`;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -94,6 +112,30 @@ export function CreatePoolModal({ isOpen, onClose, onCreated }: CreatePoolModalP
           >
             <X size={20} />
           </button>
+        </div>
+
+        <div className="px-6 pt-4">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-zinc-500">
+                  Plano atual
+                </p>
+                <p className="text-sm font-bold text-text-primary">
+                  {currentPlan}
+                </p>
+              </div>
+
+              <div className="text-right">
+                <p className="text-xs uppercase tracking-wide text-zinc-500">
+                  Uso
+                </p>
+                <p className="text-sm font-semibold text-brand">
+                  {usageText}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Form */}

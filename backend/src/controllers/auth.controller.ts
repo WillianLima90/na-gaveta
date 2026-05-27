@@ -97,7 +97,7 @@ export async function getProfile(req: AuthRequest, res: Response): Promise<void>
         isActive: true,
         createdAt: true,
         _count: {
-          select: { ownedPools: true, predictions: true },
+          select: { predictions: true },
         },
       },
     });
@@ -107,7 +107,22 @@ export async function getProfile(req: AuthRequest, res: Response): Promise<void>
       return;
     }
 
-    res.json({ user });
+    const activeOwnedPools = await prisma.pool.count({
+      where: {
+        ownerId: userId,
+        isActive: true,
+      },
+    });
+
+    res.json({
+      user: {
+        ...user,
+        _count: {
+          ...user._count,
+          ownedPools: activeOwnedPools,
+        },
+      },
+    });
   } catch (err) {
     console.error('[Auth] Erro ao buscar perfil:', err);
     res.status(500).json({ error: 'Erro ao buscar perfil' });

@@ -13,6 +13,10 @@ export interface User {
   plan?: string;
   isActive?: boolean;
   createdAt?: string;
+  _count?: {
+    ownedPools?: number;
+    predictions?: number;
+  };
 }
 
 // ── Autenticação ─────────────────────────────────────────────
