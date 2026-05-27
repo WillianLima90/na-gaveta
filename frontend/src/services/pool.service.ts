@@ -82,6 +82,12 @@ export async function setFavoriteTeam(poolId: string, team: string): Promise<{ s
   return data;
 }
 
+// Sair do bolão antes do fechamento do primeiro palpite
+export async function leavePool(poolId: string): Promise<{ message: string }> {
+  const { data } = await api.delete(`/pools/${poolId}/leave`);
+  return data;
+}
+
 // Deletar bolão (somente ADMIN do site)
 export async function deletePool(poolId: string): Promise<{ message: string }> {
   const { data } = await api.delete(`/pools/${poolId}`);

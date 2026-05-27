@@ -840,6 +840,83 @@ export async function removeMember(req: AuthRequest, res: Response): Promise<voi
   }
 }
 
+// ── DELETE /api/pools/:id/leave ─────────────────────────────
+export async function leavePool(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user!.userId;
+    const { id: poolId } = req.params;
+
+    const member = await prisma.poolMember.findUnique({
+      where: {
+        userId_poolId: {
+          userId,
+          poolId,
+        },
+      },
+      select: {
+        id: true,
+        userId: true,
+        poolId: true,
+        status: true,
+        joinedAt: true,
+        pool: {
+          select: {
+            ownerId: true,
+            startingRoundId: true,
+            championshipId: true,
+          },
+        },
+      },
+    });
+
+    if (!member || member.status !== 'APPROVED') {
+      res.status(404).json({ error: 'Você não está participando deste bolão.' });
+      return;
+    }
+
+    if (member.pool.ownerId === userId) {
+      res.status(400).json({ error: 'O admin do bolão não pode sair do próprio bolão.' });
+      return;
+    }
+
+    const firstMatch = await prisma.match.findFirst({
+      where: {
+        round: {
+          championshipId: member.pool.championshipId,
+          ...(member.pool.startingRoundId ? { id: member.pool.startingRoundId } : {}),
+        },
+        matchDate: { gt: member.joinedAt },
+      },
+      orderBy: { matchDate: 'asc' },
+      select: { matchDate: true },
+    });
+
+    if (firstMatch) {
+      const lockTime = new Date(firstMatch.matchDate.getTime() - 10 * 60 * 1000);
+      if (new Date() >= lockTime) {
+        res.status(403).json({
+          error: 'Não é mais possível sair deste bolão. Após o fechamento do primeiro palpite, apenas o admin pode remover participantes.',
+        });
+        return;
+      }
+    }
+
+    await prisma.prediction.deleteMany({
+      where: { userId, poolId },
+    });
+
+    await prisma.poolMember.update({
+      where: { id: member.id },
+      data: { status: 'REMOVED' },
+    });
+
+    res.json({ message: 'Você saiu do bolão com sucesso.' });
+  } catch (err) {
+    console.error('[Pool] Erro ao sair do bolão:', err);
+    res.status(500).json({ error: 'Erro ao sair do bolão.' });
+  }
+}
+
 // ── PATCH /api/pools/:id/visibility ─────────────────────────
 export async function updatePoolVisibility(req: AuthRequest, res: Response): Promise<void> {
   try {

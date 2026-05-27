@@ -23,7 +23,7 @@ import {
   Lock, UserPlus, BookOpen, X,
   ChevronDown, ChevronUp
 } from 'lucide-react';
-import { getPool, joinPoolById, joinPoolByCode, setFavoriteTeam, deletePool, type Pool } from '../services/pool.service';
+import { getPool, joinPoolById, joinPoolByCode, setFavoriteTeam, leavePool, deletePool, type Pool } from '../services/pool.service';
 import {
   getPoolMatches,
   savePrediction,
@@ -256,6 +256,22 @@ export default function PoolDetailPage() {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
       setJoinError(msg || 'Erro ao entrar no bolão');
     } finally { setJoining(false); }
+  }
+
+  async function handleLeavePool() {
+    if (!pool || !id) return;
+
+    const confirmed = window.confirm('Tem certeza que deseja sair deste bolão? Essa ação só é permitida antes do fechamento do primeiro palpite.');
+    if (!confirmed) return;
+
+    try {
+      await leavePool(id);
+      setPool((prev) => prev ? { ...prev, isMember: false, membershipStatus: 'REMOVED' } : prev);
+      await loadData();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+      alert(msg || 'Erro ao sair do bolão.');
+    }
   }
 
   async function copyCode() {
@@ -777,6 +793,14 @@ const rightColumn = (
             )}
             {isOwner && <Badge variant="brand">Admin do bolão</Badge>}
             {isMember && !isOwner && <Badge variant="success">Participando</Badge>}
+            {isMember && !isOwner && (
+              <button
+                onClick={handleLeavePool}
+                className="ml-1 text-[10px] px-2 py-1 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/30 transition"
+              >
+                Sair do bolão
+              </button>
+            )}
             {!isMember && pool.membershipStatus === "PENDING" && <Badge variant="warning">Aguardando aprovação</Badge>}
             {(user as any)?.role === 'ADMIN' && (
               <button
