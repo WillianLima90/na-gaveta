@@ -59,6 +59,9 @@ export function CreatePoolModal({ isOpen, onClose, onCreated }: CreatePoolModalP
       ? 'Ilimitado'
       : `${currentPools}/${maxPools} bolões ativos`;
 
+  const hasReachedLimit =
+    maxPools !== Infinity && currentPools >= maxPools;
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!form.name || !form.championshipId) {
@@ -144,7 +147,7 @@ export function CreatePoolModal({ isOpen, onClose, onCreated }: CreatePoolModalP
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 opacity-100">
           <Input
             label="Nome do bolão"
             placeholder="Ex: Bolão do Escritório 2026"
@@ -230,6 +233,25 @@ export function CreatePoolModal({ isOpen, onClose, onCreated }: CreatePoolModalP
             </div>
           </div>
 
+          {hasReachedLimit && (
+            <div className="rounded-xl border border-brand/20 bg-brand/10 px-4 py-3">
+              <p className="text-sm font-bold text-brand">
+                Limite do plano FREE atingido
+              </p>
+
+              <p className="mt-1 text-xs text-zinc-300 leading-relaxed">
+                Faça upgrade para criar mais bolões, liberar recursos avançados e aumentar os limites da sua conta.
+              </p>
+
+              <button
+                type="button"
+                className="mt-3 w-full rounded-lg bg-brand hover:bg-brand-light transition-colors px-4 py-2.5 text-sm font-bold text-white"
+              >
+                Fazer upgrade
+              </button>
+            </div>
+          )}
+
           {error && (
             <p className="text-sm text-red-400 bg-red-400/10 rounded-lg px-3 py-2">{error}</p>
           )}
@@ -238,8 +260,14 @@ export function CreatePoolModal({ isOpen, onClose, onCreated }: CreatePoolModalP
             <Button variant="ghost" type="button" onClick={onClose} fullWidth>
               Cancelar
             </Button>
-            <Button type="submit" isLoading={loading} fullWidth>
-              Criar bolão
+
+            <Button
+              type="submit"
+              isLoading={loading}
+              fullWidth
+              disabled={hasReachedLimit}
+            >
+              {hasReachedLimit ? 'Limite atingido' : 'Criar bolão'}
             </Button>
           </div>
         </form>
