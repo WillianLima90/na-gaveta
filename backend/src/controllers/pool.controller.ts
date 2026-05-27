@@ -134,9 +134,6 @@ export async function createPool(req: AuthRequest, res: Response): Promise<void>
         id: true,
         plan: true,
         role: true,
-        _count: {
-          select: { ownedPools: true },
-        },
       },
     });
 
@@ -158,7 +155,12 @@ export async function createPool(req: AuthRequest, res: Response): Promise<void>
 
     if (
       !isPlatformAdmin &&
-      currentUser._count.ownedPools >= maxPoolsAllowed
+      (await prisma.pool.count({
+        where: {
+          ownerId: userId,
+          isActive: true,
+        },
+      })) >= maxPoolsAllowed
     ) {
       const limitText =
         maxPoolsAllowed === Infinity
