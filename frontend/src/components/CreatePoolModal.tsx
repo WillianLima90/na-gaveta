@@ -6,6 +6,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { X, Trophy } from 'lucide-react';
 import { createPool } from '../services/pool.service';
+import { authService } from '../services/auth.service';
 import { listChampionships, type Championship } from '../services/championship.service';
 import { Button, Input, Spinner } from './ui';
 import { useAuth } from '../hooks/useAuth';
@@ -17,7 +18,7 @@ interface CreatePoolModalProps {
 }
 
 export function CreatePoolModal({ isOpen, onClose, onCreated }: CreatePoolModalProps) {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
 
   const [championships, setChampionships] = useState<Championship[]>([]);
   const [loading, setLoading] = useState(false);
@@ -75,6 +76,10 @@ export function CreatePoolModal({ isOpen, onClose, onCreated }: CreatePoolModalP
         championshipId: form.championshipId,
         isPublic: form.isPublic,
       });
+
+      const freshUser = await authService.getProfile();
+      updateUser(freshUser);
+
       onCreated(pool.id);
       onClose();
     } catch (err: unknown) {
