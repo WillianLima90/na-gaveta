@@ -222,6 +222,10 @@ export async function deleteUser(req: AuthRequest, res: Response): Promise<void>
       where: { adminUserId: id },
     });
 
+    await prisma.poolMember.deleteMany({
+      where: { userId: id },
+    });
+
     await prisma.user.delete({
       where: { id },
     });
