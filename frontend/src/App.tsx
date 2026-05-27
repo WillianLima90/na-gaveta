@@ -27,6 +27,7 @@ import PoolRankingPage from './pages/PoolRankingPage';
 import ProfilePage from './pages/ProfilePage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
 import { AdminPoolsPage } from './pages/AdminPoolsPage';
+import PricingPage from './pages/PricingPage';
 
 // Configuração do React Query
 const queryClient = new QueryClient({
@@ -50,6 +51,7 @@ export default function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
 
               {/* Bolões — públicos podem ver, mas precisam de login para palpitar */}
               <Route path="/pools" element={<PoolsPage />} />

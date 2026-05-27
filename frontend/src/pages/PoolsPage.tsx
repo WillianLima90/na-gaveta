@@ -92,8 +92,15 @@ export default function PoolsPage() {
             <div className="rounded-2xl border border-brand/25 bg-brand/10 px-4 py-3 text-sm">
               <p className="font-black text-brand">Limite do plano atingido</p>
               <p className="mt-0.5 text-xs text-zinc-400">
-                Seu plano {currentPlan} permite {maxOwnedPools} bolão ativo. Faça upgrade para criar mais.
+                Seu plano {currentPlan} permite {maxOwnedPools} bolão ativo.
               </p>
+              <button
+                type="button"
+                onClick={() => navigate('/pricing')}
+                className="mt-2 rounded-lg bg-brand px-3 py-1.5 text-xs font-black text-white hover:bg-brand-light transition"
+              >
+                Fazer upgrade
+              </button>
             </div>
           ) : (
             <button

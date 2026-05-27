@@ -4,6 +4,7 @@
 // ============================================================
 
 import { useState, useEffect, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Trophy } from 'lucide-react';
 import { createPool } from '../services/pool.service';
 import { authService } from '../services/auth.service';
@@ -19,6 +20,7 @@ interface CreatePoolModalProps {
 
 export function CreatePoolModal({ isOpen, onClose, onCreated }: CreatePoolModalProps) {
   const { user, updateUser } = useAuth();
+  const navigate = useNavigate();
 
   const [championships, setChampionships] = useState<Championship[]>([]);
   const [loading, setLoading] = useState(false);
@@ -245,6 +247,10 @@ export function CreatePoolModal({ isOpen, onClose, onCreated }: CreatePoolModalP
 
               <button
                 type="button"
+                onClick={() => {
+                  onClose();
+                  navigate('/pricing');
+                }}
                 className="mt-3 w-full rounded-lg bg-brand hover:bg-brand-light transition-colors px-4 py-2.5 text-sm font-bold text-white"
               >
                 Fazer upgrade
