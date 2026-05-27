@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticate } from '../middlewares/auth.middleware';
-import { listUsers, updateUserRole, updateUserActive, updateUserPlan } from '../controllers/admin-user.controller';
+import { listUsers, updateUserRole, updateUserActive, updateUserPlan, deleteUser } from '../controllers/admin-user.controller';
 import { runResultsSync } from '../controllers/admin-sync.controller';
 import { listAdminPools, updateAdminPoolActive, updateAdminPoolVisibility } from '../controllers/admin-pool.controller';
 
@@ -10,6 +10,7 @@ router.get('/users', authenticate, listUsers);
 router.patch('/users/:id/role', authenticate, updateUserRole);
 router.patch('/users/:id/active', authenticate, updateUserActive);
 router.patch('/users/:id/plan', authenticate, updateUserPlan);
+router.delete('/users/:id', authenticate, deleteUser);
 router.post('/sync-results', authenticate, runResultsSync);
 router.get('/pools', authenticate, listAdminPools);
 router.patch('/pools/:id/active', authenticate, updateAdminPoolActive);

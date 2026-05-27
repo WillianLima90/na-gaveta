@@ -71,6 +71,47 @@ export function AdminUsersPage() {
     }
   }
 
+  async function deleteUser(user: User) {
+    if (currentUser?.id === user.id) {
+      setError('Você não pode excluir o próprio usuário.');
+      return;
+    }
+
+    if (user.role === 'ADMIN') {
+      setError('Não é permitido excluir usuário ADMIN.');
+      return;
+    }
+
+    if (
+      (user._count?.ownedPools ?? 0) > 0 ||
+      (user._count?.poolMembers ?? 0) > 0 ||
+      (user._count?.predictions ?? 0) > 0
+    ) {
+      setError('Usuário possui vínculo com bolões ou palpites. Desative em vez de excluir.');
+      return;
+    }
+
+    const confirmed = window.confirm(`Excluir definitivamente o usuário "${user.name}"? Essa ação não pode ser desfeita.`);
+    if (!confirmed) return;
+
+    try {
+      setSavingId(user.id);
+      setError('');
+      setMessage('');
+
+      await axios.delete(`/api/admin/users/${user.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setMessage('Usuário excluído definitivamente com sucesso.');
+      await loadUsers();
+    } catch (err: any) {
+      setError(err?.response?.data?.error || 'Erro ao excluir usuário.');
+    } finally {
+      setSavingId(null);
+    }
+  }
+
   async function toggleActive(user: User) {
     const action = user.isActive ? 'desativar' : 'ativar';
 
@@ -489,6 +530,21 @@ export function AdminUsersPage() {
                       ) : (
                         'Ativar'
                       )}
+                    </button>
+
+                    <button
+                      onClick={() => deleteUser(user)}
+                      disabled={
+                        isSaving ||
+                        isSelf ||
+                        user.role === 'ADMIN' ||
+                        (user._count?.ownedPools ?? 0) > 0 ||
+                        (user._count?.poolMembers ?? 0) > 0 ||
+                        (user._count?.predictions ?? 0) > 0
+                      }
+                      className="h-10 px-4 rounded-xl border border-red-500/30 bg-red-500/10 text-sm font-semibold text-red-300 transition-colors hover:bg-red-500/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Excluir
                     </button>
                   </div>
                 </div>

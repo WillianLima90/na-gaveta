@@ -153,6 +153,78 @@ export async function updateUserActive(req: AuthRequest, res: Response): Promise
 }
 
 
+
+
+export async function deleteUser(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    if (!req.user || req.user.role !== 'ADMIN') {
+      res.status(403).json({ error: 'Apenas ADMIN pode excluir usuários.' });
+      return;
+    }
+
+    const { id } = req.params;
+
+    if (req.user.userId === id) {
+      res.status(400).json({ error: 'Você não pode excluir o próprio usuário.' });
+      return;
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: {
+            ownedPools: true,
+            predictions: true,
+            poolMembers: true,
+          },
+        },
+      },
+    });
+
+    if (!existingUser) {
+      res.status(404).json({ error: 'Usuário não encontrado.' });
+      return;
+    }
+
+    if (existingUser.role === 'ADMIN') {
+      res.status(400).json({ error: 'Não é permitido excluir outro ADMIN.' });
+      return;
+    }
+
+    if (
+      existingUser._count.ownedPools > 0 ||
+      existingUser._count.predictions > 0 ||
+      existingUser._count.poolMembers > 0
+    ) {
+      res.status(400).json({
+        error: 'Usuário possui vínculo com bolões ou palpites. Utilize desativação em vez de exclusão.',
+      });
+      return;
+    }
+
+    await prisma.notification.deleteMany({
+      where: { userId: id },
+    });
+
+    await prisma.matchResultHistory.deleteMany({
+      where: { adminUserId: id },
+    });
+
+    await prisma.user.delete({
+      where: { id },
+    });
+
+    res.json({
+      message: 'Usuário excluído definitivamente com sucesso.',
+    });
+  } catch (err) {
+    console.error('[AdminUsers] Erro ao excluir usuário:', err);
+    res.status(500).json({ error: 'Erro ao excluir usuário.' });
+  }
+}
+
+
 export async function updateUserPlan(req: AuthRequest, res: Response): Promise<void> {
   try {
     if (!req.user || req.user.role !== 'ADMIN') {
