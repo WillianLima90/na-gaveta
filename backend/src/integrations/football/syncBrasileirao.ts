@@ -94,10 +94,7 @@ export async function syncBrasileiraoFromFootballData() {
 
     const existing = await prisma.match.findFirst({
       where: {
-        roundId,
-        homeTeam: match.homeTeam?.name || '',
-        awayTeam: match.awayTeam?.name || '',
-        matchDate: new Date(match.utcDate),
+        externalMatchId: match.id,
       },
     });
 
@@ -107,6 +104,9 @@ export async function syncBrasileiraoFromFootballData() {
       awayTeam: match.awayTeam?.name || '',
       homeScore: match.score?.fullTime?.home ?? null,
       awayScore: match.score?.fullTime?.away ?? null,
+      externalMatchId: match.id,
+      apiStatus: match.status,
+      apiLastUpdated: new Date(),
       status: mapStatus(match.status),
       isJoker: false,
       matchDate: new Date(match.utcDate),
