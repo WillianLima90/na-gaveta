@@ -656,8 +656,8 @@ const canPredict = isAuthenticated && isMember && !locked;
           )}
         </div>
         {isLive && hasScore && (
-          <div className="flex justify-center -mt-1 mb-1 -translate-x-10">
-            <span className={`text-xs font-bold tabular-nums transition-all duration-300 ${goalFlash ? "text-white scale-125 drop-shadow-[0_0_10px_rgba(255,255,255,0.35)]" : "text-zinc-300"}`}>
+          <div className="flex justify-center -mt-1 mb-1">
+            <span className={`text-sm font-black tabular-nums transition-all duration-300 ${goalFlash ? "text-white scale-125 drop-shadow-[0_0_10px_rgba(255,255,255,0.35)]" : "text-emerald-400"}`}>
               Ao vivo: {match.homeScore}–{match.awayScore}
             </span>
           </div>
@@ -672,13 +672,9 @@ const canPredict = isAuthenticated && isMember && !locked;
           <div className="flex items-center gap-1.5">
             {match.myPrediction?.isJoker && <ModBadge type="joker" />}
             {round.isBonusRound && <ModBadge type="bonus" />}
-            {isLive ? (
-              <span className="flex items-center gap-1 text-xs font-bold text-green-400">
-                <Radio size={9} className="animate-pulse" /> Ao vivo
-              </span>
-            ) : (
+            {!isLive ? (
               <span className="text-xs text-zinc-600">Aguardando</span>
-            )}
+            ) : null}
             {onViewOpponentPredictions && (
               <button
                 onClick={() => onViewOpponentPredictions(match.id)}
