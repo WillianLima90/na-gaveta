@@ -346,7 +346,7 @@ return (
 
       return bestScore ?? null;
     })
-    .filter(Boolean)
+    .filter((score) => Boolean(score) && score.points > 0)
     .sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points;
       return a.playerName.localeCompare(b.playerName, 'pt-BR');
@@ -373,6 +373,7 @@ return (
 
     return (a.points - b.points) * direction;
   });
+
 
   const previousPositions = new Map<string, number>();
 
