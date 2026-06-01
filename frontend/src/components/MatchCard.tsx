@@ -656,7 +656,7 @@ const canPredict = isAuthenticated && isMember && !locked;
           )}
         </div>
         {isLive && hasScore && (
-          <div className="flex justify-center -mt-1 mb-1">
+          <div className="flex justify-center -mt-1 mb-1 -translate-x-8">
             <span className={`text-sm font-black tabular-nums transition-all duration-300 ${goalFlash ? "text-white scale-125 drop-shadow-[0_0_10px_rgba(255,255,255,0.35)]" : "text-emerald-400"}`}>
               Ao vivo: {match.homeScore}–{match.awayScore}
             </span>
