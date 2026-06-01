@@ -840,6 +840,7 @@ const rightColumn = (
       {drawerMatchId && (() => {
         const allMatches = rounds.flatMap((r) => r.matches);
         const m = allMatches.find((x) => x.id === drawerMatchId);
+        const drawerRound = rounds.find((r) => r.matches.some((match) => match.id === drawerMatchId));
         return (
           <OpponentPredictionsDrawer
             matchId={drawerMatchId}
@@ -847,6 +848,8 @@ const rightColumn = (
             currentUserId={user?.id}
             homeScore={m?.homeScore ?? null}
             awayScore={m?.awayScore ?? null}
+            scoreRule={(pool as any)?.scoreRule ?? null}
+            isBonusRound={Boolean(drawerRound && pool?.bonusRoundId === drawerRound.id)}
             onClose={() => setDrawerMatchId(null)}
           />
         );

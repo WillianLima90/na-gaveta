@@ -28,12 +28,23 @@ interface MatchPredictionsData {
   predictions: ParticipantPrediction[];
 }
 
+interface ScoreRule {
+  pointsForOutcome: number;
+  pointsForHomeGoals: number;
+  pointsForAwayGoals: number;
+  exactScoreBonus: number;
+  jokerMultiplier: number;
+  bonusRoundMultiplier: number;
+}
+
 interface OpponentPredictionsDrawerProps {
   matchId: string | null;
   poolId: string;
   currentUserId?: string;
   homeScore?: number | null;
   awayScore?: number | null;
+  scoreRule?: ScoreRule | null;
+  isBonusRound?: boolean;
   onClose: () => void;
 }
 
@@ -83,12 +94,61 @@ const RESULT_STYLES: Record<PredictionResult & string, { border: string; text: s
   miss: { border: 'border-zinc-900', text: 'text-zinc-600', label: 'Errou' },
 };
 
+function calcPredictionPoints(
+  prediction: ParticipantPrediction,
+  homeScore: number | null | undefined,
+  awayScore: number | null | undefined,
+  scoreRule?: ScoreRule | null,
+  isBonusRound?: boolean
+): number {
+  if (homeScore === null || homeScore === undefined || awayScore === null || awayScore === undefined) return prediction.points ?? 0;
+
+  const rule = scoreRule ?? {
+    pointsForOutcome: 10,
+    pointsForHomeGoals: 5,
+    pointsForAwayGoals: 5,
+    exactScoreBonus: 0,
+    jokerMultiplier: 2,
+    bonusRoundMultiplier: 2,
+  };
+
+  const outcome = (h: number, a: number) => (h > a ? 'home' : a > h ? 'away' : 'draw');
+
+  let basePoints = 0;
+
+  if (outcome(prediction.homeScoreTip, prediction.awayScoreTip) === outcome(homeScore, awayScore)) {
+    basePoints += rule.pointsForOutcome;
+  }
+
+  if (prediction.homeScoreTip === homeScore) {
+    basePoints += rule.pointsForHomeGoals;
+  }
+
+  if (prediction.awayScoreTip === awayScore) {
+    basePoints += rule.pointsForAwayGoals;
+  }
+
+  if (prediction.homeScoreTip === homeScore && prediction.awayScoreTip === awayScore) {
+    basePoints += rule.exactScoreBonus;
+  }
+
+  if (basePoints <= 0) return 0;
+
+  let multiplier = 1;
+  if (prediction.isJoker) multiplier *= rule.jokerMultiplier;
+  if (isBonusRound) multiplier *= rule.bonusRoundMultiplier;
+
+  return Math.round(basePoints * multiplier);
+}
+
 export function OpponentPredictionsDrawer({
   matchId,
   poolId,
   currentUserId,
   homeScore,
   awayScore,
+  scoreRule,
+  isBonusRound,
   onClose,
 }: OpponentPredictionsDrawerProps) {
   const [data, setData] = useState<MatchPredictionsData | null>(null);
@@ -137,7 +197,9 @@ export function OpponentPredictionsDrawer({
         const ra = getPredictionResult(a.homeScoreTip, a.awayScoreTip, homeScore, awayScore);
         const rb = getPredictionResult(b.homeScoreTip, b.awayScoreTip, homeScore, awayScore);
 
-        const pointsDiff = (b.points ?? 0) - (a.points ?? 0);
+        const pointsA = calcPredictionPoints(a, homeScore, awayScore, scoreRule, isBonusRound);
+        const pointsB = calcPredictionPoints(b, homeScore, awayScore, scoreRule, isBonusRound);
+        const pointsDiff = pointsB - pointsA;
         if (pointsDiff !== 0) return pointsDiff;
 
         const oa = ra ? order[ra] : 4;
@@ -239,7 +301,8 @@ export function OpponentPredictionsDrawer({
                   const style = result ? RESULT_STYLES[result] : null;
                   const isCurrentUser = p.userId === currentUserId;
 
-                  const displayPoints = p.points ?? 0;
+                  const displayPoints = calcPredictionPoints(p, homeScore, awayScore, scoreRule, isBonusRound);
+                  const isLivePartial = hasResults && p.scoredAt === null;
 
                   return (
                     <div
@@ -288,6 +351,12 @@ export function OpponentPredictionsDrawer({
                             </span>
                             <span className="text-xs text-zinc-600 ml-0.5">pts</span>
                           </div>
+
+                          {isLivePartial && (
+                            <span className="text-[9px] px-1 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold">
+                              parcial
+                            </span>
+                          )}
 
                           {p.isJoker && (
                             <span className="text-[9px] px-1 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold">
