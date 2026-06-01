@@ -616,7 +616,7 @@ const canPredict = isAuthenticated && isMember && !locked;
   if (locked && hasPrediction && match.status !== 'FINISHED') {
     const isLive = match.status === 'LIVE';
     return (
-      <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${isLive ? 'border-zinc-800 bg-zinc-900/70' : 'border-zinc-700/50 bg-zinc-900/70'}`}>
+      <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${isLive ? 'border-emerald-400/45 bg-emerald-500/8 shadow-emerald-500/10' : 'border-zinc-700/50 bg-zinc-900/70'}`}>
         {/* Linha principal: times + palpite grande + pontos */}
         <div className="flex items-center gap-2 px-4 pt-3.5 pb-1.5">
           <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
@@ -626,11 +626,11 @@ const canPredict = isAuthenticated && isMember && !locked;
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className={`w-11 h-11 flex items-center justify-center text-base font-black rounded-xl tabular-nums shadow-inner ${isLive ? 'text-zinc-200 bg-zinc-800 border border-zinc-700' : 'text-zinc-200 bg-zinc-800 border border-zinc-700'}`}>
+            <span className={`w-11 h-11 flex items-center justify-center text-base font-black rounded-xl tabular-nums shadow-inner ${isLive ? 'text-emerald-200 bg-emerald-500/15 border border-emerald-400/45' : 'text-zinc-200 bg-zinc-800 border border-zinc-700'}`}>
               {match.myPrediction!.homeScoreTip}
             </span>
             <span className="text-zinc-500 text-base font-black">×</span>
-            <span className={`w-11 h-11 flex items-center justify-center text-base font-black rounded-xl tabular-nums shadow-inner ${isLive ? 'text-zinc-200 bg-zinc-800 border border-zinc-700' : 'text-zinc-200 bg-zinc-800 border border-zinc-700'}`}>
+            <span className={`w-11 h-11 flex items-center justify-center text-base font-black rounded-xl tabular-nums shadow-inner ${isLive ? 'text-emerald-200 bg-emerald-500/15 border border-emerald-400/45' : 'text-zinc-200 bg-zinc-800 border border-zinc-700'}`}>
               {match.myPrediction!.awayScoreTip}
             </span>
           </div>
