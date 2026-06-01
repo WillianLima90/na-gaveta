@@ -234,6 +234,18 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
       apiMatch.status === 'FINISHED' &&
       localMatch.status !== 'FINISHED';
 
+    const localGoals = (localMatch.homeScore ?? 0) + (localMatch.awayScore ?? 0);
+    const apiGoals = sourceMatch.score.fullTime.home + sourceMatch.score.fullTime.away;
+    const isLiveRegression =
+      localMatch.status === 'LIVE' &&
+      targetStatus === 'LIVE' &&
+      apiGoals < localGoals;
+
+    if (isLiveRegression) {
+      logs.push(`SKIP live regression | ${localMatch.homeTeam} x ${localMatch.awayTeam} | local ${localMatch.homeScore ?? 0}-${localMatch.awayScore ?? 0} api ${sourceMatch.score.fullTime.home}-${sourceMatch.score.fullTime.away}`);
+      continue;
+    }
+
     if (sameScore && !needsFinalization) {
       logs.push(`OK unchanged | ${localMatch.homeTeam} x ${localMatch.awayTeam}`);
       continue;
