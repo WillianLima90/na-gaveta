@@ -449,7 +449,7 @@ return (
       });
 
     const winner = roundSnapshot[0];
-    if (!winner) return;
+    if (!winner || (winner.roundPoints ?? 0) <= 0) return;
 
     const current = computedWinsMap.get(winner.userId) ?? { userId: winner.userId, wins: [] };
     current.wins.push({
