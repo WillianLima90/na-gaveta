@@ -77,7 +77,8 @@ export default function PoolsPage() {
 
   const currentPlan = user?.plan || 'FREE';
   const activeOwnedPools = user?._count?.ownedPools || 0;
-  const maxOwnedPools = poolLimits[currentPlan] ?? 1;
+  const isPlatformAdmin = user?.role === 'ADMIN';
+  const maxOwnedPools = isPlatformAdmin ? Infinity : (poolLimits[currentPlan] ?? 1);
   const hasReachedPoolLimit = maxOwnedPools !== Infinity && activeOwnedPools >= maxOwnedPools;
 
   return (

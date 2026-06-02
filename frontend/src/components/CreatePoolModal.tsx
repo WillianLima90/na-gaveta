@@ -55,7 +55,8 @@ export function CreatePoolModal({ isOpen, onClose, onCreated }: CreatePoolModalP
 
   const currentPlan = user?.plan || 'FREE';
   const currentPools = user?._count?.ownedPools || 0;
-  const maxPools = poolLimits[currentPlan] ?? 1;
+  const isPlatformAdmin = user?.role === 'ADMIN';
+  const maxPools = isPlatformAdmin ? Infinity : (poolLimits[currentPlan] ?? 1);
 
   const usageText =
     maxPools === Infinity
