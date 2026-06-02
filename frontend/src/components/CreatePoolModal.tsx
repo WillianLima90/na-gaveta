@@ -1,11 +1,11 @@
 // ============================================================
 
-const PRO_WHATSAPP_URL = 'https://wa.me/16892362739?text=' + encodeURIComponent('Olá! Tenho interesse no plano PRO do Na Gaveta.');
 // Na Gaveta — CreatePoolModal
 // Modal para criar um novo bolão
 // ============================================================
 
 import { useState, useEffect, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Trophy } from 'lucide-react';
 import { createPool } from '../services/pool.service';
 import { authService } from '../services/auth.service';
@@ -20,6 +20,7 @@ interface CreatePoolModalProps {
 }
 
 export function CreatePoolModal({ isOpen, onClose, onCreated }: CreatePoolModalProps) {
+  const navigate = useNavigate();
   const { user, updateUser } = useAuth();
 
   const [championships, setChampionships] = useState<Championship[]>([]);
@@ -248,11 +249,12 @@ export function CreatePoolModal({ isOpen, onClose, onCreated }: CreatePoolModalP
               <button
                 type="button"
                 onClick={() => {
-                  window.open(PRO_WHATSAPP_URL, '_blank');
+                  onClose();
+                  navigate('/pricing');
                 }}
                 className="mt-3 w-full rounded-lg bg-brand hover:bg-brand-light transition-colors px-4 py-2.5 text-sm font-bold text-white"
               >
-                Falar no WhatsApp
+                Ver planos
               </button>
             </div>
           )}

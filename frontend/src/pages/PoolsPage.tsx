@@ -2,7 +2,6 @@
 
 const UPGRADE_WHATSAPP_URL = 'https://wa.me/16892362739?text=' + encodeURIComponent('Olá! Atingi o limite do plano FREE e quero fazer upgrade no Na Gaveta.');
 
-const PRO_WHATSAPP_URL = 'https://wa.me/16892362739?text=' + encodeURIComponent('Olá! Tenho interesse no plano PRO do Na Gaveta.');
 // Na Gaveta — Página de Bolões (/pools)
 // Lista bolões públicos + meus bolões + criar bolão
 // ============================================================
@@ -100,10 +99,10 @@ export default function PoolsPage() {
               </p>
               <button
                 type="button"
-                onClick={() => window.open(PRO_WHATSAPP_URL, '_blank')}
+                onClick={() => navigate('/pricing')}
                 className="mt-2 rounded-lg bg-brand px-3 py-1.5 text-xs font-black text-white hover:bg-brand-light transition"
               >
-                Falar no WhatsApp
+                Ver planos
               </button>
             </div>
           ) : (
