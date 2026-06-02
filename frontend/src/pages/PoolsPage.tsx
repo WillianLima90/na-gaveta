@@ -1,4 +1,8 @@
 // ============================================================
+
+const UPGRADE_WHATSAPP_URL = 'https://wa.me/16892362739?text=' + encodeURIComponent('Olá! Atingi o limite do plano FREE e quero fazer upgrade no Na Gaveta.');
+
+const PRO_WHATSAPP_URL = 'https://wa.me/16892362739?text=' + encodeURIComponent('Olá! Tenho interesse no plano PRO do Na Gaveta.');
 // Na Gaveta — Página de Bolões (/pools)
 // Lista bolões públicos + meus bolões + criar bolão
 // ============================================================
@@ -96,10 +100,10 @@ export default function PoolsPage() {
               </p>
               <button
                 type="button"
-                onClick={() => navigate('/pricing')}
+                onClick={() => window.open(PRO_WHATSAPP_URL, '_blank')}
                 className="mt-2 rounded-lg bg-brand px-3 py-1.5 text-xs font-black text-white hover:bg-brand-light transition"
               >
-                Fazer upgrade
+                Falar no WhatsApp
               </button>
             </div>
           ) : (
@@ -144,7 +148,18 @@ export default function PoolsPage() {
             </button>
           </div>
           {joinError && (
-            <p className="text-xs text-red-400 mt-1.5 ml-1">{joinError}</p>
+            <div className="mt-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+              <p className="text-xs text-red-300">{joinError}</p>
+              {(joinError.includes('FREE') || joinError.toLowerCase().includes('upgrade')) && (
+                <button
+                  type="button"
+                  onClick={() => window.open(UPGRADE_WHATSAPP_URL, '_blank')}
+                  className="mt-3 rounded-lg bg-brand px-4 py-2 text-xs font-black text-white hover:bg-brand-light transition"
+                >
+                  Falar no WhatsApp
+                </button>
+              )}
+            </div>
           )}
         </form>
       )}

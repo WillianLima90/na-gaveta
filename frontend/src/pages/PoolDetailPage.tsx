@@ -1,4 +1,6 @@
 import { getTeamName, getTeamLogo } from '../utils/teamDisplay';
+
+const UPGRADE_WHATSAPP_URL = 'https://wa.me/16892362739?text=' + encodeURIComponent('Olá! Atingi o limite do plano FREE e quero fazer upgrade no Na Gaveta.');
 // @ts-nocheck
 // ============================================================
 // Na Gaveta — Página de Detalhe do Bolão (/pools/:id) v10
@@ -417,7 +419,20 @@ export default function PoolDetailPage() {
                 {joining ? <Spinner size="sm" /> : <UserPlus size={24} />}
                 {joining ? 'Enviando solicitação...' : 'Solicitar entrada no bolão'}
               </button>
-              {joinError && <p className="text-xs text-red-400 text-center mt-2">{joinError}</p>}
+              {joinError && (
+                <div className="mt-3 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-center">
+                  <p className="text-xs text-red-300">{joinError}</p>
+                  {(joinError.includes('FREE') || joinError.toLowerCase().includes('upgrade')) && (
+                    <button
+                      type="button"
+                      onClick={() => window.open(UPGRADE_WHATSAPP_URL, '_blank')}
+                      className="mt-3 rounded-lg bg-brand px-4 py-2 text-xs font-black text-white hover:bg-brand-light transition"
+                    >
+                      Falar no WhatsApp
+                    </button>
+                  )}
+                </div>
+              )}
             </>
           ) : (
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
@@ -448,9 +463,18 @@ export default function PoolDetailPage() {
               </div>
 
               {joinError && (
-                <p className="mt-3 text-xs text-red-400">
-                  {joinError}
-                </p>
+                <div className="mt-3 rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+                  <p className="text-xs text-red-300">{joinError}</p>
+                  {(joinError.includes('FREE') || joinError.toLowerCase().includes('upgrade')) && (
+                    <button
+                      type="button"
+                      onClick={() => window.open(UPGRADE_WHATSAPP_URL, '_blank')}
+                      className="mt-3 rounded-lg bg-brand px-4 py-2 text-xs font-black text-white hover:bg-brand-light transition"
+                    >
+                      Falar no WhatsApp
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           )}

@@ -1,5 +1,13 @@
 import { Check, Trophy } from 'lucide-react';
 
+const WHATSAPP_URL =
+  'https://wa.me/16892362739?text=' +
+  encodeURIComponent('Olá! Tenho interesse no plano PRO do Na Gaveta.');
+
+const BUSINESS_WHATSAPP_URL =
+  'https://wa.me/16892362739?text=' +
+  encodeURIComponent('Olá! Tenho interesse no plano BUSINESS do Na Gaveta.');
+
 const plans = [
   {
     name: 'FREE',
@@ -10,18 +18,18 @@ const plans = [
   },
   {
     name: 'PRO',
-    price: 'Em breve',
+    price: 'Até 5 bolões ativos',
     description: 'Para quem quer organizar mais bolões com amigos.',
     features: ['Criar até 5 bolões ativos', 'Mais controle de participantes', 'Recursos premium futuros'],
-    cta: 'Quero PRO',
+    cta: 'Quero ser PRO',
     featured: true,
   },
   {
     name: 'BUSINESS',
-    price: 'Em breve',
+    price: 'Bolões ilimitados',
     description: 'Para empresas, grupos grandes e campeonatos recorrentes.',
     features: ['Bolões ilimitados', 'Gestão avançada', 'Suporte e recursos customizados'],
-    cta: 'Falar sobre BUSINESS',
+    cta: 'Quero ser BUSINESS',
   },
 ];
 
@@ -69,11 +77,18 @@ export default function PricingPage() {
 
             <button
               type="button"
+              onClick={() => {
+                if (plan.name === 'PRO') {
+                  window.open(WHATSAPP_URL, '_blank');
+                } else if (plan.name === 'BUSINESS') {
+                  window.open(BUSINESS_WHATSAPP_URL, '_blank');
+                }
+              }}
               className={`mt-6 w-full rounded-xl px-4 py-3 text-sm font-black transition ${
                 plan.featured
                   ? 'bg-brand hover:bg-brand-light text-white'
                   : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200'
-              }`}
+              } ${plan.name === 'FREE' ? 'cursor-default opacity-80' : ''}`}
             >
               {plan.cta}
             </button>
