@@ -25,7 +25,7 @@ import {
   Lock, UserPlus, BookOpen, X,
   ChevronDown, ChevronUp
 } from 'lucide-react';
-import { getPool, joinPoolById, joinPoolByCode, setFavoriteTeam, leavePool, deletePool, type Pool } from '../services/pool.service';
+import { getPool, joinPoolById, joinPoolByCode, setFavoriteTeam, leavePool, cancelJoinRequest, deletePool, type Pool } from '../services/pool.service';
 import {
   getPoolMatches,
   savePrediction,
@@ -260,6 +260,27 @@ export default function PoolDetailPage() {
     } finally { setJoining(false); }
   }
 
+  async function handleCancelJoinRequest() {
+    if (!id) return;
+
+    const ok = window.confirm('Cancelar sua solicitação de entrada neste bolão?');
+    if (!ok) return;
+
+    setJoining(true);
+    setJoinError(null);
+
+    try {
+      await cancelJoinRequest(id);
+      setPool((prev) => prev ? { ...prev, membershipStatus: 'REMOVED' } : prev);
+      await loadData();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+      setJoinError(msg || 'Erro ao cancelar solicitação.');
+    } finally {
+      setJoining(false);
+    }
+  }
+
   async function handleLeavePool() {
     if (!pool || !id) return;
 
@@ -406,6 +427,15 @@ export default function PoolDetailPage() {
                   <p className="mt-1 text-xs leading-relaxed text-zinc-300">
                     Aguarde a aprovação do administrador do bolão para liberar seus palpites, ranking e time do coração.
                   </p>
+
+                  <button
+                    type="button"
+                    onClick={handleCancelJoinRequest}
+                    disabled={joining}
+                    className="mt-3 rounded-lg border border-yellow-500/30 px-3 py-2 text-xs font-black text-yellow-200 hover:bg-yellow-500/10 transition disabled:opacity-50"
+                  >
+                    {joining ? 'Cancelando...' : 'Cancelar solicitação'}
+                  </button>
                 </div>
               </div>
             </div>

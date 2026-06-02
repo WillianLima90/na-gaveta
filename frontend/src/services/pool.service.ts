@@ -88,6 +88,11 @@ export async function leavePool(poolId: string): Promise<{ message: string }> {
   return data;
 }
 
+export async function cancelJoinRequest(poolId: string): Promise<{ message: string }> {
+  const { data } = await api.delete(`/pools/${poolId}/request`);
+  return data;
+}
+
 // Deletar bolão (somente ADMIN do site)
 export async function deletePool(poolId: string): Promise<{ message: string }> {
   const { data } = await api.delete(`/pools/${poolId}`);

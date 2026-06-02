@@ -394,6 +394,42 @@ export async function joinPoolById(req: AuthRequest, res: Response): Promise<voi
   }
 }
 
+// ── DELETE /api/pools/:id/request ────────────────────────────
+export async function cancelJoinRequest(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user!.userId;
+    const { id: poolId } = req.params;
+
+    const member = await prisma.poolMember.findUnique({
+      where: {
+        userId_poolId: {
+          userId,
+          poolId,
+        },
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    if (!member || member.status !== 'PENDING') {
+      res.status(404).json({ error: 'Solicitação pendente não encontrada.' });
+      return;
+    }
+
+    await prisma.poolMember.update({
+      where: { id: member.id },
+      data: { status: 'REMOVED' },
+    });
+
+    res.json({ message: 'Solicitação cancelada com sucesso.' });
+  } catch (err) {
+    console.error('[Pool] Erro ao cancelar solicitação:', err);
+    res.status(500).json({ error: 'Erro ao cancelar solicitação.' });
+  }
+}
+
 // ── Bolões do usuário autenticado ────────────────────────────
 export async function myPools(req: AuthRequest, res: Response): Promise<void> {
   try {
