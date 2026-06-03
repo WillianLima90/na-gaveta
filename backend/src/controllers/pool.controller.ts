@@ -59,8 +59,24 @@ export async function getPool(req: AuthRequest, res: Response): Promise<void> {
     let membershipStatus: string | null = null;
     let myFavoriteTeam: string | null = null;
     let canEditFavoriteTeam = false;
+    let canEditPrize = req.user?.role === 'ADMIN';
 
     if (userId) {
+      if (!canEditPrize) {
+        const firstPoolMatch = await prisma.match.findFirst({
+          where: {
+            round: {
+              championshipId: pool.championshipId,
+              ...(pool.startingRoundId ? { id: pool.startingRoundId } : {}),
+            },
+          },
+          orderBy: { matchDate: 'asc' },
+          select: { matchDate: true },
+        });
+
+        canEditPrize = !firstPoolMatch || new Date() < new Date(firstPoolMatch.matchDate.getTime() - 10 * 60 * 1000);
+      }
+
       const membership = await prisma.poolMember.findUnique({
         where: { userId_poolId: { userId, poolId: id } },
       });
@@ -108,7 +124,8 @@ export async function getPool(req: AuthRequest, res: Response): Promise<void> {
         isMember,
         membershipStatus,
         myFavoriteTeam,
-        canEditFavoriteTeam
+        canEditFavoriteTeam,
+        canEditPrize
       }
     });
   } catch (err) {
@@ -984,5 +1001,80 @@ export async function updatePoolVisibility(req: AuthRequest, res: Response): Pro
   } catch (err) {
     console.error('[Pool] Erro ao alterar visibilidade:', err);
     res.status(500).json({ error: 'Erro ao alterar visibilidade do bolão.' });
+  }
+}
+
+
+// ── PATCH /api/pools/:id/prize ───────────────────────────────
+export async function updatePoolPrize(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user!.userId;
+    const { id: poolId } = req.params;
+    const { prizeDescription } = req.body as { prizeDescription?: string };
+
+    const isOwner = await assertPoolOwner(poolId, userId);
+    const isPlatformAdmin = req.user?.role === 'ADMIN';
+
+    if (!isOwner && !isPlatformAdmin) {
+      res.status(403).json({ error: 'Apenas o admin do bolão pode alterar a premiação.' });
+      return;
+    }
+
+    if (!isPlatformAdmin) {
+      const poolLock = await prisma.pool.findUnique({
+        where: { id: poolId },
+        select: {
+          championshipId: true,
+          startingRoundId: true,
+        },
+      });
+
+      const firstPoolMatch = poolLock
+        ? await prisma.match.findFirst({
+            where: {
+              round: {
+                championshipId: poolLock.championshipId,
+                ...(poolLock.startingRoundId ? { id: poolLock.startingRoundId } : {}),
+              },
+            },
+            orderBy: { matchDate: 'asc' },
+            select: { matchDate: true },
+          })
+        : null;
+
+      if (firstPoolMatch && new Date() >= new Date(firstPoolMatch.matchDate.getTime() - 10 * 60 * 1000)) {
+        res.status(403).json({
+          error: 'A premiação não pode mais ser alterada após o fechamento do primeiro jogo do bolão.',
+        });
+        return;
+      }
+    }
+
+    const normalizedPrize =
+      typeof prizeDescription === 'string' && prizeDescription.trim().length > 0
+        ? prizeDescription.trim()
+        : null;
+
+    if (normalizedPrize && normalizedPrize.length > 3000) {
+      res.status(400).json({ error: 'A premiação deve ter no máximo 3000 caracteres.' });
+      return;
+    }
+
+    const pool = await prisma.pool.update({
+      where: { id: poolId },
+      data: {
+        prizeDescription: normalizedPrize,
+        prizeUpdatedAt: new Date(),
+      },
+      select: { id: true, name: true, prizeDescription: true, prizeUpdatedAt: true },
+    });
+
+    res.json({
+      pool,
+      message: 'Premiação do bolão atualizada com sucesso.',
+    });
+  } catch (err) {
+    console.error('[Pool] Erro ao alterar premiação:', err);
+    res.status(500).json({ error: 'Erro ao alterar premiação do bolão.' });
   }
 }

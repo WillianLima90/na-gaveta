@@ -10,6 +10,9 @@ export interface Pool {
   name: string;
   code: string;
   description?: string;
+  prizeDescription?: string | null;
+  prizeUpdatedAt?: string | null;
+  canEditPrize?: boolean;
   isPublic: boolean;
   maxMembers?: number;
   ownerId: string;
@@ -90,6 +93,14 @@ export async function leavePool(poolId: string): Promise<{ message: string }> {
 
 export async function cancelJoinRequest(poolId: string): Promise<{ message: string }> {
   const { data } = await api.delete(`/pools/${poolId}/request`);
+  return data;
+}
+
+export async function updatePoolPrize(
+  poolId: string,
+  prizeDescription: string
+): Promise<{ pool: Pool; message: string }> {
+  const { data } = await api.patch(`/pools/${poolId}/prize`, { prizeDescription });
   return data;
 }
 

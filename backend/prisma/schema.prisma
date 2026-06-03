@@ -50,6 +50,8 @@ model Pool {
   name           String
   code           String   @unique // código de convite (ex: BRAS26)
   description    String?
+  prizeDescription String?   @map("prize_description")
+  prizeUpdatedAt   DateTime? @map("prize_updated_at")
   isPublic       Boolean  @default(false) @map("is_public")
   isActive       Boolean  @default(true)  @map("is_active")
   maxMembers     Int?     @map("max_members")

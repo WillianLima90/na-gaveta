@@ -25,7 +25,7 @@ import {
   Lock, UserPlus, BookOpen, X,
   ChevronDown, ChevronUp
 } from 'lucide-react';
-import { getPool, joinPoolById, joinPoolByCode, setFavoriteTeam, leavePool, cancelJoinRequest, deletePool, type Pool } from '../services/pool.service';
+import { getPool, joinPoolById, joinPoolByCode, setFavoriteTeam, leavePool, cancelJoinRequest, updatePoolPrize, deletePool, type Pool } from '../services/pool.service';
 import {
   getPoolMatches,
   savePrediction,
@@ -135,6 +135,9 @@ export default function PoolDetailPage() {
   // ── STAGING: salvar tudo ─────────────────────────────
   const [pendingPredictions, setPendingPredictions] = useState<Record<string, any>>({});
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [prizeDraft, setPrizeDraft] = useState('');
+  const [prizeSaving, setPrizeSaving] = useState(false);
+  const [prizeMessage, setPrizeMessage] = useState<string | null>(null);
 
   function handlePredictionStaged(matchId: string, prediction: any) {
     setPendingPredictions(prev => ({
@@ -168,6 +171,26 @@ export default function PoolDetailPage() {
     await loadData();
   }
 
+  async function handleSavePrize() {
+    if (!id) return;
+
+    setPrizeSaving(true);
+    setPrizeMessage(null);
+
+    try {
+      const result = await updatePoolPrize(id, prizeDraft);
+      setPool((prev) => prev ? { ...prev, prizeDescription: result.pool.prizeDescription } : prev);
+      setPrizeDraft(result.pool.prizeDescription ?? '');
+      setPrizeMessage('Premiação salva com sucesso.');
+      setTimeout(() => setPrizeMessage(null), 3000);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+      setPrizeMessage(msg || 'Erro ao salvar premiação.');
+    } finally {
+      setPrizeSaving(false);
+    }
+  }
+
   const loadData = useCallback(async () => {
     if (!id) return;
     setLoading(true);
@@ -177,6 +200,7 @@ export default function PoolDetailPage() {
         getPoolMatches(id),
       ]);
       setPool(poolData);
+      setPrizeDraft(poolData.prizeDescription ?? '');
       setFavoriteTeamState((poolData as Pool & { myFavoriteTeam?: string | null }).myFavoriteTeam ?? "");
       setRounds(roundsData);
 
@@ -366,6 +390,16 @@ export default function PoolDetailPage() {
 
   const isMember = pool.isMember ?? false;
   const isOwner = user?.id === pool.ownerId;
+  const canEditPrize = pool.canEditPrize ?? false;
+  const prizeUpdatedLabel = pool.prizeUpdatedAt
+    ? new Date(pool.prizeUpdatedAt).toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : null;
 
   // Rodada selecionada
   const fallbackRound =
@@ -712,6 +746,78 @@ const rightColumn = (
           championshipId={pool.championshipId}
         />
       </div>
+
+      {/* ── PREMIAÇÃO DO BOLÃO ─────────────────────────────── */}
+      <CollapsibleSection
+        title="Premiação do bolão"
+        defaultOpen={isOwner}
+        onToggle={() => {}}
+        icon="book"
+      >
+        <div className="space-y-3">
+          <p className="text-xs text-zinc-500">Prêmios, porcentagens e observações do admin.</p>
+
+          {isOwner ? (
+            <div className="space-y-3">
+              {prizeUpdatedLabel && (
+                <p className="text-[11px] text-zinc-500">
+                  Última atualização: {prizeUpdatedLabel}
+                </p>
+              )}
+
+              {!canEditPrize && (
+                <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-3">
+                  <p className="text-xs font-bold text-yellow-200">Premiação bloqueada</p>
+                  <p className="mt-1 text-xs text-zinc-300">
+                    Após o fechamento do primeiro jogo do bolão, a premiação não pode mais ser alterada.
+                  </p>
+                </div>
+              )}
+
+              <textarea
+                value={prizeDraft}
+                onChange={(e) => setPrizeDraft(e.target.value)}
+                disabled={!canEditPrize}
+                maxLength={3000}
+                rows={6}
+                placeholder={'Exemplo:\n1º lugar: 50% do valor arrecadado + camisa da seleção campeã do mundo (versão torcedor)\n2º lugar: 30% do valor arrecadado\n3º lugar: 20% do valor arrecadado'}
+                className="w-full rounded-xl border border-zinc-700 bg-black/30 px-3 py-3 text-sm text-white outline-none focus:border-brand resize-none disabled:opacity-70 disabled:cursor-not-allowed"
+              />
+
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[11px] text-zinc-500">{prizeDraft.length}/3000</span>
+                <button
+                  type="button"
+                  onClick={handleSavePrize}
+                  disabled={prizeSaving || !canEditPrize}
+                  className="rounded-lg bg-brand px-4 py-2 text-xs font-black text-white hover:bg-brand-light transition disabled:opacity-50"
+                >
+                  {prizeSaving ? 'Salvando...' : 'Salvar premiação'}
+                </button>
+              </div>
+
+              {prizeMessage && (
+                <p className="text-xs text-zinc-300">{prizeMessage}</p>
+              )}
+            </div>
+          ) : pool.prizeDescription ? (
+            <>
+              {prizeUpdatedLabel && (
+                <p className="text-[11px] text-zinc-500">
+                  Última atualização: {prizeUpdatedLabel}
+                </p>
+              )}
+              <div className="whitespace-pre-line rounded-xl border border-yellow-400/15 bg-yellow-400/5 p-3 text-sm leading-relaxed text-zinc-200">
+                {pool.prizeDescription}
+              </div>
+            </>
+          ) : (
+            <p className="rounded-xl border border-zinc-800 bg-black/20 p-3 text-xs text-zinc-500">
+              A premiação ainda não foi informada pelo admin do bolão.
+            </p>
+          )}
+        </div>
+      </CollapsibleSection>
 
       {/* ── 5. REGRAS (colapsado) ───────────────────────────── */}
       <CollapsibleSection
