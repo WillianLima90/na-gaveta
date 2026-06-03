@@ -741,11 +741,13 @@ const rightColumn = (
       {/* ── 4. TABELA DO CAMPEONATO (sempre aberta) ─────────── */}
 
 
-      <div>
-        <OfficialChampionshipTable
-          championshipId={pool.championshipId}
-        />
-      </div>
+      {pool.championship?.slug?.includes('brasileirao') && (
+        <div>
+          <OfficialChampionshipTable
+            championshipId={pool.championshipId}
+          />
+        </div>
+      )}
 
       {/* ── PREMIAÇÃO DO BOLÃO ─────────────────────────────── */}
       <CollapsibleSection
