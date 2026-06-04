@@ -161,6 +161,10 @@ model Match {
   roundId    String      @map("round_id")
   homeTeam   String      @map("home_team")
   awayTeam   String      @map("away_team")
+  homeTeamCrest String?  @map("home_team_crest")
+  awayTeamCrest String?  @map("away_team_crest")
+  homeTeamTla   String?  @map("home_team_tla")
+  awayTeamTla   String?  @map("away_team_tla")
   homeScore  Int?        @map("home_score")  // null = não realizado
   awayScore  Int?        @map("away_score")
   externalMatchId Int?   @unique @map("external_match_id")

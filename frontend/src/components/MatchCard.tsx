@@ -68,6 +68,10 @@ function teamName(name: string): string {
   return TEAM_DISPLAY_NAMES[name] ?? name;
 }
 
+function teamLogo(name: string, apiCrest?: string | null): string | null {
+  return apiCrest || getTeamLogo(name);
+}
+
 // ── Helpers de tempo ─────────────────────────────────────────
 const LOCK_MINUTES_BEFORE = 10;
 const SAO_PAULO_TZ = 'America/Sao_Paulo';
@@ -479,8 +483,8 @@ const canPredict = isAuthenticated && isMember && !locked;
             <div className="grid grid-cols-[minmax(76px,1fr)_116px_minmax(76px,1fr)] sm:grid-cols-[minmax(180px,1fr)_140px_minmax(180px,1fr)] items-center gap-3 sm:gap-5 w-full max-w-[640px] mx-auto">
               <div className="flex items-center justify-end gap-2 min-w-0 translate-y-1">
                 <span className="text-right text-xs sm:text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
-                {getTeamLogo(match.homeTeam) && (
-                  <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
+                {teamLogo(match.homeTeam, match.homeTeamCrest) && (
+                  <img src={teamLogo(match.homeTeam, match.homeTeamCrest)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
                 )}
               </div>
               <div className="flex items-center justify-center gap-3 shrink-0">
@@ -489,8 +493,8 @@ const canPredict = isAuthenticated && isMember && !locked;
                 <ScoreInput value={awayInput} onChange={setAwayInput} />
               </div>
               <div className="flex items-center justify-start gap-2 min-w-0 translate-y-1">
-                {getTeamLogo(match.awayTeam) && (
-                  <img src={getTeamLogo(match.awayTeam)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
+                {teamLogo(match.awayTeam, match.awayTeamCrest) && (
+                  <img src={teamLogo(match.awayTeam, match.awayTeamCrest)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
                 )}
                 <span className="text-left text-xs sm:text-sm font-bold text-white truncate">{teamName(match.awayTeam)}</span>
               </div>
@@ -541,8 +545,8 @@ const canPredict = isAuthenticated && isMember && !locked;
         <div className="flex items-center justify-center px-4 pt-2.5 pb-1.5">
           <div className="flex-1 flex items-center justify-end gap-1.5 min-w-0 pr-2 sm:pr-5">
             <span className="text-right text-xs sm:text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
-            {getTeamLogo(match.homeTeam) && (
-              <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
+            {teamLogo(match.homeTeam, match.homeTeamCrest) && (
+              <img src={teamLogo(match.homeTeam, match.homeTeamCrest)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
             )}
           </div>
           <div
@@ -554,8 +558,8 @@ const canPredict = isAuthenticated && isMember && !locked;
             <span className={`w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center text-base font-black text-white bg-transparent border rounded-xl tabular-nums shadow-inner ${match.myPrediction?.isJoker ? "border-yellow-400/60" : "border-brand/40"}`}>{awayInput}</span>
           </div>
           <div className="flex-1 flex items-center justify-start gap-1.5 min-w-0 pl-2 sm:pl-5">
-            {getTeamLogo(match.awayTeam) && (
-              <img src={getTeamLogo(match.awayTeam)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
+            {teamLogo(match.awayTeam, match.awayTeamCrest) && (
+              <img src={teamLogo(match.awayTeam, match.awayTeamCrest)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
             )}
             <span className="text-left text-xs sm:text-sm font-bold text-white truncate">{teamName(match.awayTeam)}</span>
           </div>
@@ -588,8 +592,8 @@ const canPredict = isAuthenticated && isMember && !locked;
         <div className="flex items-center justify-center px-4 pt-2.5 pb-1.5">
           <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
             <span className="text-right text-xs sm:text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
-            {getTeamLogo(match.homeTeam) && (
-              <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
+            {teamLogo(match.homeTeam, match.homeTeamCrest) && (
+              <img src={teamLogo(match.homeTeam, match.homeTeamCrest)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -598,8 +602,8 @@ const canPredict = isAuthenticated && isMember && !locked;
             <ScoreInput value={awayInput} onChange={setAwayInput} />
           </div>
           <div className="flex-1 flex items-center justify-start gap-2 min-w-0">
-            {getTeamLogo(match.awayTeam) && (
-              <img src={getTeamLogo(match.awayTeam)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
+            {teamLogo(match.awayTeam, match.awayTeamCrest) && (
+              <img src={teamLogo(match.awayTeam, match.awayTeamCrest)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
             )}
             <span className="text-left text-xs sm:text-sm font-bold text-white truncate">{teamName(match.awayTeam)}</span>
           </div>
@@ -631,8 +635,8 @@ const canPredict = isAuthenticated && isMember && !locked;
         <div className="flex items-center gap-2 px-4 pt-3.5 pb-1.5">
           <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
             <span className="text-right text-sm font-bold text-zinc-300 truncate">{teamName(match.homeTeam)}</span>
-            {getTeamLogo(match.homeTeam) && (
-              <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
+            {teamLogo(match.homeTeam, match.homeTeamCrest) && (
+              <img src={teamLogo(match.homeTeam, match.homeTeamCrest)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -645,8 +649,8 @@ const canPredict = isAuthenticated && isMember && !locked;
             </span>
           </div>
           <div className="flex-1 flex items-center justify-start gap-2 min-w-0">
-            {getTeamLogo(match.awayTeam) && (
-              <img src={getTeamLogo(match.awayTeam)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
+            {teamLogo(match.awayTeam, match.awayTeamCrest) && (
+              <img src={teamLogo(match.awayTeam, match.awayTeamCrest)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
             )}
             <span className="text-left text-sm font-bold text-zinc-300 truncate">{teamName(match.awayTeam)}</span>
           </div>
@@ -707,8 +711,8 @@ const canPredict = isAuthenticated && isMember && !locked;
         <div className="grid grid-cols-[1fr_auto_1fr_auto] items-start gap-2 px-4 pt-2.5 pb-1.5">
           <div className="flex items-center justify-end gap-2 min-w-0 pt-4">
             <span className="text-sm font-bold text-zinc-300 truncate">{teamName(match.homeTeam)}</span>
-            {getTeamLogo(match.homeTeam) && (
-              <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
+            {teamLogo(match.homeTeam, match.homeTeamCrest) && (
+              <img src={teamLogo(match.homeTeam, match.homeTeamCrest)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
             )}
           </div>
 
@@ -736,8 +740,8 @@ const canPredict = isAuthenticated && isMember && !locked;
           </div>
 
           <div className="flex items-center justify-start gap-2 min-w-0 pt-4">
-            {getTeamLogo(match.awayTeam) && (
-              <img src={getTeamLogo(match.awayTeam)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
+            {teamLogo(match.awayTeam, match.awayTeamCrest) && (
+              <img src={teamLogo(match.awayTeam, match.awayTeamCrest)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
             )}
             <span className="text-sm font-bold text-zinc-300 truncate">{teamName(match.awayTeam)}</span>
           </div>
@@ -833,14 +837,14 @@ const canPredict = isAuthenticated && isMember && !locked;
           <div className="flex items-center justify-center gap-3">
             <div className="flex-1 flex items-center justify-end gap-2 min-w-0 pr-2">
               <span className="text-right text-sm font-semibold text-zinc-300 truncate">{teamName(match.homeTeam)}</span>
-              {getTeamLogo(match.homeTeam) && (
-                <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
+              {teamLogo(match.homeTeam, match.homeTeamCrest) && (
+                <img src={teamLogo(match.homeTeam, match.homeTeamCrest)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
               )}
             </div>
             <span className="shrink-0 text-zinc-500 text-sm font-bold">×</span>
             <div className="flex-1 flex items-center justify-start gap-2 min-w-0 pl-2">
-              {getTeamLogo(match.awayTeam) && (
-                <img src={getTeamLogo(match.awayTeam)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
+              {teamLogo(match.awayTeam, match.awayTeamCrest) && (
+                <img src={teamLogo(match.awayTeam, match.awayTeamCrest)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
               )}
               <span className="text-left text-sm font-semibold text-zinc-300 truncate">{teamName(match.awayTeam)}</span>
             </div>
@@ -916,16 +920,16 @@ const canPredict = isAuthenticated && isMember && !locked;
       <div className="flex items-center gap-2 px-4 py-3">
         <div className="flex-1 flex items-center justify-end gap-2 min-w-0">
           <span className="text-right text-sm font-semibold text-zinc-400 truncate">{teamName(match.homeTeam)}</span>
-          {getTeamLogo(match.homeTeam) && (
-            <img src={getTeamLogo(match.homeTeam)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
+          {teamLogo(match.homeTeam, match.homeTeamCrest) && (
+            <img src={teamLogo(match.homeTeam, match.homeTeamCrest)!} alt={teamName(match.homeTeam)} className="w-6 h-6 object-contain shrink-0" />
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0 px-2">
           <span className="text-xs text-zinc-600">vs</span>
         </div>
         <div className="flex-1 flex items-center justify-start gap-2 min-w-0">
-          {getTeamLogo(match.awayTeam) && (
-            <img src={getTeamLogo(match.awayTeam)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
+          {teamLogo(match.awayTeam, match.awayTeamCrest) && (
+            <img src={teamLogo(match.awayTeam, match.awayTeamCrest)!} alt={teamName(match.awayTeam)} className="w-6 h-6 object-contain shrink-0" />
           )}
           <span className="text-left text-sm font-semibold text-zinc-400 truncate">{teamName(match.awayTeam)}</span>
         </div>

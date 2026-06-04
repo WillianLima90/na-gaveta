@@ -23,6 +23,10 @@ export interface Match {
   roundId: string;
   homeTeam: string;
   awayTeam: string;
+  homeTeamCrest?: string | null;
+  awayTeamCrest?: string | null;
+  homeTeamTla?: string | null;
+  awayTeamTla?: string | null;
   homeScore?: number | null;
   awayScore?: number | null;
   status: MatchStatus;
