@@ -38,7 +38,20 @@ export interface ChampionshipStanding {
   goalDifference: number;
 }
 
-export async function getChampionshipStandings(championshipId: string): Promise<ChampionshipStanding[]> {
+export interface ChampionshipStandingGroup {
+  group: string;
+  table: ChampionshipStanding[];
+}
+
+export interface ChampionshipStandingsResponse {
+  type: 'TABLE' | 'GROUPS';
+  standings: ChampionshipStanding[] | ChampionshipStandingGroup[];
+}
+
+export async function getChampionshipStandings(championshipId: string): Promise<ChampionshipStandingsResponse> {
   const { data } = await api.get(`/championships/${championshipId}/standings`);
-  return data.standings;
+  return {
+    type: data.type ?? 'TABLE',
+    standings: data.standings ?? [],
+  };
 }

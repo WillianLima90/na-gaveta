@@ -754,7 +754,7 @@ const rightColumn = (
       {/* ── 4. TABELA DO CAMPEONATO (sempre aberta) ─────────── */}
 
 
-      {pool.championship?.slug?.includes('brasileirao') && (
+      {(pool.championship?.slug?.includes('brasileirao') || pool.championship?.slug === 'copa-do-mundo-fifa-2026') && (
         <div>
           <OfficialChampionshipTable
             championshipId={pool.championshipId}

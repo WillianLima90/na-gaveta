@@ -77,8 +77,10 @@ export async function getChampionshipStandings(req: Request, res: Response): Pro
       return;
     }
 
-    // Por enquanto, Brasileirão Série A usa BSA na football-data.org
-    const competitionCode = championship.slug.includes('brasileirao') ? 'BSA' : null;
+    let competitionCode: string | null = null;
+
+    if (championship.slug.includes('brasileirao')) competitionCode = 'BSA';
+    if (championship.slug.includes('copa-do-mundo-fifa-2026')) competitionCode = 'WC';
 
     if (!competitionCode) {
       res.status(400).json({ error: 'Tabela oficial ainda não configurada para este campeonato.' });
@@ -90,12 +92,17 @@ export async function getChampionshipStandings(req: Request, res: Response): Pro
       { headers: { 'X-Auth-Token': apiKey } }
     );
 
-    const standings = response.data.standings?.[0]?.table ?? [];
+    const apiStandings = response.data.standings ?? [];
+    const isWorldCup = competitionCode === 'WC';
 
     res.json({
       championshipId: championship.id,
       championshipName: championship.name,
-      standings,
+      type: isWorldCup ? 'GROUPS' : 'TABLE',
+      standings: isWorldCup ? (apiStandings.map((group: any) => ({
+        group: group.group,
+        table: group.table ?? [],
+      }))) : (apiStandings?.[0]?.table ?? []),
     });
   } catch (err) {
     console.error('[Championship] Erro ao buscar tabela oficial:', err);
