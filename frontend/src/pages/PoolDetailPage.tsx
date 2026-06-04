@@ -448,6 +448,24 @@ export default function PoolDetailPage() {
     .filter((v, i, a) => a.indexOf(v) === i)
     .sort((a, b) => getTeamName(a).localeCompare(getTeamName(b)));
 
+  const getFavoriteTeamLogo = (team?: string | null): string | null => {
+    if (!team) return null;
+
+    const apiMatch = allRoundMatches.find(({ match }) =>
+      match.homeTeam === team || match.awayTeam === team
+    );
+
+    if (apiMatch?.match.homeTeam === team && apiMatch.match.homeTeamCrest) {
+      return apiMatch.match.homeTeamCrest;
+    }
+
+    if (apiMatch?.match.awayTeam === team && apiMatch.match.awayTeamCrest) {
+      return apiMatch.match.awayTeamCrest;
+    }
+
+    return getTeamLogo(team);
+  };
+
   // ── Classificação centralizada usando getMatchState ───────────────────────
   // Regra obrigatória (fonte única de verdade):
   //   1. FINISHED  → finishedMatches
@@ -894,9 +912,9 @@ const rightColumn = (
           <div className="flex items-center gap-2 min-w-0">
             <h1 className="text-lg font-black text-white leading-tight truncate">{pool.name}</h1>
 
-            {favoriteTeam && getTeamLogo(favoriteTeam) && (
+            {favoriteTeam && getFavoriteTeamLogo(favoriteTeam) && (
               <img
-                src={getTeamLogo(favoriteTeam)!}
+                src={getFavoriteTeamLogo(favoriteTeam)!}
                 alt={favoriteTeam}
                 className="w-6 h-6 object-contain shrink-0"
               />
@@ -911,9 +929,9 @@ const rightColumn = (
                     onClick={() => setFavoriteTeamOpen(v => !v)}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-800/80 border border-zinc-700 hover:bg-zinc-700/80 transition text-sm text-white shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                  {(favoriteTeamDraft || favoriteTeam) && getTeamLogo(favoriteTeamDraft || favoriteTeam) && (
+                  {(favoriteTeamDraft || favoriteTeam) && getFavoriteTeamLogo(favoriteTeamDraft || favoriteTeam) && (
                     <img
-                      src={getTeamLogo(favoriteTeamDraft || favoriteTeam)!}
+                      src={getFavoriteTeamLogo(favoriteTeamDraft || favoriteTeam)!}
                       alt={getTeamName(favoriteTeamDraft || favoriteTeam)}
                       className="w-4 h-4 object-contain shrink-0"
                     />
@@ -942,9 +960,9 @@ const rightColumn = (
                           }}
                           className="w-full flex items-center gap-2 px-3 py-2 hover:bg-zinc-800/80 text-left text-xs text-white"
                         >
-                          {getTeamLogo(team) && (
+                          {getFavoriteTeamLogo(team) && (
                             <img
-                              src={getTeamLogo(team)!}
+                              src={getFavoriteTeamLogo(team)!}
                               alt={getTeamName(team)}
                               className="w-4 h-4 object-contain shrink-0"
                             />
@@ -956,16 +974,17 @@ const rightColumn = (
                     </div>
                   )}
 
-                  {favoriteTeamDraft && favoriteTeamDraft !== favoriteTeam && (
-                    <button
-                      type="button"
-                      onClick={handleSaveFavoriteTeam}
-                      className="absolute top-full left-0 mt-1 px-2 py-1 rounded-md bg-orange-500 hover:bg-orange-400 text-white text-[10px] font-bold whitespace-nowrap"
-                    >
-                      Salvar
-                    </button>
-                  )}
                 </div>
+
+                {favoriteTeamDraft && favoriteTeamDraft !== favoriteTeam && (
+                  <button
+                    type="button"
+                    onClick={handleSaveFavoriteTeam}
+                    className="px-2 py-1 rounded-md bg-orange-500 hover:bg-orange-400 text-white text-[10px] font-bold whitespace-nowrap"
+                  >
+                    Salvar
+                  </button>
+                )}
               </div>
             )}
           </div>
