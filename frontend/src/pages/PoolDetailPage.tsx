@@ -258,7 +258,12 @@ export default function PoolDetailPage() {
     if (!pool) return;
 
     const url = `https://www.bolaonagaveta.com.br/pools/${pool.id}`;
-    const message = `⚽ Entra no meu bolão no Na Gaveta!\n\nBolão: ${pool.name}\nCódigo: ${pool.code}\n\n${url}`;
+    const message =
+      `⚽ Você foi convidado para participar de um bolão no Na Gaveta!\n\n` +
+      `🏆 Bolão: ${pool.name}\n` +
+      `🔑 Código: ${pool.code}\n\n` +
+      `Faça seus palpites, acompanhe o ranking e dispute com a galera.\n\n` +
+      `${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   }
 
