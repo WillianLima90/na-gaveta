@@ -241,6 +241,18 @@ export default function PoolDetailPage() {
   }, []);
 
 
+
+  function getBracketLabel(round: Round, index: number): string | undefined {
+    const n = index + 1;
+    if (round.number === 4) return `Segunda fase ${n}`;
+    if (round.number === 5) return `Oitavas ${n}`;
+    if (round.number === 6) return `Quartas ${n}`;
+    if (round.number === 7) return `Semifinal ${n}`;
+    if (round.number === 8) return 'Terceiro lugar';
+    if (round.number === 9) return 'Final';
+    return undefined;
+  }
+
   async function handleJoinByCode() {
     if (!inviteCode.trim()) {
       setJoinError('Digite um código de convite.');
@@ -626,6 +638,7 @@ export default function PoolDetailPage() {
                       isAuthenticated={isAuthenticated}
                       isMember={isMember}
                       autoFocusFirst={idx === 0}
+                      bracketLabel={getBracketLabel(round, idx)}
                       onPredictionSaved={handlePredictionSaved}
                       onPredictionChange={handlePredictionStaged}
                       onSingleSaveSuccess={() => {

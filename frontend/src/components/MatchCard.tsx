@@ -30,6 +30,7 @@ export interface MatchCardProps {
   poolId: string;
   isAuthenticated: boolean;
   isMember: boolean;
+  bracketLabel?: string;
   autoFocusFirst?: boolean;
   onPredictionSaved?: (matchId: string, prediction: MyPrediction) => void;
   onPredictionChange?: (matchId: string, prediction: MyPrediction) => void;
@@ -230,6 +231,7 @@ function ModBadge({ type }: { type: 'joker' | 'bonus' }) {
 // ── Componente principal ──────────────────────────────────────
 export function MatchCard({
   match, round, poolId, isAuthenticated, isMember,
+  bracketLabel,
   autoFocusFirst, onPredictionSaved, onPredictionChange, onSingleSaveSuccess, onViewOpponentPredictions, jokerEnabled = true, jokerLockedByAnotherMatch = false,
 }: MatchCardProps) {
   const locked = isMatchLocked(match.matchDate, match.status);
@@ -435,6 +437,14 @@ const canPredict = isAuthenticated && isMember && !locked;
   if (!locked && canPredict && (!saved || editing)) {
     return (
       <div ref={cardRef} className="relative max-w-4xl mx-auto rounded-2xl border border-zinc-700/60 bg-zinc-900 shadow-lg">
+        {bracketLabel && (
+          <div className="pt-3 text-center">
+            <span className="text-xs font-extrabold uppercase tracking-wider text-orange-400">
+              {bracketLabel}
+            </span>
+          </div>
+        )}
+
         {/* Linha principal: times + inputs grandes + salvar */}
         <div className="flex items-center justify-center px-2 sm:px-4 pt-2.5 pb-1.5">
           {jokerEnabled && !jokerLockedByAnotherMatch && (

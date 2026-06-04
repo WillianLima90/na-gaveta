@@ -89,36 +89,36 @@ function buildPlaceholderLabels(matches) {
 
       if (stage === 'LAST_16') {
         labels.set(m.id, {
-          homeTeam: `Venc. Segunda fase ${n * 2 - 1}`,
-          awayTeam: `Venc. Segunda fase ${n * 2}`,
+          homeTeam: `Vencedor Segunda Fase ${n * 2 - 1}`,
+          awayTeam: `Vencedor Segunda Fase ${n * 2}`,
         });
       }
 
       if (stage === 'QUARTER_FINALS') {
         labels.set(m.id, {
-          homeTeam: `Venc. Oitavas ${n * 2 - 1}`,
-          awayTeam: `Venc. Oitavas ${n * 2}`,
+          homeTeam: `Vencedor Oitavas ${n * 2 - 1}`,
+          awayTeam: `Vencedor Oitavas ${n * 2}`,
         });
       }
 
       if (stage === 'SEMI_FINALS') {
         labels.set(m.id, {
-          homeTeam: `Venc. Quartas ${n * 2 - 1}`,
-          awayTeam: `Venc. Quartas ${n * 2}`,
+          homeTeam: `Vencedor Quartas ${n * 2 - 1}`,
+          awayTeam: `Vencedor Quartas ${n * 2}`,
         });
       }
 
       if (stage === 'THIRD_PLACE') {
         labels.set(m.id, {
-          homeTeam: 'Perd. Semifinal 1',
-          awayTeam: 'Perd. Semifinal 2',
+          homeTeam: 'Perdedor Semifinal 1',
+          awayTeam: 'Perdedor Semifinal 2',
         });
       }
 
       if (stage === 'FINAL') {
         labels.set(m.id, {
-          homeTeam: 'Venc. Semifinal 1',
-          awayTeam: 'Venc. Semifinal 2',
+          homeTeam: 'Vencedor Semifinal 1',
+          awayTeam: 'Vencedor Semifinal 2',
         });
       }
     });
