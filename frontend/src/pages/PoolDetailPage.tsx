@@ -253,6 +253,15 @@ export default function PoolDetailPage() {
     return undefined;
   }
 
+
+  function shareOnWhatsApp() {
+    if (!pool) return;
+
+    const url = `https://www.bolaonagaveta.com.br/pools/${pool.id}`;
+    const message = `⚽ Entra no meu bolão no Na Gaveta!\n\nBolão: ${pool.name}\nCódigo: ${pool.code}\n\n${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+  }
+
   async function handleJoinByCode() {
     if (!inviteCode.trim()) {
       setJoinError('Digite um código de convite.');
@@ -988,18 +997,28 @@ const rightColumn = (
 
           </div>
         </div>
-        <button
-          onClick={copyCode}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-zinc-800/70 hover:bg-zinc-700 transition-colors flex-shrink-0"
-          title="Copiar código de convite"
-        >
-          
-          <span className="font-mono font-black text-sm sm:text-base text-white tracking-widest">{pool.code}</span>
-          <span className="text-xs text-zinc-300 flex items-center gap-1">
-            {codeCopied ? <Check size={10} className="text-green-400" /> : <Copy size={10} />}
-            {codeCopied ? 'Copiado!' : 'Copiar'}
-          </span>
-        </button>
+        <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2 flex-shrink-0">
+          <button
+            onClick={copyCode}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-zinc-800/70 hover:bg-zinc-700 transition-colors"
+            title="Copiar código de convite"
+          >
+            <span className="font-mono font-black text-sm sm:text-base text-white tracking-widest">{pool.code}</span>
+            <span className="text-xs text-zinc-300 flex items-center gap-1">
+              {codeCopied ? <Check size={10} className="text-green-400" /> : <Copy size={10} />}
+              {codeCopied ? 'Copiado!' : 'Copiar'}
+            </span>
+          </button>
+
+          <button
+            onClick={shareOnWhatsApp}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-green-600/90 hover:bg-green-500 text-white transition-colors font-bold text-xs sm:text-sm"
+            title="Convidar pelo WhatsApp"
+          >
+            <UserPlus size={14} />
+            WhatsApp
+          </button>
+        </div>
       </div>
 
 
