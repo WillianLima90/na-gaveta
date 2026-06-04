@@ -171,6 +171,9 @@ export function RoundNavigator({
               )}
 
               <span className={`font-bold leading-tight ${isSelected ? 'text-sm' : 'text-xs'}`}>
+                {r.number <= 3 ? 'Fase de Grupos' : r.name}
+              </span>
+              <span className={`mt-0.5 leading-none ${isSelected ? 'text-[11px] text-white/80' : 'text-[10px] text-zinc-500'}`}>
                 {`Rodada ${r.number}`}
               </span>
 
