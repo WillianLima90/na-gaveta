@@ -49,7 +49,8 @@ const TEAM_LOGO_MAP: Record<string, string> = {
   'Juventude':              'https://r2.thesportsdb.com/images/media/team/badge/1ntter1766506778.png',
 };
 
-export function getTeamLogoUrl(teamName: string | null | undefined): string | null {
+export function getTeamLogoUrl(teamName: string | null | undefined, externalLogo?: string | null): string | null {
+  if (externalLogo) return externalLogo;
   if (!teamName) return null;
 
   const logoFromDisplay = getTeamLogo(teamName);
@@ -63,12 +64,13 @@ export function getTeamLogoUrl(teamName: string | null | undefined): string | nu
 // ── ShieldNormal — escudo retangular pequeno na coluna Jogador ──────────
 interface ShieldNormalProps {
   teamName?: string | null;
+  externalLogo?: string | null;
   size?: number;
 }
 
-export const ShieldNormal: React.FC<ShieldNormalProps> = ({ teamName, size = 20 }) => {
+export const ShieldNormal: React.FC<ShieldNormalProps> = ({ teamName, externalLogo, size = 20 }) => {
   const [imgError, setImgError] = useState(false);
-  const logoUrl = getTeamLogoUrl(teamName);
+  const logoUrl = getTeamLogoUrl(teamName, externalLogo);
   const hasLogo = logoUrl && !imgError;
 
   if (!hasLogo) {

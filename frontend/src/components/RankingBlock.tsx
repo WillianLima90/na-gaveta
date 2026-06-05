@@ -175,6 +175,7 @@ export function RankingBlock({
     userId: string;
     name: string;
     favoriteTeam?: string | null;
+    favoriteTeamCrest?: string | null;
     pts: number;
     heart: number;
     exact: number;
@@ -188,6 +189,7 @@ export function RankingBlock({
         userId: e.userId,
         name: e.name,
         favoriteTeam: e.favoriteTeam ?? null,
+        favoriteTeamCrest: e.favoriteTeamCrest ?? null,
         pts: e.totalPoints,
         heart: e.heartTeamScore ?? 0,
         exact: e.exactScores ?? 0,
@@ -201,6 +203,7 @@ export function RankingBlock({
       userId: e.userId,
       name: e.name,
       favoriteTeam: e.favoriteTeam ?? null,
+      favoriteTeamCrest: e.favoriteTeamCrest ?? null,
       pts: e.roundPoints,
       heart: 0,
       exact: e.exactScores,
@@ -436,7 +439,7 @@ export function RankingBlock({
 
                       {/* Jogador: escudo + nome + ShieldBall vitórias */}
                       <div className="flex items-center gap-1.5 min-w-0 pl-1">
-                        <ShieldNormal teamName={row.favoriteTeam} size={pos === 1 ? 22 : 18} />
+                        <ShieldNormal teamName={row.favoriteTeam} externalLogo={row.favoriteTeamCrest} size={pos === 1 ? 22 : 18} />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1">
                             <span

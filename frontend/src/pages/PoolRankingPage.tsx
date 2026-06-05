@@ -23,6 +23,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Spinner } from '../components/ui';
 import { ShieldList } from '../components/ShieldBadge';
 import { getTeamLogo } from '../utils/teamDisplay';
+import { ShieldNormal } from '../components/ShieldBadge';
 
 const MEDAL_EMOJI = ['🥇', '🥈', '🥉'];
 const MEDAL_TEXT_COLOR = ['#FFD700', '#C0C0C0', '#CD7F32'];
@@ -255,6 +256,7 @@ return (
     roundExacts?: number;
     roundOutcomes?: number;
     favoriteTeam?: string | null;
+    favoriteTeamCrest?: string | null;
     heartTeamScore?: number;
   }> = ranking
     .map((e) => {
@@ -272,6 +274,7 @@ return (
           roundExacts: currentRoundStats?.exactScores ?? 0,
           roundOutcomes: currentRoundStats?.correctOutcomes ?? 0,
           favoriteTeam: e.favoriteTeam ?? null,
+          favoriteTeamCrest: e.favoriteTeamCrest ?? null,
           heartTeamScore: e.heartTeamScore ?? 0,
         };
       }
@@ -584,17 +587,7 @@ return (
                       </div>
 
                       <div className="min-w-0 flex items-center gap-1.5">
-                        {entry.favoriteTeam && getTeamLogo(entry.favoriteTeam, entry.favoriteTeamCrest) ? (
-                          <img
-                            src={getTeamLogo(entry.favoriteTeam, entry.favoriteTeamCrest)!}
-                            alt={entry.favoriteTeam}
-                            className="w-5 h-5 object-contain flex-shrink-0"
-                          />
-                        ) : (
-                          <div className="w-5 h-5 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-300 flex-shrink-0">
-                            {(entry.displayName || entry.name).charAt(0).toUpperCase()}
-                          </div>
-                        )}
+                        <ShieldNormal teamName={entry.favoriteTeam} externalLogo={entry.favoriteTeamCrest} size={20} />
 
                         <span className="text-xs font-semibold text-white truncate">
                           {(entry.displayName || entry.name).split(' ')[0]}
@@ -794,24 +787,7 @@ return (
                     {/* Avatar + Nome */}
                     <div className="min-w-0 flex items-center gap-1.5">
                       <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
-                        {entry.favoriteTeam && getTeamLogo(entry.favoriteTeam, entry.favoriteTeamCrest) ? (
-                          <img
-                            src={getTeamLogo(entry.favoriteTeam, entry.favoriteTeamCrest)!}
-                            alt={entry.favoriteTeam}
-                            className="w-6 h-6 object-contain"
-                          />
-                        ) : (
-                          <div
-                            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black"
-                            style={
-                              isCurrentUser
-                                ? { background: 'rgba(255,255,255,0.08)', color: '#D4D4D8' }
-                                : { background: '#27272A', color: '#A1A1AA' }
-                            }
-                          >
-                            {(entry.displayName || entry.name).charAt(0).toUpperCase()}
-                          </div>
-                        )}
+                        <ShieldNormal teamName={entry.favoriteTeam} externalLogo={entry.favoriteTeamCrest} size={24} />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-1">
@@ -1006,13 +982,7 @@ return (
                       style={{ color: isCurrentUser ? '#FFFFFF' : '#E5E7EB' }}
                     >
                       <span className="flex items-center gap-2">
-                        {entry.favoriteTeam && getTeamLogo(entry.favoriteTeam, entry.favoriteTeamCrest) && (
-                          <img
-                            src={getTeamLogo(entry.favoriteTeam, entry.favoriteTeamCrest)!}
-                            alt={entry.favoriteTeam}
-                            className="w-4 h-4 object-contain flex-shrink-0"
-                          />
-                        )}
+                        <ShieldNormal teamName={entry.favoriteTeam} externalLogo={entry.favoriteTeamCrest} size={16} />
 
                         <span className="truncate">
                           {window.innerWidth < 768 ? (entry.displayName || entry.name).split(' ')[0] : (entry.displayName || entry.name)}
