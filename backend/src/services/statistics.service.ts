@@ -14,6 +14,7 @@ export interface UserStats {
   name: string;
   avatarUrl?: string | null;
   favoriteTeam?: string | null;
+  favoriteTeamCrest?: string | null;
   heartTeamScore: number;
   totalPoints: number;
   exactScores: number;       // acertou placar exato
@@ -34,6 +35,7 @@ export interface RoundRankingEntry {
   name: string;
   avatarUrl?: string | null;
   favoriteTeam?: string | null;
+  favoriteTeamCrest?: string | null;
   roundPoints: number;
   exactScores: number;
   correctOutcomes: number;
@@ -83,6 +85,36 @@ export interface UserPoolHistory {
 
 // ── Helpers internos ──────────────────────────────────────────
 
+async function getPoolTeamCrests(poolId: string): Promise<Map<string, string>> {
+  const pool = await prisma.pool.findUnique({
+    where: { id: poolId },
+    select: { championshipId: true },
+  });
+
+  if (!pool) return new Map();
+
+  const matches = await prisma.match.findMany({
+    where: { round: { championshipId: pool.championshipId } },
+    select: {
+      homeTeam: true,
+      awayTeam: true,
+      homeTeamCrest: true,
+      awayTeamCrest: true,
+    },
+  });
+
+  const crestMap = new Map<string, string>();
+
+  for (const match of matches) {
+    if (match.homeTeamCrest) crestMap.set(match.homeTeam, match.homeTeamCrest);
+    if (match.awayTeamCrest) crestMap.set(match.awayTeam, match.awayTeamCrest);
+  }
+
+  return crestMap;
+}
+
+
+
 /**
  * Determina se um palpite acertou o resultado (V/E/D)
  */
@@ -120,6 +152,7 @@ export async function getMemberStats(
       user: { select: { id: true, name: true, displayName: true, avatarUrl: true, favoriteTeam: true } },
     },
   });
+  const crestMap = await getPoolTeamCrests(poolId);
 
   const statsPerMember = await Promise.all(
     members.map(async (member) => {
@@ -156,6 +189,7 @@ export async function getMemberStats(
         name: member.user.displayName || member.user.name,
         avatarUrl: member.user.avatarUrl,
         favoriteTeam: member.favoriteTeam ?? null,
+        favoriteTeamCrest: member.favoriteTeam ? crestMap.get(member.favoriteTeam) ?? null : null,
         heartTeamScore: member.heartTeamScore,
         totalPoints: member.score,
         exactScores,
@@ -201,6 +235,7 @@ export async function getRoundRanking(
       user: { select: { id: true, name: true, displayName: true, avatarUrl: true, favoriteTeam: true } },
     },
   });
+  const crestMap = await getPoolTeamCrests(poolId);
 
   // Buscar palpites desta rodada para todos os membros
   const predictions = await prisma.prediction.findMany({
@@ -257,7 +292,8 @@ export async function getRoundRanking(
       userId: member.userId,
       name: member.user.displayName || member.user.name,
       avatarUrl: member.user.avatarUrl,
-      favoriteTeam: member.user.favoriteTeam ?? null,
+      favoriteTeam: member.favoriteTeam ?? null,
+      favoriteTeamCrest: member.favoriteTeam ? crestMap.get(member.favoriteTeam) ?? null : null,
       roundPoints,
       exactScores,
       correctOutcomes,

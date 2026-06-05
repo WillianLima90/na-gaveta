@@ -87,6 +87,7 @@ export interface RankingEntry {
   displayName?: string | null;
   avatarUrl?: string | null;
   favoriteTeam?: string | null;
+  favoriteTeamCrest?: string | null;
   heartTeamScore: number;
   totalPoints: number;
   exactScores: number;
@@ -105,6 +106,7 @@ export interface RoundRankingEntry {
   displayName?: string | null;
   avatarUrl?: string | null;
   favoriteTeam?: string | null;
+  favoriteTeamCrest?: string | null;
   roundPoints: number;
   exactScores: number;
   correctOutcomes: number;

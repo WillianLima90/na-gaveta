@@ -85,6 +85,6 @@ export function getTeamName(name: string): string {
   return TEAM_DISPLAY[name]?.name ?? name;
 }
 
-export function getTeamLogo(name: string): string | null {
-  return TEAM_DISPLAY[name]?.logo || null;
+export function getTeamLogo(name: string, externalLogo?: string | null): string | null {
+  return externalLogo || TEAM_DISPLAY[name]?.logo || null;
 }

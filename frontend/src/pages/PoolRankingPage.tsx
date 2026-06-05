@@ -584,9 +584,9 @@ return (
                       </div>
 
                       <div className="min-w-0 flex items-center gap-1.5">
-                        {entry.favoriteTeam && getTeamLogo(entry.favoriteTeam) ? (
+                        {entry.favoriteTeam && getTeamLogo(entry.favoriteTeam, entry.favoriteTeamCrest) ? (
                           <img
-                            src={getTeamLogo(entry.favoriteTeam)!}
+                            src={getTeamLogo(entry.favoriteTeam, entry.favoriteTeamCrest)!}
                             alt={entry.favoriteTeam}
                             className="w-5 h-5 object-contain flex-shrink-0"
                           />
@@ -794,9 +794,9 @@ return (
                     {/* Avatar + Nome */}
                     <div className="min-w-0 flex items-center gap-1.5">
                       <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
-                        {entry.favoriteTeam && getTeamLogo(entry.favoriteTeam) ? (
+                        {entry.favoriteTeam && getTeamLogo(entry.favoriteTeam, entry.favoriteTeamCrest) ? (
                           <img
-                            src={getTeamLogo(entry.favoriteTeam)!}
+                            src={getTeamLogo(entry.favoriteTeam, entry.favoriteTeamCrest)!}
                             alt={entry.favoriteTeam}
                             className="w-6 h-6 object-contain"
                           />
@@ -1006,9 +1006,9 @@ return (
                       style={{ color: isCurrentUser ? '#FFFFFF' : '#E5E7EB' }}
                     >
                       <span className="flex items-center gap-2">
-                        {entry.favoriteTeam && getTeamLogo(entry.favoriteTeam) && (
+                        {entry.favoriteTeam && getTeamLogo(entry.favoriteTeam, entry.favoriteTeamCrest) && (
                           <img
-                            src={getTeamLogo(entry.favoriteTeam)!}
+                            src={getTeamLogo(entry.favoriteTeam, entry.favoriteTeamCrest)!}
                             alt={entry.favoriteTeam}
                             className="w-4 h-4 object-contain flex-shrink-0"
                           />

@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { Trophy, ChevronRight } from 'lucide-react';
 import { getPoolRanking, type RankingEntry } from '../services/match.service';
 import { Spinner } from './ui';
+import { getTeamLogo } from '../utils/teamDisplay';
 
 interface PoolTop3Props {
   poolId: string;
@@ -94,12 +95,20 @@ export function PoolTop3({ poolId, currentUserId, onViewFullRanking }: PoolTop3P
                 {MEDALS[i]}
               </div>
 
-              {/* Avatar inicial */}
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${
-                isCurrentUser ? 'bg-brand/20 text-brand border border-brand/30' : 'bg-zinc-800 text-zinc-400'
-              }`}>
-                {(entry.displayName || entry.name).charAt(0).toUpperCase()}
-              </div>
+              {/* Escudo / Avatar inicial */}
+              {entry.favoriteTeam && getTeamLogo(entry.favoriteTeam, entry.favoriteTeamCrest) ? (
+                <img
+                  src={getTeamLogo(entry.favoriteTeam, entry.favoriteTeamCrest)!}
+                  alt={entry.favoriteTeam}
+                  className="w-8 h-8 object-contain flex-shrink-0"
+                />
+              ) : (
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${
+                  isCurrentUser ? 'bg-brand/20 text-brand border border-brand/30' : 'bg-zinc-800 text-zinc-400'
+                }`}>
+                  {(entry.displayName || entry.name).charAt(0).toUpperCase()}
+                </div>
+              )}
 
               {/* Nome */}
               <div className="flex-1 min-w-0">
