@@ -556,7 +556,10 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
   // ── CARD: PALPITE SALVO (ainda editável) ─────────────────────
   if (!locked && canPredict && saved && !editing) {
     return (
-      <div className={`max-w-4xl mx-auto rounded-2xl border shadow-md ${match.myPrediction?.isJoker ? "border-yellow-400/70 bg-brand/8 shadow-lg shadow-yellow-500/20" : "border-brand/40 bg-brand/8"}`}>
+      <div
+        onClick={startEditing}
+        className={`max-w-4xl mx-auto rounded-2xl border shadow-md cursor-pointer active:scale-[0.99] transition ${match.myPrediction?.isJoker ? "border-yellow-400/70 bg-brand/8 shadow-lg shadow-yellow-500/20" : "border-brand/40 bg-brand/8"}`}
+      >
         <div className="flex items-center justify-center px-4 pt-2.5 pb-1.5">
           <div className="flex-1 flex items-center justify-end gap-1.5 min-w-0 pr-2 sm:pr-5">
             <span className="text-right text-xs sm:text-sm font-bold text-white truncate">{teamName(match.homeTeam)}</span>
