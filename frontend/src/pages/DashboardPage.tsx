@@ -222,12 +222,16 @@ export function DashboardPage() {
                       : 'bg-zinc-900 border-zinc-800'
                   }`}>
                     {/* Campeonato */}
-                    <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <div className={`${
+                        pool.championship?.logoUrl
+                          ? 'w-12 h-12 bg-transparent'
+                          : 'w-10 h-10 bg-brand/10'
+                      } rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden`}>
                       {pool.championship?.logoUrl ? (
                         <img
                           src={pool.championship?.logoUrl}
                           alt={pool.championship.name || 'Campeonato'}
-                          className="w-8 h-8 object-contain"
+                          className="w-10 h-10 object-contain"
                           loading="lazy"
                           onError={(e) => {
                             e.currentTarget.style.display = 'none';
