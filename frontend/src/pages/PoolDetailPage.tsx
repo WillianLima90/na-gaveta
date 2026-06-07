@@ -839,7 +839,7 @@ const rightColumn = (
                 onChange={(e) => setPrizeDraft(e.target.value)}
                 disabled={!canEditPrize}
                 maxLength={3000}
-                rows={6}
+                rows={14}
                 placeholder={'Exemplo:\n1º lugar: 50% do valor arrecadado + camisa da seleção campeã do mundo (versão torcedor)\n2º lugar: 30% do valor arrecadado\n3º lugar: 20% do valor arrecadado'}
                 className="w-full rounded-xl border border-zinc-700 bg-black/30 px-3 py-3 text-sm text-white outline-none focus:border-brand resize-none disabled:opacity-70 disabled:cursor-not-allowed"
               />
