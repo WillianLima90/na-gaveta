@@ -120,7 +120,11 @@ export function LoginPage() {
         {/* ── Link para cadastro ───────────────────────────── */}
         <p className="text-center text-text-secondary text-sm mt-6">
           Não tem conta?{' '}
-          <Link to="/register" className="text-brand hover:text-brand-light font-semibold transition-colors">
+          <Link
+            to="/register"
+            state={{ from: location.state ? (location.state as { from?: { pathname: string } }).from : undefined }}
+            className="text-brand hover:text-brand-light font-semibold transition-colors"
+          >
             Criar conta grátis
           </Link>
         </p>

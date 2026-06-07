@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Trophy, User, Mail, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Button, Input, Divider } from '../components/ui';
@@ -13,6 +13,9 @@ import toast from 'react-hot-toast';
 export function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard';
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -46,7 +49,7 @@ export function RegisterPage() {
     try {
       await register({ name: name.trim(), email, password });
       toast.success('Conta criada! Bem-vindo ao Na Gaveta!');
-      navigate('/dashboard');
+      navigate(from, { replace: true });
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
       toast.error(msg || 'Erro ao criar conta. Tente novamente.');
@@ -184,7 +187,11 @@ export function RegisterPage() {
         {/* ── Link para login ──────────────────────────────── */}
         <p className="text-center text-text-secondary text-sm mt-6">
           Já tem conta?{' '}
-          <Link to="/login" className="text-brand hover:text-brand-light font-semibold transition-colors">
+          <Link
+            to="/login"
+            state={{ from: location.state ? (location.state as { from?: { pathname: string } }).from : undefined }}
+            className="text-brand hover:text-brand-light font-semibold transition-colors"
+          >
             Entrar
           </Link>
         </p>
