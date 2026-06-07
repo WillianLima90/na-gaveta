@@ -764,13 +764,6 @@ export default function PoolDetailPage() {
 const rightColumn = (
     <div className="space-y-3">
 
-      {/* ── ADMINISTRAÇÃO DO BOLÃO ───────────────────────── */}
-      {isOwner && (
-        <div className="mb-3">
-          <AdminPanel poolId={id!} onResultSet={loadData} />
-        </div>
-      )}
-
       {/* ── 2. TABELA DO BOLÃO ──────────────────────────────── */}
       {isMember && (
         <RankingBlock
@@ -1045,6 +1038,13 @@ const rightColumn = (
         </div>
       </div>
 
+
+      {/* ── ADMINISTRAÇÃO DO BOLÃO ───────────────────────── */}
+      {isOwner && (
+        <div className="mb-4">
+          <AdminPanel poolId={id!} onResultSet={loadData} />
+        </div>
+      )}
 
       {/* ── LAYOUT RESPONSIVO ───────────────────────────────── */}
       <div className="lg:grid lg:grid-cols-[minmax(760px,1fr)_500px] lg:gap-6 xl:grid-cols-[minmax(820px,1fr)_520px]">
