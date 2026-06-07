@@ -260,6 +260,7 @@ export function MatchCard({
   const [minsUntilLock, setMinsUntilLock] = useState<number | null>(null);
 
   const homeRef = useRef<HTMLInputElement>(null);
+  const shouldFocusHomeRef = useRef(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const previousLiveScoreRef = useRef<string | null>(null);
   const [goalFlash, setGoalFlash] = useState(false);
@@ -280,9 +281,21 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
       away: awayInput,
       joker: isJokerSelected,
     };
+    shouldFocusHomeRef.current = true;
     setEditing(true);
-    setTimeout(() => homeRef.current?.focus(), 50);
   }
+
+  useEffect(() => {
+    if (!editing || !shouldFocusHomeRef.current) return;
+
+    const timer = window.setTimeout(() => {
+      homeRef.current?.focus();
+      homeRef.current?.select();
+      shouldFocusHomeRef.current = false;
+    }, 120);
+
+    return () => window.clearTimeout(timer);
+  }, [editing]);
 
   function cancelEditing() {
     setHomeInput(initialRef.current.home);
