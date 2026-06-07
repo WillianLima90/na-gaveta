@@ -471,7 +471,7 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
                   });
                 }
               }}
-              className={`absolute left-2 sm:left-4 top-4 sm:top-5 px-2 py-1 sm:px-2 sm:py-0.5 rounded-full flex items-center justify-center gap-1 border transition-colors text-[11px] sm:text-xs font-black ${
+              className={`absolute left-2 sm:left-4 -top-2 sm:-top-2 px-2 py-1 sm:px-2 sm:py-0.5 rounded-full flex items-center justify-center gap-1 border transition-colors text-[11px] sm:text-xs font-black z-10 shadow ${
                 isJokerSelected
                   ? 'text-yellow-300 bg-yellow-400/20 border-yellow-400/40'
                   : 'text-zinc-300 bg-zinc-800 border-zinc-700 hover:bg-zinc-700'
