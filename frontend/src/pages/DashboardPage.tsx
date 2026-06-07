@@ -187,6 +187,23 @@ export function DashboardPage() {
         </div>
       )}
 
+      {/* ── CTA PRO ───────────────────────────────────────────── */}
+      {user?.plan === 'FREE' && (
+        <Link to="/pricing">
+          <div className="mb-6 rounded-2xl border border-brand/30 bg-brand/10 p-4 hover:bg-brand/15 transition-colors">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-black text-white">Quer criar mais bolões?</p>
+                <p className="mt-1 text-xs text-zinc-400">Plano PRO anual: até 5 bolões ativos por R$ 100/ano.</p>
+              </div>
+              <span className="shrink-0 rounded-xl bg-brand px-3 py-2 text-xs font-black text-white">
+                Ser PRO
+              </span>
+            </div>
+          </div>
+        </Link>
+      )}
+
       {/* ── 2. MEUS BOLÕES ───────────────────────────────────── */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
