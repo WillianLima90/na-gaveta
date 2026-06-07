@@ -269,10 +269,11 @@ export default function PoolDetailPage() {
 
     const url = `https://www.bolaonagaveta.com.br/pools/${pool.id}`;
     const message =
-      `⚽ Você foi convidado para participar de um bolão no Na Gaveta!\n\n` +
-      `🏆 Bolão: ${pool.name}\n` +
-      `🔑 Código: ${pool.code}\n\n` +
-      `Faça seus palpites, acompanhe o ranking e dispute com a galera.\n\n` +
+      `⚽ Você foi convidado para participar do bolão "${pool.name}" no Na Gaveta!\n\n` +
+      `🏆 Campeonato: ${pool.championship?.name || 'Bolão esportivo'}\n` +
+      `🔑 Código de convite: ${pool.code}\n\n` +
+      `Entre pelo link abaixo, crie sua conta e solicite entrada no bolão.\n` +
+      `Depois é só fazer seus palpites e acompanhar o ranking em tempo real.\n\n` +
       `${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   }
