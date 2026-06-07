@@ -12,7 +12,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { Badge, Spinner } from '../components/ui';
+import { Spinner } from '../components/ui';
 import { myPools as getMyPools, type Pool } from '../services/pool.service';
 import { getUserSummary, type UserSummary } from '../services/match.service';
 
@@ -251,7 +251,7 @@ export function DashboardPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <p className="font-bold text-white text-sm truncate">{pool.name}</p>
-                                                {hasPending && <Badge variant="brand">{s!.pendingMatches} pendente{s!.pendingMatches > 1 ? 's' : ''}</Badge>}
+                        
                       </div>
                       <div className="flex items-center gap-3 text-xs text-zinc-500">
                         <span className="flex items-center gap-1">
