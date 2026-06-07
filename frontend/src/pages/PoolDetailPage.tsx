@@ -683,9 +683,18 @@ export default function PoolDetailPage() {
                       bracketLabel={getBracketLabel(round, idx)}
                       onPredictionSaved={handlePredictionSaved}
                       onPredictionChange={handlePredictionStaged}
-                      onSingleSaveSuccess={() => {
-                        setSaveMessage('Palpite salvo com sucesso');
-                        setTimeout(() => setSaveMessage(null), 3000);
+                      onSingleSaveSuccess={(savedMatchId, savedPrediction) => {
+                        const hasJokerInRound = allRoundMatches.some(({ match }) => {
+                          if (match.id === savedMatchId) return Boolean(savedPrediction?.isJoker);
+                          return Boolean(match.myPrediction?.isJoker);
+                        });
+
+                        setSaveMessage(
+                          hasJokerInRound
+                            ? 'Palpite salvo com sucesso'
+                            : 'Palpite salvo com sucesso. Atenção: você ainda não escolheu seu Coringa.'
+                        );
+                        setTimeout(() => setSaveMessage(null), hasJokerInRound ? 3000 : 6000);
                       }}
                     />
                   ))}

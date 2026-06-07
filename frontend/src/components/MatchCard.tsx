@@ -34,7 +34,7 @@ export interface MatchCardProps {
   autoFocusFirst?: boolean;
   onPredictionSaved?: (matchId: string, prediction: MyPrediction) => void;
   onPredictionChange?: (matchId: string, prediction: MyPrediction) => void;
-  onSingleSaveSuccess?: () => void;
+  onSingleSaveSuccess?: (matchId: string, prediction: MyPrediction) => void;
   onViewOpponentPredictions?: (matchId: string) => void;
   jokerEnabled?: boolean;
   jokerLockedByAnotherMatch?: boolean;
@@ -413,7 +413,7 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
         setEditing(false);
         setIsJokerSelected(false);
         onPredictionSaved?.(match.id, null as any);
-        onSingleSaveSuccess?.();
+        onSingleSaveSuccess?.(match.id, null as any);
       } catch (err) {
         setError('Erro ao remover palpite');
       } finally {
@@ -436,7 +436,7 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
       });
       setSaved(true); setEditing(false);
       onPredictionSaved?.(match.id, { id: pred.id, homeScoreTip: home, awayScoreTip: away, isJoker: isJokerSelected, points: pred.points, scoredAt: pred.scoredAt, createdAt: pred.createdAt });
-      onSingleSaveSuccess?.();
+      onSingleSaveSuccess?.(match.id, { id: pred.id, homeScoreTip: home, awayScoreTip: away, isJoker: jokerLockedByAnotherMatch ? false : isJokerSelected, points: pred.points, scoredAt: pred.scoredAt, createdAt: pred.createdAt });
     } catch (err: unknown) {
       setError((err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Erro ao salvar');
     } finally { setSaving(false); }
