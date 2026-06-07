@@ -221,9 +221,26 @@ export function DashboardPage() {
                       ? 'bg-zinc-900 border-brand/30'
                       : 'bg-zinc-900 border-zinc-800'
                   }`}>
-                    {/* Ícone */}
-                    <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center flex-shrink-0">
-                      <Trophy size={18} className="text-brand" />
+                    {/* Campeonato */}
+                    <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {pool.championship?.logoUrl ? (
+                        <img
+                          src={pool.championship?.logoUrl}
+                          alt={pool.championship.name || 'Campeonato'}
+                          className="w-8 h-8 object-contain"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const fallback = e.currentTarget.nextElementSibling as HTMLElement | null;
+                            if (fallback) fallback.style.display = 'block';
+                          }}
+                        />
+                      ) : null}
+                      <Trophy
+                        size={18}
+                        className="text-brand"
+                        style={{ display: pool.championship?.logoUrl ? 'none' : 'block' }}
+                      />
                     </div>
 
                     {/* Info */}

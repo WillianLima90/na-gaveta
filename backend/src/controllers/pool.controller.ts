@@ -13,7 +13,7 @@ export async function listPools(req: AuthRequest, res: Response): Promise<void> 
       where: { isPublic: true, isActive: true },
       include: {
         owner: { select: { id: true, name: true, avatarUrl: true } },
-        championship: { select: { id: true, name: true, logoUrl: true } },
+        championship: { select: { id: true, name: true, slug: true, season: true, logoUrl: true } },
         _count: { select: { members: true } },
       },
       orderBy: { createdAt: 'desc' },
