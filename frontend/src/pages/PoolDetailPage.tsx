@@ -25,7 +25,7 @@ import {
   Lock, UserPlus, BookOpen, X,
   ChevronDown, ChevronUp
 } from 'lucide-react';
-import { getPool, joinPoolById, joinPoolByCode, setFavoriteTeam, leavePool, cancelJoinRequest, updatePoolPrize, deletePool, type Pool } from '../services/pool.service';
+import { getPool, joinPoolById, joinPoolByCode, setFavoriteTeam, leavePool, cancelJoinRequest, updatePoolPrize, updatePoolRules, deletePool, type Pool } from '../services/pool.service';
 import {
   getPoolMatches,
   savePrediction,
@@ -138,6 +138,9 @@ export default function PoolDetailPage() {
   const [prizeDraft, setPrizeDraft] = useState('');
   const [prizeSaving, setPrizeSaving] = useState(false);
   const [prizeMessage, setPrizeMessage] = useState<string | null>(null);
+  const [rulesDraft, setRulesDraft] = useState('');
+  const [rulesSaving, setRulesSaving] = useState(false);
+  const [rulesMessage, setRulesMessage] = useState<string | null>(null);
 
   function handlePredictionStaged(matchId: string, prediction: any) {
     setPendingPredictions(prev => ({
@@ -201,6 +204,26 @@ export default function PoolDetailPage() {
     }
   }
 
+  async function handleSaveRules() {
+    if (!id) return;
+
+    setRulesSaving(true);
+    setRulesMessage(null);
+
+    try {
+      const result = await updatePoolRules(id, rulesDraft);
+      setPool((prev) => prev ? { ...prev, rulesDescription: result.pool.rulesDescription } : prev);
+      setRulesDraft(result.pool.rulesDescription ?? '');
+      setRulesMessage('Regras salvas com sucesso.');
+      setTimeout(() => setRulesMessage(null), 3000);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+      setRulesMessage(msg || 'Erro ao salvar regras.');
+    } finally {
+      setRulesSaving(false);
+    }
+  }
+
   const loadData = useCallback(async () => {
     if (!id) return;
     setLoading(true);
@@ -211,6 +234,7 @@ export default function PoolDetailPage() {
       ]);
       setPool(poolData);
       setPrizeDraft(poolData.prizeDescription ?? '');
+      setRulesDraft(poolData.rulesDescription ?? '');
       setFavoriteTeamState((poolData as Pool & { myFavoriteTeam?: string | null }).myFavoriteTeam ?? "");
       setRounds(roundsData);
 
@@ -430,6 +454,16 @@ export default function PoolDetailPage() {
   const canEditPrize = pool.canEditPrize ?? false;
   const prizeUpdatedLabel = pool.prizeUpdatedAt
     ? new Date(pool.prizeUpdatedAt).toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : null;
+
+  const rulesUpdatedLabel = pool.rulesUpdatedAt
+    ? new Date(pool.rulesUpdatedAt).toLocaleString('pt-BR', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -874,6 +908,80 @@ const rightColumn = (
           ) : (
             <p className="rounded-xl border border-zinc-800 bg-black/20 p-3 text-xs text-zinc-500">
               A premiação ainda não foi informada pelo admin do bolão.
+            </p>
+          )}
+        </div>
+      </CollapsibleSection>
+
+      {/* ── REGULAMENTO E DESEMPATES ───────────────────────── */}
+      <CollapsibleSection
+        title="Regulamento e desempates"
+        defaultOpen={isOwner || Boolean(pool.rulesDescription)}
+        onToggle={() => {}}
+        icon="book"
+      >
+        <div className="space-y-3">
+          <p className="text-xs text-zinc-400">
+            Regras gerais, critérios de desempate, pagamento e observações específicas deste bolão.
+          </p>
+
+          {isOwner ? (
+            <div className="space-y-3">
+              {rulesUpdatedLabel && (
+                <p className="text-[11px] text-zinc-500">
+                  Última atualização: {rulesUpdatedLabel}
+                </p>
+              )}
+
+              {!canEditPrize && (
+                <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-3">
+                  <p className="text-xs font-bold text-yellow-200">Regulamento bloqueado</p>
+                  <p className="mt-1 text-xs text-zinc-300">
+                    Após o fechamento do primeiro jogo do bolão, o regulamento não pode mais ser alterado.
+                  </p>
+                </div>
+              )}
+
+              <textarea
+                value={rulesDraft}
+                onChange={(e) => setRulesDraft(e.target.value)}
+                disabled={!canEditPrize}
+                maxLength={5000}
+                rows={14}
+                placeholder={'Exemplo:\nCritérios de desempate do ranking geral:\n1. Maior número de placares exatos\n2. Maior número de acertos de resultado\n3. Maior pontuação em uma rodada\n4. Persistindo empate, o prêmio será dividido'}
+                className="w-full rounded-xl border border-zinc-700 bg-black/30 px-3 py-3 text-sm text-white outline-none focus:border-brand resize-none disabled:opacity-70 disabled:cursor-not-allowed"
+              />
+
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[11px] text-zinc-500">{rulesDraft.length}/5000</span>
+                <button
+                  type="button"
+                  onClick={handleSaveRules}
+                  disabled={rulesSaving || !canEditPrize}
+                  className="rounded-lg bg-brand px-4 py-2 text-xs font-black text-white hover:bg-brand-light transition disabled:opacity-50"
+                >
+                  {rulesSaving ? 'Salvando...' : 'Salvar regulamento'}
+                </button>
+              </div>
+
+              {rulesMessage && (
+                <p className="text-xs text-zinc-300">{rulesMessage}</p>
+              )}
+            </div>
+          ) : pool.rulesDescription ? (
+            <>
+              {rulesUpdatedLabel && (
+                <p className="text-[11px] text-zinc-500">
+                  Última atualização: {rulesUpdatedLabel}
+                </p>
+              )}
+              <div className="whitespace-pre-line rounded-2xl border border-zinc-700 bg-zinc-900/70 p-4 text-sm leading-relaxed text-zinc-100 shadow-sm">
+                {pool.rulesDescription}
+              </div>
+            </>
+          ) : (
+            <p className="rounded-xl border border-zinc-800 bg-black/20 p-3 text-xs text-zinc-500">
+              O regulamento ainda não foi informado pelo admin do bolão.
             </p>
           )}
         </div>

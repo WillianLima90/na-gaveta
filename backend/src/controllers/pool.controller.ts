@@ -484,6 +484,81 @@ export async function myPools(req: AuthRequest, res: Response): Promise<void> {
   }
 }
 
+
+// ── PATCH /api/pools/:id/rules ───────────────────────────────
+export async function updatePoolRules(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user!.userId;
+    const { id: poolId } = req.params;
+    const { rulesDescription } = req.body as { rulesDescription?: string };
+
+    const isOwner = await assertPoolOwner(poolId, userId);
+    const isPlatformAdmin = req.user?.role === 'ADMIN';
+
+    if (!isOwner && !isPlatformAdmin) {
+      res.status(403).json({ error: 'Apenas o admin do bolão pode alterar as regras.' });
+      return;
+    }
+
+    if (!isPlatformAdmin) {
+      const poolLock = await prisma.pool.findUnique({
+        where: { id: poolId },
+        select: {
+          championshipId: true,
+          startingRoundId: true,
+        },
+      });
+
+      const firstPoolMatch = poolLock
+        ? await prisma.match.findFirst({
+            where: {
+              round: {
+                championshipId: poolLock.championshipId,
+                ...(poolLock.startingRoundId ? { id: poolLock.startingRoundId } : {}),
+              },
+            },
+            orderBy: { matchDate: 'asc' },
+            select: { matchDate: true },
+          })
+        : null;
+
+      if (firstPoolMatch && new Date() >= new Date(firstPoolMatch.matchDate.getTime() - 10 * 60 * 1000)) {
+        res.status(403).json({
+          error: 'As regras não podem mais ser alteradas após o fechamento do primeiro jogo do bolão.',
+        });
+        return;
+      }
+    }
+
+    const normalizedRules =
+      typeof rulesDescription === 'string' && rulesDescription.trim().length > 0
+        ? rulesDescription.trim()
+        : null;
+
+    if (normalizedRules && normalizedRules.length > 5000) {
+      res.status(400).json({ error: 'As regras devem ter no máximo 5000 caracteres.' });
+      return;
+    }
+
+    const pool = await prisma.pool.update({
+      where: { id: poolId },
+      data: {
+        rulesDescription: normalizedRules,
+        rulesUpdatedAt: new Date(),
+      },
+      select: { id: true, name: true, rulesDescription: true, rulesUpdatedAt: true },
+    });
+
+    res.json({
+      pool,
+      message: 'Regras do bolão atualizadas com sucesso.',
+    });
+  } catch (err) {
+    console.error('[Pool] Erro ao alterar regras:', err);
+    res.status(500).json({ error: 'Erro ao alterar regras do bolão.' });
+  }
+}
+
 // ── Helper: gerar código de convite ─────────────────────────
 function generateInviteCode(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';

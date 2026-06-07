@@ -52,6 +52,8 @@ model Pool {
   description    String?
   prizeDescription String?   @map("prize_description")
   prizeUpdatedAt   DateTime? @map("prize_updated_at")
+  rulesDescription String?   @map("rules_description")
+  rulesUpdatedAt   DateTime? @map("rules_updated_at")
   isPublic       Boolean  @default(false) @map("is_public")
   isActive       Boolean  @default(true)  @map("is_active")
   maxMembers     Int?     @map("max_members")
