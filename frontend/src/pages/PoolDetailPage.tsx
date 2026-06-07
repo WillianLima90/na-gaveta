@@ -165,7 +165,11 @@ export default function PoolDetailPage() {
       });
     }
 
-    const hasJoker = entries.some(([, pred]) => Boolean(pred.isJoker));
+    const pendingByMatchId = new Map(entries);
+    const hasJoker = allRoundMatches.some(({ match }) => {
+      const pending = pendingByMatchId.get(match.id);
+      return pending ? Boolean(pending.isJoker) : Boolean(match.myPrediction?.isJoker);
+    });
 
     setPendingPredictions({});
     setSaveMessage(
