@@ -2,11 +2,11 @@ import { Check, Trophy } from 'lucide-react';
 
 const WHATSAPP_URL =
   'https://wa.me/16892362739?text=' +
-  encodeURIComponent('Olá! Tenho interesse no plano PRO do Na Gaveta.');
+  encodeURIComponent('Olá! Tenho interesse no plano PRO anual (R$ 100/ano) do Na Gaveta.');
 
 const BUSINESS_WHATSAPP_URL =
   'https://wa.me/16892362739?text=' +
-  encodeURIComponent('Olá! Tenho interesse no plano BUSINESS do Na Gaveta.');
+  encodeURIComponent('Olá! Quero saber mais sobre o plano BUSINESS do Na Gaveta para grupos grandes ou empresas.');
 
 const plans = [
   {
@@ -18,15 +18,15 @@ const plans = [
   },
   {
     name: 'PRO',
-    price: 'Até 5 bolões ativos',
-    description: 'Para quem quer organizar mais bolões com amigos.',
-    features: ['Criar até 5 bolões ativos', 'Mais controle de participantes', 'Recursos premium futuros'],
+    price: 'R$ 100/ano',
+    description: 'Pagamento anual. Ideal para quem organiza bolões durante toda a temporada.',
+    features: ['Criar até 5 bolões ativos', 'Pagamento único anual', 'Suporte direto pelo WhatsApp'],
     cta: 'Quero ser PRO',
     featured: true,
   },
   {
     name: 'BUSINESS',
-    price: 'Bolões ilimitados',
+    price: 'Sob consulta',
     description: 'Para empresas, grupos grandes e campeonatos recorrentes.',
     features: ['Bolões ilimitados', 'Gestão avançada', 'Suporte e recursos customizados'],
     cta: 'Quero ser BUSINESS',
@@ -42,7 +42,7 @@ export default function PricingPage() {
         </div>
         <h1 className="text-3xl font-black text-white">Escolha seu plano</h1>
         <p className="mt-2 text-sm text-zinc-400">
-          Comece grátis e faça upgrade quando quiser criar mais bolões.
+          Comece grátis. Faça upgrade quando quiser organizar mais bolões da Copa 2026.
         </p>
       </div>
 
