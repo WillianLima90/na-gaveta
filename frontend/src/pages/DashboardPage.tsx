@@ -230,13 +230,16 @@ export function DashboardPage() {
               const s = pool.summary;
               const isLeader = s?.position === 1;
               const hasPending = (s?.pendingMatches ?? 0) > 0;
+              const isWaitingApproval = pool.membershipStatus === 'PENDING';
 
               return (
                 <Link key={pool.id} to={`/pools/${pool.id}`}>
                   <div className={`flex items-center gap-3 p-4 rounded-2xl border transition-all hover:border-zinc-600 active:scale-[0.99] ${
-                    hasPending
-                      ? 'bg-zinc-900 border-brand/30'
-                      : 'bg-zinc-900 border-zinc-800'
+                    isWaitingApproval
+                      ? 'bg-yellow-500/5 border-yellow-500/30'
+                      : hasPending
+                        ? 'bg-zinc-900 border-brand/30'
+                        : 'bg-zinc-900 border-zinc-800'
                   }`}>
                     {/* Campeonato */}
                     <div className={`${
@@ -268,7 +271,11 @@ export function DashboardPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <p className="font-bold text-white text-sm truncate">{pool.name}</p>
-                        
+                        {isWaitingApproval && (
+                          <span className="shrink-0 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2 py-0.5 text-[10px] font-black text-yellow-300">
+                            Aguardando aprovação
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-3 text-xs text-zinc-500">
                         <span className="flex items-center gap-1">
@@ -286,7 +293,12 @@ export function DashboardPage() {
 
                     {/* Pontos e posição */}
                     <div className="text-right flex-shrink-0">
-                      {s && (
+                      {isWaitingApproval ? (
+                        <>
+                          <p className="text-xs font-black text-yellow-300">Pendente</p>
+                          <p className="text-[10px] text-zinc-500">Ver bolão</p>
+                        </>
+                      ) : s && (
                         <>
                           <p className="font-black text-brand text-base">{s.totalPoints} pts</p>
                           <p className="text-xs text-zinc-500">

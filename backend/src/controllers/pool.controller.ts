@@ -455,7 +455,7 @@ export async function myPools(req: AuthRequest, res: Response): Promise<void> {
     const memberships = await prisma.poolMember.findMany({
       where: {
         userId,
-        status: 'APPROVED',
+        status: { in: ['APPROVED', 'PENDING'] },
         pool: { isActive: true },
       },
       include: {
@@ -474,6 +474,7 @@ export async function myPools(req: AuthRequest, res: Response): Promise<void> {
       ...m.pool,
       myScore: m.score,
       joinedAt: m.joinedAt,
+      membershipStatus: m.status,
     }));
 
     res.json({ pools });
