@@ -11,31 +11,31 @@ import { useAuth } from '../hooks/useAuth';
 
 // Dados mock para exibição na home pública
 const FEATURED_POOLS = [
-  { id: '1', name: 'Bolão do Brasileirão 2026', championship: 'Brasileirão Série A', members: 247, isLive: true },
-  { id: '2', name: 'Copa do Brasil — Galera do Bar', championship: 'Copa do Brasil', members: 18, isLive: false },
-  { id: '3', name: 'Libertadores dos Amigos', championship: 'Copa Libertadores', members: 32, isLive: true },
+  { id: '1', name: 'Bolão da Copa do Mundo 2026', championship: 'Copa do Mundo FIFA 2026', members: 32, isLive: true },
+  { id: '2', name: 'Bolão da família', championship: 'Copa do Mundo FIFA 2026', members: 18, isLive: false },
+  { id: '3', name: 'Bolão da firma', championship: 'Copa do Mundo FIFA 2026', members: 24, isLive: false },
 ];
 
 const FEATURES = [
   {
     icon: <Trophy className="w-6 h-6 text-brand" />,
     title: 'Crie seu bolão',
-    description: 'Monte um bolão em segundos e convide seus amigos com um código único.',
+    description: 'Crie um bolão da Copa em segundos e compartilhe o convite pelo WhatsApp.',
   },
   {
     icon: <Zap className="w-6 h-6 text-brand" />,
     title: 'Palpites em tempo real',
-    description: 'Dê seus palpites antes dos jogos e acompanhe o placar ao vivo.',
+    description: 'Cada jogador faz seus palpites antes dos jogos e acompanha a disputa rodada a rodada.',
   },
   {
     icon: <TrendingUp className="w-6 h-6 text-brand" />,
     title: 'Ranking dinâmico',
-    description: 'Tabela de classificação atualizada automaticamente após cada rodada.',
+    description: 'Ranking atualizado para todo mundo saber quem está liderando o bolão.',
   },
   {
     icon: <Users className="w-6 h-6 text-brand" />,
     title: 'Para toda a galera',
-    description: 'Bolões públicos ou privados. Jogue com amigos, família ou colegas de trabalho.',
+    description: 'Bolões públicos ou privados para amigos, família, trabalho, bar ou comunidade.',
   },
 ];
 
@@ -70,21 +70,21 @@ export function HomePage() {
           <div className="flex justify-center mb-6">
             <Badge variant="brand">
               <Star className="w-3 h-3" />
-              Temporada 2026 aberta
+              Copa do Mundo 2026 disponível
             </Badge>
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-none mb-6">
-            <span className="text-text-primary">Seu bolão.</span>
+            <span className="text-text-primary">Crie seu bolão</span>
             <br />
-            <span className="text-gradient-brand">Suas regras.</span>
+            <span className="text-gradient-brand">da Copa 2026.</span>
             <br />
-            <span className="text-text-primary">Sua glória.</span>
+            <span className="text-text-primary">Convide a galera.</span>
           </h1>
 
           <p className="text-text-secondary text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-            Crie bolões esportivos, dê seus palpites e dispute com amigos em tempo real.
-            A plataforma definitiva para quem vive o futebol brasileiro.
+            Monte seu bolão da Copa do Mundo FIFA 2026, convide amigos pelo WhatsApp,
+            receba palpites, acompanhe ranking e deixe a disputa muito mais divertida.
           </p>
 
           {/* CTAs para visitantes */}
@@ -102,18 +102,25 @@ export function HomePage() {
             </Link>
           </div>
 
-          <p className="mt-8 text-text-muted text-sm">
-            Mais de <span className="text-brand font-semibold">10.000</span> palpites registrados essa temporada
+          <div className="mt-8 grid grid-cols-2 gap-3 max-w-xl mx-auto text-sm text-zinc-300">
+            <div>✓ Convites por WhatsApp</div>
+            <div>✓ Ranking automático</div>
+            <div>✓ Bolões públicos e privados</div>
+            <div>✓ Premiação personalizada</div>
+          </div>
+
+          <p className="mt-6 text-text-muted text-sm">
+            Crie grátis seu primeiro bolão. Upgrade PRO anual disponível para organizar mais grupos.
           </p>
         </div>
       </section>
 
-      {/* ── Bolões em destaque ───────────────────────────────── */}
+      {/* ── Ideias de bolões para a Copa ───────────────────────────────── */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-xl font-bold text-text-primary">Bolões em destaque</h2>
-            <p className="text-text-secondary text-sm mt-1">Participe agora mesmo</p>
+            <p className="text-text-secondary text-sm mt-1">Crie o seu e convide amigos, família ou trabalho</p>
           </div>
           <Link to="/pools" className="text-brand text-sm font-medium hover:text-brand-light flex items-center gap-1">
             Ver todos <ArrowRight className="w-4 h-4" />
@@ -153,10 +160,10 @@ export function HomePage() {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 border-t border-border-subtle">
         <div className="text-center mb-10">
           <h2 className="text-2xl sm:text-3xl font-bold text-text-primary mb-3">
-            Tudo que você precisa para o bolão perfeito
+            Tudo pronto para o bolão da Copa 2026
           </h2>
           <p className="text-text-secondary max-w-xl mx-auto">
-            Simples de criar, divertido de jogar, impossível de parar.
+            Convite, palpites, ranking, coringa e premiação em uma experiência simples.
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -182,10 +189,10 @@ export function HomePage() {
           }}
         >
           <h2 className="text-2xl sm:text-3xl font-black text-text-primary mb-4">
-            Pronto para entrar no jogo?
+            Pronto para criar seu bolão da Copa?
           </h2>
           <p className="text-text-secondary mb-8 max-w-md mx-auto">
-            Crie sua conta grátis e comece a criar bolões agora mesmo.
+            Comece grátis, convide a galera e teste o Na Gaveta antes da bola rolar.
           </p>
           <Link to="/register">
             <Button size="lg" className="shadow-brand">
