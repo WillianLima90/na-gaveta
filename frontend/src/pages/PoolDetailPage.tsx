@@ -809,12 +809,12 @@ const rightColumn = (
       {/* ── PREMIAÇÃO DO BOLÃO ─────────────────────────────── */}
       <CollapsibleSection
         title="Premiação do bolão"
-        defaultOpen={isOwner}
+        defaultOpen={isOwner || Boolean(pool.prizeDescription)}
         onToggle={() => {}}
         icon="book"
       >
         <div className="space-y-3">
-          <p className="text-xs text-zinc-500">Prêmios, porcentagens e observações do admin.</p>
+          <p className="text-xs text-zinc-400">Veja a distribuição de prêmios, valores e observações definidas pelo admin do bolão.</p>
 
           {isOwner ? (
             <div className="space-y-3">
@@ -866,7 +866,7 @@ const rightColumn = (
                   Última atualização: {prizeUpdatedLabel}
                 </p>
               )}
-              <div className="whitespace-pre-line rounded-xl border border-yellow-400/15 bg-yellow-400/5 p-3 text-sm leading-relaxed text-zinc-200">
+              <div className="whitespace-pre-line rounded-2xl border border-yellow-400/30 bg-yellow-400/10 p-4 text-sm leading-relaxed text-zinc-100 shadow-sm">
                 {pool.prizeDescription}
               </div>
             </>
