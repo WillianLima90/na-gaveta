@@ -15,7 +15,12 @@ export function RegisterPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard';
+  const stateFrom = (location.state as { from?: string | { pathname?: string; search?: string; hash?: string } } | null)?.from;
+  const from = typeof stateFrom === 'string'
+    ? stateFrom
+    : stateFrom?.pathname
+      ? `${stateFrom.pathname}${stateFrom.search || ''}${stateFrom.hash || ''}`
+      : '/dashboard';
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

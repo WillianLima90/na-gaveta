@@ -22,7 +22,12 @@ export function LoginPage() {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   // Redirecionar para a rota de origem após login
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard';
+  const stateFrom = (location.state as { from?: string | { pathname?: string; search?: string; hash?: string } } | null)?.from;
+  const from = typeof stateFrom === 'string'
+    ? stateFrom
+    : stateFrom?.pathname
+      ? `${stateFrom.pathname}${stateFrom.search || ''}${stateFrom.hash || ''}`
+      : '/dashboard';
 
   const validate = (): boolean => {
     const newErrors: typeof errors = {};
