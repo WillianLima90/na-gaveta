@@ -165,9 +165,15 @@ export default function PoolDetailPage() {
       });
     }
 
+    const hasJoker = entries.some(([, pred]) => Boolean(pred.isJoker));
+
     setPendingPredictions({});
-    setSaveMessage(`${total} palpite${total > 1 ? 's' : ''} salvo${total > 1 ? 's' : ''} com sucesso`);
-    setTimeout(() => setSaveMessage(null), 3000);
+    setSaveMessage(
+      hasJoker
+        ? `${total} palpite${total > 1 ? 's' : ''} salvo${total > 1 ? 's' : ''} com sucesso`
+        : `${total} palpite${total > 1 ? 's' : ''} salvo${total > 1 ? 's' : ''} com sucesso. Atenção: você ainda não escolheu seu Coringa.`
+    );
+    setTimeout(() => setSaveMessage(null), hasJoker ? 3000 : 6000);
     await loadData();
   }
 
