@@ -1131,17 +1131,20 @@ const rightColumn = (
               </button>
             )}
             {!isMember && pool.membershipStatus === "PENDING" && <Badge variant="warning">Aguardando aprovação</Badge>}
-            {(user as any)?.role === 'ADMIN' && (
-              <button
-                onClick={handleDeletePool}
-                className="ml-2 text-[10px] px-2 py-1 rounded-md bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition"
-              >
-                Deletar
-              </button>
-            )}
-
           </div>
         </div>
+        {(user as any)?.role === 'ADMIN' && (
+          <div className="w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={handleDeletePool}
+              className="w-full sm:w-auto flex items-center justify-center rounded-xl border border-red-500/30 bg-red-500/15 px-3 py-2 text-xs font-bold text-red-300 hover:bg-red-500/25 transition"
+            >
+              Deletar bolão
+            </button>
+          </div>
+        )}
+
         <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2 flex-shrink-0">
           <button
             onClick={copyCode}
