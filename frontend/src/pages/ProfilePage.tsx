@@ -58,6 +58,11 @@ export default function ProfilePage() {
   const [avatarOffsetY, setAvatarOffsetY] = useState(0);
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
 
   // Estatísticas agregadas
   const [totalPoints, setTotalPoints] = useState(0);
@@ -165,6 +170,41 @@ export default function ProfilePage() {
       setTimeout(() => setProfileSaved(false), 1800);
     } finally {
       setSavingProfile(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (passwordSaving) return;
+    setPasswordMessage(null);
+
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      setPasswordMessage('Preencha todos os campos de senha.');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordMessage('A nova senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordMessage('A confirmação da nova senha não confere.');
+      return;
+    }
+
+    setPasswordSaving(true);
+
+    try {
+      await authService.changePassword({ currentPassword, newPassword });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+      setPasswordMessage('Senha alterada com sucesso.');
+      setTimeout(() => setPasswordMessage(null), 3000);
+    } catch (err: any) {
+      setPasswordMessage(err?.response?.data?.error || 'Erro ao alterar senha.');
+    } finally {
+      setPasswordSaving(false);
     }
   };
 
@@ -311,6 +351,53 @@ export default function ProfilePage() {
               {pools.length} {pools.length === 1 ? 'bolão' : 'bolões'}
             </Badge>
           </div>
+        </div>
+      </div>
+
+      {/* ── ALTERAR SENHA ───────────────────────────────────── */}
+      <div className="mb-6 p-4 bg-zinc-900/90 border border-zinc-800 rounded-2xl shadow-xl">
+        <h2 className="font-bold text-white text-base mb-3">Alterar senha</h2>
+
+        <div className="space-y-3">
+          <input
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            placeholder="Senha atual"
+            className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-white outline-none focus:border-brand"
+          />
+
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="Nova senha"
+            className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-white outline-none focus:border-brand"
+          />
+
+          <input
+            type="password"
+            value={confirmNewPassword}
+            onChange={(e) => setConfirmNewPassword(e.target.value)}
+            placeholder="Confirmar nova senha"
+            className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-white outline-none focus:border-brand"
+          />
+
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs text-zinc-500">Use pelo menos 6 caracteres.</p>
+            <button
+              type="button"
+              onClick={handleChangePassword}
+              disabled={passwordSaving}
+              className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white shadow-lg shadow-brand/20 transition-opacity disabled:opacity-60"
+            >
+              {passwordSaving ? 'Salvando...' : 'Alterar senha'}
+            </button>
+          </div>
+
+          {passwordMessage && (
+            <p className="text-xs text-zinc-300">{passwordMessage}</p>
+          )}
         </div>
       </div>
 

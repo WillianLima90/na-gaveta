@@ -26,6 +26,11 @@ export const authService = {
     return data.user;
   },
 
+  async changePassword(payload: { currentPassword: string; newPassword: string }): Promise<{ message: string }> {
+    const { data } = await api.patch<{ message: string }>('/auth/change-password', payload);
+    return data;
+  },
+
   // Persistir sessão no localStorage
   saveSession(token: string, user: User): void {
     localStorage.setItem('ng_token', token);

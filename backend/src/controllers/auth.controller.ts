@@ -167,6 +167,60 @@ export async function updateProfile(req: AuthRequest, res: Response): Promise<vo
   }
 }
 
+// ── Alterar senha do usuário autenticado ─────────────────────
+export async function changePassword(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user?.userId;
+    const { currentPassword, newPassword } = req.body as {
+      currentPassword?: string;
+      newPassword?: string;
+    };
+
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ error: 'Informe a senha atual e a nova senha.' });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      res.status(400).json({ error: 'A nova senha deve ter pelo menos 6 caracteres.' });
+      return;
+    }
+
+    if (currentPassword === newPassword) {
+      res.status(400).json({ error: 'A nova senha deve ser diferente da senha atual.' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, passwordHash: true, isActive: true },
+    });
+
+    if (!user || !user.isActive) {
+      res.status(404).json({ error: 'Usuário não encontrado.' });
+      return;
+    }
+
+    const passwordMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!passwordMatch) {
+      res.status(401).json({ error: 'Senha atual incorreta.' });
+      return;
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    res.json({ message: 'Senha alterada com sucesso.' });
+  } catch (err) {
+    console.error('[Auth] Erro ao alterar senha:', err);
+    res.status(500).json({ error: 'Erro ao alterar senha.' });
+  }
+}
+
 // ── Helper: gerar JWT ────────────────────────────────────────
 function generateToken(userId: string, email: string, role: string): string {
   const secret = process.env.JWT_SECRET!;
