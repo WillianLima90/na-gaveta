@@ -23,6 +23,8 @@ name: string;
 email: string;
 avatarUrl?: string;
 };
+favoriteTeam?: string | null;
+predictionCount?: number;
 }
 
 export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
@@ -184,6 +186,60 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
                         <XCircle size={12} /> Recusar
                       </button>
                     </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {approvedMembers.some((member) => !member.favoriteTeam) && (
+            <div className="border-b border-zinc-800 bg-amber-500/5 px-4 py-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Users size={14} className="text-amber-400" />
+                <span className="text-sm font-bold text-amber-300">
+                  Sem time do coração ({approvedMembers.filter((member) => !member.favoriteTeam).length})
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {approvedMembers.filter((member) => !member.favoriteTeam).map((member) => (
+                  <div
+                    key={member.id}
+                    className="rounded-xl border border-amber-500/20 bg-zinc-900/70 px-3 py-2"
+                  >
+                    <p className="text-sm font-semibold text-white truncate">
+                      {member.user.name}
+                    </p>
+                    <p className="text-xs text-zinc-500 truncate">
+                      {member.user.email}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {approvedMembers.some((member) => (member.predictionCount ?? 0) === 0) && (
+            <div className="border-b border-zinc-800 bg-red-500/5 px-4 py-4">
+              <div className="flex items-center gap-2 mb-3">
+                <XCircle size={14} className="text-red-400" />
+                <span className="text-sm font-bold text-red-300">
+                  Sem palpites salvos ({approvedMembers.filter((member) => (member.predictionCount ?? 0) === 0).length})
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {approvedMembers.filter((member) => (member.predictionCount ?? 0) === 0).map((member) => (
+                  <div
+                    key={member.id}
+                    className="rounded-xl border border-red-500/20 bg-zinc-900/70 px-3 py-2"
+                  >
+                    <p className="text-sm font-semibold text-white truncate">
+                      {member.user.name}
+                    </p>
+                    <p className="text-xs text-zinc-500 truncate">
+                      {member.user.email}
+                    </p>
                   </div>
                 ))}
               </div>

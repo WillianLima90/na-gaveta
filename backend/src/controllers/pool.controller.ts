@@ -825,11 +825,28 @@ export async function listApprovedMembers(req: AuthRequest, res: Response): Prom
 
     const members = await prisma.poolMember.findMany({
       where: { poolId, status: 'APPROVED' },
-      include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } },
+      include: {
+        user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+      },
       orderBy: { joinedAt: 'asc' },
     });
 
-    res.json({ members });
+    const predictionCounts = await prisma.prediction.groupBy({
+      by: ['userId'],
+      where: { poolId },
+      _count: { id: true },
+    });
+
+    const predictionCountByUserId = new Map(
+      predictionCounts.map((item) => [item.userId, item._count.id])
+    );
+
+    res.json({
+      members: members.map((member) => ({
+        ...member,
+        predictionCount: predictionCountByUserId.get(member.userId) ?? 0,
+      })),
+    });
   } catch (err) {
     console.error('[Pool] Erro ao listar participantes:', err);
     res.status(500).json({ error: 'Erro ao listar participantes.' });
