@@ -6,7 +6,7 @@
 // ============================================================
 
 import { useEffect, useState } from 'react';
-import { ChevronDown, ChevronUp, Users, CheckCircle2, XCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp, Users, CheckCircle2, XCircle, ClipboardList } from 'lucide-react';
 import api from "../services/api";
 
 interface AdminPanelProps {
@@ -27,12 +27,41 @@ favoriteTeam?: string | null;
 predictionCount?: number;
 }
 
+interface PendingPredictionUser {
+  userId: string;
+  name: string;
+  email: string;
+  avatarUrl?: string | null;
+}
+
+interface AdminPredictionMatchStatus {
+  id: string;
+  homeTeam: string;
+  awayTeam: string;
+  matchDate: string;
+  status: string;
+  doneCount: number;
+  totalMembers: number;
+  pendingUsers: PendingPredictionUser[];
+}
+
+interface AdminPredictionRoundStatus {
+  id: string;
+  number: number;
+  name?: string | null;
+  matches: AdminPredictionMatchStatus[];
+}
+
 export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
-  const [expanded, setExpanded] = useState(false);
+  const [playersExpanded, setPlayersExpanded] = useState(true);
+  const [predictionsExpanded, setPredictionsExpanded] = useState(true);
+  const [settingsExpanded, setSettingsExpanded] = useState(false);
   const [pendingMembers, setPendingMembers] = useState<PoolMemberAdmin[]>([]);
   const [approvedMembers, setApprovedMembers] = useState<PoolMemberAdmin[]>([]);
   const [isPublic, setIsPublic] = useState(true);
   const [memberError, setMemberError] = useState("");
+  const [predictionRounds, setPredictionRounds] = useState<AdminPredictionRoundStatus[]>([]);
+  const [expandedPendingMatchIds, setExpandedPendingMatchIds] = useState<Record<string, boolean>>({});
 
 
   async function loadMembersAdmin() {
@@ -45,11 +74,16 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
       setPendingMembers(pendingRes.data.members ?? []);
       setApprovedMembers(approvedRes.data.members ?? []);
 
-      const poolRes = await api.get(`/pools/${poolId}`);
+      const [poolRes, predictionStatusRes] = await Promise.all([
+        api.get(`/pools/${poolId}`),
+        api.get(`/pools/${poolId}/admin/prediction-status`),
+      ]);
       setIsPublic(!!poolRes.data.pool?.isPublic);
+      setPredictionRounds(predictionStatusRes.data.rounds ?? []);
     } catch {
       setPendingMembers([]);
       setApprovedMembers([]);
+      setPredictionRounds([]);
     }
   }
 
@@ -82,37 +116,281 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
   }
 
   return (
-    <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl overflow-hidden">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-zinc-800/40 transition-colors"
-      >
-        <div className="flex items-center gap-2">
-          <Users size={13} className={pendingMembers.length > 0 ? "text-yellow-400" : "text-zinc-500"} />
-          <span className={pendingMembers.length > 0 ? "text-xs font-black text-yellow-300 animate-pulse" : "text-xs font-medium text-zinc-500"}>
-            {pendingMembers.length > 0
-              ? `Admin — ${pendingMembers.length} solicitação${pendingMembers.length !== 1 ? "ões" : ""} pendente${pendingMembers.length !== 1 ? "s" : ""}`
-              : "Administração do bolão"}
-          </span>
+    <div className="space-y-4">
+      {memberError && (
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-300">
+          {memberError}
         </div>
-        {expanded ? (
-          <ChevronUp size={13} className="text-zinc-600" />
-        ) : (
+      )}
 
-          <ChevronDown size={13} className="text-zinc-600" />
-        )}
-      </button>
+      <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setPlayersExpanded(!playersExpanded)}
+          className="w-full flex items-center justify-between px-4 py-3 hover:bg-zinc-800/40 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <Users size={15} className="text-brand" />
+            <span className="text-sm font-black text-white">
+              Gestão dos jogadores
+            </span>
+            {pendingMembers.length > 0 && (
+              <span className="rounded-full bg-yellow-500/15 px-2 py-0.5 text-[11px] font-black text-yellow-300">
+                {pendingMembers.length} pendente{pendingMembers.length !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+          {playersExpanded ? <ChevronUp size={14} className="text-zinc-600" /> : <ChevronDown size={14} className="text-zinc-600" />}
+        </button>
 
-      {expanded && (
-        <div className="border-t border-zinc-800">
-          {memberError && (
-            <div className="mx-4 mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-300">
-              {memberError}
+        {playersExpanded && (
+          <div className="border-t border-zinc-800">
+            {pendingMembers.length > 0 && (
+              <div className="border-b border-zinc-800 bg-yellow-500/5 px-4 py-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Users size={14} className="text-yellow-400" />
+                  <span className="text-sm font-bold text-yellow-300">
+                    Solicitações pendentes ({pendingMembers.length})
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {pendingMembers.map((member) => (
+                    <div key={member.id} className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900/70 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">{member.user.name}</p>
+                        <p className="text-xs text-zinc-500 truncate">{member.user.email}</p>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button onClick={() => handleModerateMember(member.id, "approve")} className="flex items-center gap-1 rounded-lg bg-green-500/15 hover:bg-green-500/25 border border-green-500/30 px-2 py-1 text-xs font-bold text-green-300 transition-colors">
+                          <CheckCircle2 size={12} /> Aprovar
+                        </button>
+                        <button onClick={() => handleModerateMember(member.id, "reject")} className="flex items-center gap-1 rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 px-2 py-1 text-xs font-bold text-red-300 transition-colors">
+                          <XCircle size={12} /> Recusar
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {approvedMembers.some((member) => !member.favoriteTeam) && (
+              <div className="border-b border-zinc-800 bg-amber-500/5 px-4 py-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Users size={14} className="text-amber-400" />
+                  <span className="text-sm font-bold text-amber-300">
+                    Sem time do coração ({approvedMembers.filter((member) => !member.favoriteTeam).length})
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {approvedMembers.filter((member) => !member.favoriteTeam).map((member) => (
+                    <div key={member.id} className="rounded-xl border border-amber-500/20 bg-zinc-900/70 px-3 py-2">
+                      <p className="text-sm font-semibold text-white truncate">{member.user.name}</p>
+                      <p className="text-xs text-zinc-500 truncate">{member.user.email}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="px-4 py-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <span className="text-sm font-bold text-zinc-300">
+                  Jogadores / participantes ({approvedMembers.length})
+                </span>
+                <span className="text-[11px] font-bold text-zinc-500">
+                  Gestão dos jogadores
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {approvedMembers.map((member) => {
+                  const noPredictions = (member.predictionCount ?? 0) === 0;
+
+                  return (
+                    <div key={member.id} className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">{member.user.name}</p>
+                        <p className="text-xs text-zinc-500 truncate">{member.user.email}</p>
+
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {member.favoriteTeam ? (
+                            <span className="rounded-full bg-green-500/10 px-2 py-1 text-[11px] font-bold text-green-300">
+                              Time: {member.favoriteTeam}
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-amber-500/10 px-2 py-1 text-[11px] font-bold text-amber-300">
+                              Sem time do coração
+                            </span>
+                          )}
+
+                          <span className={`rounded-full px-2 py-1 text-[11px] font-bold ${noPredictions ? 'bg-red-500/10 text-red-300' : 'bg-zinc-800 text-zinc-300'}`}>
+                            {member.predictionCount ?? 0} palpite{(member.predictionCount ?? 0) !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                      </div>
+
+                      <button onClick={() => handleRemoveMember(member.id)} className="shrink-0 rounded-lg border border-red-500/30 bg-red-500/10 px-2 py-1 text-xs font-bold text-red-300 hover:bg-red-500/20 transition-colors">
+                        Remover
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          )}
+          </div>
+        )}
+      </section>
 
-          <div className="border-b border-zinc-800 bg-zinc-950/40 px-4 py-3">
-            <div className="flex items-center justify-between gap-3">
+      <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setPredictionsExpanded(!predictionsExpanded)}
+          className="w-full flex items-center justify-between px-4 py-3 hover:bg-zinc-800/40 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <ClipboardList size={15} className="text-brand" />
+            <span className="text-sm font-black text-white">
+              Gestão dos palpites
+            </span>
+          </div>
+          {predictionsExpanded ? <ChevronUp size={14} className="text-zinc-600" /> : <ChevronDown size={14} className="text-zinc-600" />}
+        </button>
+
+        {predictionsExpanded && (
+          <div className="border-t border-zinc-800 px-4 py-4">
+            {predictionRounds.length > 0 ? (
+              <div className="space-y-4">
+                {predictionRounds.map((round) => {
+                  const pendingMatches = round.matches
+                    .filter((match) => match.pendingUsers.length > 0)
+                    .sort((a, b) => new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime());
+                  const completeMatches = round.matches.length - pendingMatches.length;
+                  const uniquePendingUsers = new Set(
+                    pendingMatches.flatMap((match) => match.pendingUsers.map((user) => user.userId))
+                  );
+                  const reminderText =
+                    `Pessoal, lembrete rápido do bolão Na Gaveta: ainda existem palpites pendentes na Rodada ${round.number}. ` +
+                    `Entrem no bolão e salvem seus palpites antes do fechamento dos jogos.`;
+
+                  return (
+                    <div key={round.id} className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-3">
+                      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-wide text-zinc-400">
+                            Rodada {round.number}{round.name ? ` — ${round.name}` : ''}
+                          </p>
+                          <p className="mt-1 text-[11px] font-black text-amber-300">
+                            {uniquePendingUsers.size > 0
+                              ? `Atenção: ${uniquePendingUsers.size} participante${uniquePendingUsers.size !== 1 ? 's' : ''} com pendência`
+                              : 'Todos os participantes concluíram a rodada'}
+                          </p>
+                          <p className="mt-0.5 text-[11px] font-bold text-zinc-500">
+                            {round.matches.length} jogos · {completeMatches} completos · {pendingMatches.length} com pendência
+                          </p>
+                        </div>
+
+                        {pendingMatches.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                await navigator.clipboard.writeText(reminderText);
+                                alert('Lembrete copiado.');
+                              } catch {
+                                alert(reminderText);
+                              }
+                            }}
+                            className="w-full rounded-xl border border-brand/30 bg-brand/10 px-3 py-2 text-xs font-black text-brand hover:bg-brand/20 transition sm:w-auto"
+                          >
+                            Copiar lembrete WhatsApp
+                          </button>
+                        )}
+                      </div>
+
+                      {pendingMatches.length === 0 ? (
+                        <div className="rounded-xl border border-green-500/20 bg-green-500/5 px-3 py-3 text-sm font-bold text-green-300">
+                          Todos os participantes concluíram os palpites desta rodada.
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {pendingMatches.map((match) => (
+                            <div key={match.id} className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <p className="truncate text-sm font-bold text-white">{match.homeTeam} x {match.awayTeam}</p>
+                                  <p className="mt-1 text-[11px] text-zinc-500">
+                                    {new Date(match.matchDate).toLocaleString('pt-BR', {
+                                      day: '2-digit',
+                                      month: '2-digit',
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    })}
+                                  </p>
+                                </div>
+
+                                <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-1 text-[11px] font-black text-amber-300">
+                                  {match.pendingUsers.length} pendente{match.pendingUsers.length !== 1 ? 's' : ''}
+                                </span>
+                              </div>
+
+                              <div className="mt-2 border-t border-zinc-800 pt-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setExpandedPendingMatchIds((prev) => ({
+                                      ...prev,
+                                      [match.id]: !prev[match.id],
+                                    }))
+                                  }
+                                  className="text-xs font-bold text-amber-300 hover:text-amber-200 transition"
+                                >
+                                  {expandedPendingMatchIds[match.id] ? 'Ocultar nomes' : 'Ver nomes'}
+                                </button>
+
+                                {expandedPendingMatchIds[match.id] && (
+                                  <div className="mt-2 flex flex-wrap gap-1.5">
+                                    {match.pendingUsers.map((user) => (
+                                      <span key={user.userId} className="rounded-full bg-zinc-800 px-2 py-1 text-[11px] font-semibold text-zinc-300">
+                                        {user.name}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-sm text-zinc-500">
+                Nenhuma rodada aberta encontrada para acompanhamento.
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setSettingsExpanded(!settingsExpanded)}
+          className="w-full flex items-center justify-between px-4 py-3 hover:bg-zinc-800/40 transition-colors"
+        >
+          <span className="text-sm font-black text-white">Configurações do bolão</span>
+          {settingsExpanded ? <ChevronUp size={14} className="text-zinc-600" /> : <ChevronDown size={14} className="text-zinc-600" />}
+        </button>
+
+        {settingsExpanded && (
+          <div className="border-t border-zinc-800 px-4 py-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-xs font-bold text-white">
                   Visibilidade do bolão
@@ -147,143 +425,9 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
               </button>
             </div>
           </div>
-          {pendingMembers.length > 0 && (
-            <div className="border-b border-zinc-800 bg-yellow-500/5 px-4 py-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Users size={14} className="text-yellow-400" />
-                <span className="text-sm font-bold text-yellow-300">
-                  Solicitações pendentes ({pendingMembers.length})
-                </span>
-              </div>
-
-              <div className="space-y-2">
-                {pendingMembers.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-900/70 px-3 py-2"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-white truncate">
-                        {member.user.name}
-                      </p>
-                      <p className="text-xs text-zinc-500 truncate">
-                        {member.user.email}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => handleModerateMember(member.id, "approve")}
-                        className="flex items-center gap-1 rounded-lg bg-green-500/15 hover:bg-green-500/25 border border-green-500/30 px-2 py-1 text-xs font-bold text-green-300 transition-colors"
-                      >
-                        <CheckCircle2 size={12} /> Aprovar
-                      </button>
-
-                      <button
-                        onClick={() => handleModerateMember(member.id, "reject")}
-                        className="flex items-center gap-1 rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 px-2 py-1 text-xs font-bold text-red-300 transition-colors"
-                      >
-                        <XCircle size={12} /> Recusar
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {approvedMembers.some((member) => !member.favoriteTeam) && (
-            <div className="border-b border-zinc-800 bg-amber-500/5 px-4 py-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Users size={14} className="text-amber-400" />
-                <span className="text-sm font-bold text-amber-300">
-                  Sem time do coração ({approvedMembers.filter((member) => !member.favoriteTeam).length})
-                </span>
-              </div>
-
-              <div className="space-y-2">
-                {approvedMembers.filter((member) => !member.favoriteTeam).map((member) => (
-                  <div
-                    key={member.id}
-                    className="rounded-xl border border-amber-500/20 bg-zinc-900/70 px-3 py-2"
-                  >
-                    <p className="text-sm font-semibold text-white truncate">
-                      {member.user.name}
-                    </p>
-                    <p className="text-xs text-zinc-500 truncate">
-                      {member.user.email}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {approvedMembers.some((member) => (member.predictionCount ?? 0) === 0) && (
-            <div className="border-b border-zinc-800 bg-red-500/5 px-4 py-4">
-              <div className="flex items-center gap-2 mb-3">
-                <XCircle size={14} className="text-red-400" />
-                <span className="text-sm font-bold text-red-300">
-                  Sem palpites salvos ({approvedMembers.filter((member) => (member.predictionCount ?? 0) === 0).length})
-                </span>
-              </div>
-
-              <div className="space-y-2">
-                {approvedMembers.filter((member) => (member.predictionCount ?? 0) === 0).map((member) => (
-                  <div
-                    key={member.id}
-                    className="rounded-xl border border-red-500/20 bg-zinc-900/70 px-3 py-2"
-                  >
-                    <p className="text-sm font-semibold text-white truncate">
-                      {member.user.name}
-                    </p>
-                    <p className="text-xs text-zinc-500 truncate">
-                      {member.user.email}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {approvedMembers.length > 0 && (
-            <div className="border-b border-zinc-800 bg-zinc-950/40 px-4 py-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Users size={14} className="text-zinc-400" />
-                <span className="text-sm font-bold text-zinc-300">
-                  Participantes aprovados ({approvedMembers.length})
-                </span>
-              </div>
-
-              <div className="space-y-2">
-                {approvedMembers.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 py-2"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-white truncate">
-                        {member.user.name}
-                      </p>
-                      <p className="text-xs text-zinc-500 truncate">
-                        {member.user.email}
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={() => handleRemoveMember(member.id)}
-                      className="shrink-0 rounded-lg border border-red-500/30 bg-red-500/10 px-2 py-1 text-xs font-bold text-red-300 hover:bg-red-500/20 transition-colors"
-                    >
-                      Remover
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-        </div>
-      )}
+        )}
+      </section>
     </div>
+
   );
 }

@@ -16,7 +16,7 @@
 // ============================================================
 
 import { Router } from 'express';
-import { listPools, getPool, createPool, joinPool, joinPoolById, myPools, drawBonusRound, setFavoriteTeam, listPendingMembers, approveMember, rejectMember, listApprovedMembers, removeMember, leavePool, updatePoolVisibility, cancelJoinRequest, updatePoolPrize, updatePoolRules } from '../controllers/pool.controller';
+import { listPools, getPool, createPool, joinPool, joinPoolById, myPools, drawBonusRound, setFavoriteTeam, listPendingMembers, approveMember, rejectMember, listApprovedMembers, removeMember, leavePool, updatePoolVisibility, cancelJoinRequest, updatePoolPrize, updatePoolRules, adminPredictionStatus } from '../controllers/pool.controller';
 import { deletePool } from '../controllers/pool.controller';
 import { authenticate, optionalAuthenticate } from '../middlewares/auth.middleware';
 import { poolMatchesRouter } from './match.routes';
@@ -41,6 +41,7 @@ router.patch('/:id/favorite-team', authenticate, setFavoriteTeam);
 router.post('/:id/bonus/draw', authenticate, drawBonusRound);
 router.get("/:id/members/pending", authenticate, listPendingMembers);
 router.get("/:id/members/approved", authenticate, listApprovedMembers);
+router.get("/:id/admin/prediction-status", authenticate, adminPredictionStatus);
 router.patch("/:id/members/:memberId/approve", authenticate, approveMember);
 router.patch("/:id/members/:memberId/reject", authenticate, rejectMember);
 router.patch("/:id/visibility", authenticate, updatePoolVisibility);

@@ -853,6 +853,119 @@ export async function listApprovedMembers(req: AuthRequest, res: Response): Prom
   }
 }
 
+
+// ── GET /api/pools/:id/admin/prediction-status ───────────────
+export async function adminPredictionStatus(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user!.userId;
+    const { id: poolId } = req.params;
+
+    const isOwner = await assertPoolOwner(poolId, userId);
+    if (!isOwner) {
+      res.status(403).json({ error: 'Apenas o admin do bolão pode ver o status dos palpites.' });
+      return;
+    }
+
+    const pool = await prisma.pool.findUnique({
+      where: { id: poolId },
+      select: { id: true, championshipId: true, startingRoundId: true },
+    });
+
+    if (!pool) {
+      res.status(404).json({ error: 'Bolão não encontrado.' });
+      return;
+    }
+
+    const members = await prisma.poolMember.findMany({
+      where: { poolId, status: 'APPROVED' },
+      include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } },
+      orderBy: { joinedAt: 'asc' },
+    });
+
+    const now = new Date();
+
+    const nextRound = await prisma.round.findFirst({
+      where: {
+        championshipId: pool.championshipId,
+        matches: {
+          some: {
+            status: { in: ['SCHEDULED', 'LIVE'] },
+            matchDate: { gte: now },
+          },
+        },
+      },
+      orderBy: { number: 'asc' },
+      include: {
+        matches: {
+          where: {
+            status: { in: ['SCHEDULED', 'LIVE'] },
+            matchDate: { gte: now },
+          },
+          select: {
+            id: true,
+            homeTeam: true,
+            awayTeam: true,
+            matchDate: true,
+            status: true,
+          },
+          orderBy: { matchDate: 'asc' },
+        },
+      },
+    });
+
+    const rounds = nextRound ? [nextRound] : [];
+
+    const matchIds = rounds.flatMap((round) => round.matches.map((match) => match.id));
+
+    const predictions = await prisma.prediction.findMany({
+      where: { poolId, matchId: { in: matchIds } },
+      select: { userId: true, matchId: true, updatedAt: true },
+    });
+
+    const predictionByMatchId = new Map<string, Set<string>>();
+    for (const prediction of predictions) {
+      if (!predictionByMatchId.has(prediction.matchId)) {
+        predictionByMatchId.set(prediction.matchId, new Set<string>());
+      }
+      predictionByMatchId.get(prediction.matchId)!.add(prediction.userId);
+    }
+
+    const approvedUsers = members.map((member) => ({
+      userId: member.userId,
+      name: member.user.name,
+      email: member.user.email,
+      avatarUrl: member.user.avatarUrl,
+    }));
+
+    res.json({
+      totalMembers: members.length,
+      rounds: rounds.map((round) => ({
+        id: round.id,
+        number: round.number,
+        name: round.name,
+        matches: round.matches.map((match) => {
+          const doneUserIds = predictionByMatchId.get(match.id) ?? new Set<string>();
+          const pendingUsers = approvedUsers.filter((user) => !doneUserIds.has(user.userId));
+
+          return {
+            id: match.id,
+            homeTeam: match.homeTeam,
+            awayTeam: match.awayTeam,
+            matchDate: match.matchDate,
+            status: match.status,
+            doneCount: doneUserIds.size,
+            totalMembers: members.length,
+            pendingUsers,
+          };
+        }),
+      })),
+    });
+  } catch (err) {
+    console.error('[Pool] Erro ao buscar status dos palpites:', err);
+    res.status(500).json({ error: 'Erro ao buscar status dos palpites.' });
+  }
+}
+
 // ── PATCH /api/pools/:id/members/:memberId/approve ──────────
 export async function approveMember(req: AuthRequest, res: Response): Promise<void> {
   try {

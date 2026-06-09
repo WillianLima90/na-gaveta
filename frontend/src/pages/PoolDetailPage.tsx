@@ -36,7 +36,6 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import { MatchCard, isMatchLocked } from '../components/MatchCard';
 import { RulesTab } from '../components/RulesTab';
-import { AdminPanel } from '../components/AdminPanel';
 import { RankingBlock } from '../components/RankingBlock';
 import { OfficialChampionshipTable } from '../components/OfficialChampionshipTable';
 import { RoundNavigator } from '../components/RoundNavigator';
@@ -1170,10 +1169,16 @@ const rightColumn = (
       </div>
 
 
-      {/* ── ADMINISTRAÇÃO DO BOLÃO ───────────────────────── */}
+      {/* ── ATALHO ADMIN DO BOLÃO ───────────────────────── */}
       {isOwner && (
         <div className="mb-4">
-          <AdminPanel poolId={id!} onResultSet={loadData} />
+          <button
+            type="button"
+            onClick={() => navigate(`/pools/${id}/admin`)}
+            className="w-full rounded-2xl border border-brand/30 bg-brand/10 px-4 py-3 text-sm font-black text-brand hover:bg-brand/20 transition"
+          >
+            Admin do bolão
+          </button>
         </div>
       )}
 
