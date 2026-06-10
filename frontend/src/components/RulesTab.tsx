@@ -202,7 +202,7 @@ export function RulesTab({ poolId, isOwner, bonusRoundNumber, roundOptions, onRu
         onConfirm={handleConfirmBonusRound}
       />
       <div className="space-y-3">
-      {locked && (
+      {isOwner && locked && (
         <div className="text-xs text-red-400 px-2">
           Regras bloqueadas após início do campeonato
         </div>

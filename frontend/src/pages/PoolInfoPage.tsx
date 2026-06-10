@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpen, ChevronDown, CreditCard, Trophy } from 'lucide-react';
+import { ArrowLeft, BookOpen, ChevronDown, CreditCard, Target, Trophy } from 'lucide-react';
 import { getPool, type Pool } from '../services/pool.service';
 import { Spinner } from '../components/ui';
+import { RulesTab } from '../components/RulesTab';
 
 export default function PoolInfoPage() {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +13,7 @@ export default function PoolInfoPage() {
   const [showPrize, setShowPrize] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
+  const [showScoring, setShowScoring] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -160,6 +162,32 @@ export default function PoolInfoPage() {
                   Os dados para pagamento ainda não foram informados pelo admin do bolão.
                 </p>
               )}
+            </div>
+          )}
+        </div>
+
+
+        <div className="rounded-2xl border border-brand/20 bg-brand/5">
+          <button
+            type="button"
+            onClick={() => setShowScoring((v) => !v)}
+            className="flex w-full items-center justify-between gap-3 p-4 text-left"
+          >
+            <span className="flex items-center gap-2">
+              <Target size={17} className="text-brand" />
+              <span className="text-base font-black text-white">Pontuação do bolão</span>
+            </span>
+            <ChevronDown size={18} className={`text-zinc-400 transition ${showScoring ? 'rotate-180' : ''}`} />
+          </button>
+
+          {showScoring && (
+            <div className="px-4 pb-4">
+              <RulesTab
+                poolId={id}
+                isOwner={false}
+                bonusRoundNumber={null}
+                roundOptions={[]}
+              />
             </div>
           )}
         </div>
