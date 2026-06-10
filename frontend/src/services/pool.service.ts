@@ -14,6 +14,8 @@ export interface Pool {
   prizeUpdatedAt?: string | null;
   rulesDescription?: string | null;
   rulesUpdatedAt?: string | null;
+  paymentDescription?: string | null;
+  paymentUpdatedAt?: string | null;
   canEditPrize?: boolean;
   isPublic: boolean;
   maxMembers?: number;
@@ -111,6 +113,14 @@ export async function updatePoolRules(
   rulesDescription: string
 ): Promise<{ pool: Pool; message: string }> {
   const { data } = await api.patch(`/pools/${poolId}/rules`, { rulesDescription });
+  return data;
+}
+
+export async function updatePoolPayment(
+  poolId: string,
+  paymentDescription: string
+): Promise<{ pool: Pool; message: string }> {
+  const { data } = await api.patch(`/pools/${poolId}/payment`, { paymentDescription });
   return data;
 }
 

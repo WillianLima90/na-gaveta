@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpen, ChevronDown, Trophy } from 'lucide-react';
+import { ArrowLeft, BookOpen, ChevronDown, CreditCard, Trophy } from 'lucide-react';
 import { getPool, type Pool } from '../services/pool.service';
 import { Spinner } from '../components/ui';
 
@@ -11,6 +11,7 @@ export default function PoolInfoPage() {
   const [loading, setLoading] = useState(true);
   const [showPrize, setShowPrize] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -66,6 +67,16 @@ export default function PoolInfoPage() {
       })
     : null;
 
+  const paymentUpdatedLabel = pool.paymentUpdatedAt
+    ? new Date(pool.paymentUpdatedAt).toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : null;
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <div className="mb-4">
@@ -79,7 +90,7 @@ export default function PoolInfoPage() {
       </div>
 
       <div className="mb-5 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4">
-        <h1 className="text-xl font-black text-white">Premiação & Regras</h1>
+        <h1 className="text-xl font-black text-white">Premiação, Regras & Pagamento</h1>
         <p className="mt-1 text-sm font-semibold text-zinc-400">{pool.name}</p>
       </div>
 
@@ -112,6 +123,41 @@ export default function PoolInfoPage() {
               ) : (
                 <p className="rounded-xl border border-zinc-800 bg-black/20 p-3 text-sm text-zinc-500">
                   A premiação ainda não foi informada pelo admin do bolão.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+
+        <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5">
+          <button
+            type="button"
+            onClick={() => setShowPayment((v) => !v)}
+            className="flex w-full items-center justify-between gap-3 p-4 text-left"
+          >
+            <span className="flex items-center gap-2">
+              <CreditCard size={17} className="text-emerald-300" />
+              <span className="text-base font-black text-white">Dados para pagamento</span>
+            </span>
+            <ChevronDown size={18} className={`text-zinc-400 transition ${showPayment ? 'rotate-180' : ''}`} />
+          </button>
+
+          {showPayment && (
+            <div className="px-4 pb-4">
+              {paymentUpdatedLabel && (
+                <p className="mb-3 text-[11px] text-zinc-500">
+                  Última atualização: {paymentUpdatedLabel}
+                </p>
+              )}
+
+              {pool.paymentDescription ? (
+                <div className="whitespace-pre-line rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm leading-relaxed text-zinc-100">
+                  {pool.paymentDescription}
+                </div>
+              ) : (
+                <p className="rounded-xl border border-zinc-800 bg-black/20 p-3 text-sm text-zinc-500">
+                  Os dados para pagamento ainda não foram informados pelo admin do bolão.
                 </p>
               )}
             </div>

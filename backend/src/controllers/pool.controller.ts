@@ -1284,3 +1284,77 @@ export async function updatePoolPrize(req: AuthRequest, res: Response): Promise<
     res.status(500).json({ error: 'Erro ao alterar premiação do bolão.' });
   }
 }
+
+
+export async function updatePoolPayment(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user!.userId;
+    const { id: poolId } = req.params;
+    const { paymentDescription } = req.body as { paymentDescription?: string };
+
+    const isOwner = await assertPoolOwner(poolId, userId);
+    const isPlatformAdmin = req.user?.role === 'ADMIN';
+
+    if (!isOwner && !isPlatformAdmin) {
+      res.status(403).json({ error: 'Apenas o admin do bolão pode alterar os dados de pagamento.' });
+      return;
+    }
+
+    if (!isPlatformAdmin) {
+      const poolLock = await prisma.pool.findUnique({
+        where: { id: poolId },
+        select: {
+          championshipId: true,
+          startingRoundId: true,
+        },
+      });
+
+      const firstPoolMatch = poolLock
+        ? await prisma.match.findFirst({
+            where: {
+              round: {
+                championshipId: poolLock.championshipId,
+                ...(poolLock.startingRoundId ? { id: poolLock.startingRoundId } : {}),
+              },
+            },
+            orderBy: { matchDate: 'asc' },
+            select: { matchDate: true },
+          })
+        : null;
+
+      if (firstPoolMatch && new Date() >= new Date(firstPoolMatch.matchDate.getTime() - 10 * 60 * 1000)) {
+        res.status(403).json({
+          error: 'Os dados de pagamento não podem mais ser alterados após o fechamento do primeiro jogo do bolão.',
+        });
+        return;
+      }
+    }
+
+    const normalizedPayment =
+      typeof paymentDescription === 'string' && paymentDescription.trim().length > 0
+        ? paymentDescription.trim()
+        : null;
+
+    if (normalizedPayment && normalizedPayment.length > 3000) {
+      res.status(400).json({ error: 'Os dados de pagamento devem ter no máximo 3000 caracteres.' });
+      return;
+    }
+
+    const pool = await prisma.pool.update({
+      where: { id: poolId },
+      data: {
+        paymentDescription: normalizedPayment,
+        paymentUpdatedAt: new Date(),
+      },
+      select: { id: true, name: true, paymentDescription: true, paymentUpdatedAt: true },
+    });
+
+    res.json({
+      pool,
+      message: 'Dados de pagamento atualizados com sucesso.',
+    });
+  } catch (err) {
+    console.error('[Pool] Erro ao alterar pagamento:', err);
+    res.status(500).json({ error: 'Erro ao alterar dados de pagamento do bolão.' });
+  }
+}

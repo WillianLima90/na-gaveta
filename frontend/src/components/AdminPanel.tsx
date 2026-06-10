@@ -61,6 +61,7 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
   const [isPublic, setIsPublic] = useState(true);
   const [prizeDraft, setPrizeDraft] = useState("");
   const [rulesDraft, setRulesDraft] = useState("");
+  const [paymentDraft, setPaymentDraft] = useState("");
   const [infoSaving, setInfoSaving] = useState(false);
   const [infoMessage, setInfoMessage] = useState("");
   const [memberError, setMemberError] = useState("");
@@ -85,6 +86,7 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
       setIsPublic(!!poolRes.data.pool?.isPublic);
       setPrizeDraft(poolRes.data.pool?.prizeDescription ?? "");
       setRulesDraft(poolRes.data.pool?.rulesDescription ?? "");
+      setPaymentDraft(poolRes.data.pool?.paymentDescription ?? "");
       setPredictionRounds(predictionStatusRes.data.rounds ?? []);
     } catch {
       setPendingMembers([]);
@@ -132,6 +134,10 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
 
       await api.patch(`/pools/${poolId}/rules`, {
         rulesDescription: rulesDraft,
+      });
+
+      await api.patch(`/pools/${poolId}/payment`, {
+        paymentDescription: paymentDraft,
       });
 
       setInfoMessage("Informações do bolão salvas com sucesso.");
@@ -424,21 +430,33 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
           <div className="border-t border-zinc-800 px-4 py-4">
             <div className="mb-5 rounded-2xl border border-zinc-800 bg-black/20 p-4">
               <p className="text-xs font-black uppercase tracking-wide text-zinc-400">
-                Pagamento, premiação e regras
+                Informações do bolão
               </p>
               <p className="mt-1 text-[11px] text-zinc-500">
-                Preencha PIX/Zelle, valor de entrada, prazo, premiação e regras do bolão.
+                Configure a premiação, os dados para pagamento e o regulamento do bolão.
               </p>
 
               <div className="mt-4 space-y-3">
                 <label className="block">
-                  <span className="text-xs font-bold text-zinc-300">Pagamento e premiação</span>
+                  <span className="text-xs font-bold text-zinc-300">Premiação oficial</span>
                   <textarea
                     value={prizeDraft}
                     onChange={(e) => setPrizeDraft(e.target.value)}
                     rows={8}
                     maxLength={3000}
-                    placeholder={"Pagamento:\nPIX: sua-chave-pix\nZelle: seu-email-ou-telefone\nValor: R$ 50\nPrazo: até 10/06\n\nPremiação:\n1º lugar: ...\n2º lugar: ..."}
+                    placeholder={"Exemplo:\n1º lugar: 50% do valor arrecadado\n2º lugar: 20% do valor arrecadado\n3º lugar: 10% do valor arrecadado\nMaior pontuação em uma rodada: 10%\nMais vezes melhor da rodada: 10%"}
+                    className="mt-2 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-3 text-sm text-white outline-none transition focus:border-brand/60"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="text-xs font-bold text-zinc-300">Dados para pagamento</span>
+                  <textarea
+                    value={paymentDraft}
+                    onChange={(e) => setPaymentDraft(e.target.value)}
+                    rows={6}
+                    maxLength={3000}
+                    placeholder={"Exemplo:\nValor da inscrição: R$ 50,00\nChave PIX: sua-chave-pix\nTitular: Nome completo\nBanco: Nome do banco\nApós pagar, envie o comprovante para o administrador."}
                     className="mt-2 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-3 text-sm text-white outline-none transition focus:border-brand/60"
                   />
                 </label>
