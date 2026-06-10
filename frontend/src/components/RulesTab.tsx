@@ -120,8 +120,8 @@ export function RulesTab({ poolId, isOwner, bonusRoundNumber, roundOptions, onRu
     setSaving(true);
     setError(null);
     try {
-      const updated = await updatePoolRules(poolId, editValues);
-      setRules(updated);
+      await updatePoolRules(poolId, editValues);
+      await loadRules();
       setEditing(false);
       await onRulesSaved?.();
       setSaveSuccess(true);

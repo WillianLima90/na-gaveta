@@ -46,7 +46,7 @@ router.patch("/:id/members/:memberId/approve", authenticate, approveMember);
 router.patch("/:id/members/:memberId/reject", authenticate, rejectMember);
 router.patch("/:id/visibility", authenticate, updatePoolVisibility);
 router.patch("/:id/prize", authenticate, updatePoolPrize);
-router.patch("/:id/rules", authenticate, updatePoolRules);
+router.patch("/:id/info-rules", authenticate, updatePoolRules);
 router.patch("/:id/payment", authenticate, updatePoolPayment);
 router.delete("/:id/leave", authenticate, leavePool);
 router.delete("/:id/request", authenticate, cancelJoinRequest);

@@ -31,7 +31,10 @@ export async function getPoolRules(req: Request, res: Response): Promise<void> {
 
     const startedMatch = await prisma.match.findFirst({
       where: {
-        roundId: pool.startingRoundId || undefined,
+        round: {
+          championshipId: pool.championshipId,
+          ...(pool.startingRoundId ? { id: pool.startingRoundId } : {}),
+        },
         OR: [
           { status: 'LIVE' },
           { status: 'FINISHED' },
@@ -79,7 +82,10 @@ export async function updatePoolRules(req: AuthRequest, res: Response): Promise<
 
     const startedMatch = await prisma.match.findFirst({
       where: {
-        roundId: pool.startingRoundId || undefined,
+        round: {
+          championshipId: pool.championshipId,
+          ...(pool.startingRoundId ? { id: pool.startingRoundId } : {}),
+        },
         OR: [
           { status: 'LIVE' },
           { status: 'FINISHED' },
@@ -206,7 +212,10 @@ export async function toggleBonusRound(req: AuthRequest, res: Response): Promise
 
     const startedMatch = await prisma.match.findFirst({
       where: {
-        roundId: pool.startingRoundId || undefined,
+        round: {
+          championshipId: pool.championshipId,
+          ...(pool.startingRoundId ? { id: pool.startingRoundId } : {}),
+        },
         OR: [
           { status: 'LIVE' },
           { status: 'FINISHED' },

@@ -112,7 +112,7 @@ export async function updatePoolRules(
   poolId: string,
   rulesDescription: string
 ): Promise<{ pool: Pool; message: string }> {
-  const { data } = await api.patch(`/pools/${poolId}/rules`, { rulesDescription });
+  const { data } = await api.patch(`/pools/${poolId}/info-rules`, { rulesDescription });
   return data;
 }
 

@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp, Users, CheckCircle2, XCircle, ClipboardList } from 'lucide-react';
 import api from "../services/api";
+import { RulesTab } from './RulesTab';
 
 interface AdminPanelProps {
 poolId: string;
@@ -132,7 +133,7 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
         prizeDescription: prizeDraft,
       });
 
-      await api.patch(`/pools/${poolId}/rules`, {
+      await api.patch(`/pools/${poolId}/info-rules`, {
         rulesDescription: rulesDraft,
       });
 
@@ -486,6 +487,26 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
                   {infoSaving ? "Salvando..." : "Salvar informações"}
                 </button>
               </div>
+            </div>
+
+            <div className="mb-5 rounded-2xl border border-zinc-800 bg-black/20 p-4">
+              <p className="text-xs font-black uppercase tracking-wide text-zinc-400">
+                Regras de pontuação
+              </p>
+              <p className="mt-1 mb-4 text-[11px] text-zinc-500">
+                Configure os pontos por acerto, coringa e rodada bônus antes do início da competição.
+              </p>
+
+              <RulesTab
+                poolId={poolId}
+                isOwner={true}
+                roundOptions={predictionRounds.map((round) => ({
+                  id: round.id,
+                  number: round.number,
+                  startDate: round.matches[0]?.matchDate ?? new Date().toISOString(),
+                }))}
+                onRulesSaved={onResultSet}
+              />
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
