@@ -59,6 +59,10 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
   const [pendingMembers, setPendingMembers] = useState<PoolMemberAdmin[]>([]);
   const [approvedMembers, setApprovedMembers] = useState<PoolMemberAdmin[]>([]);
   const [isPublic, setIsPublic] = useState(true);
+  const [prizeDraft, setPrizeDraft] = useState("");
+  const [rulesDraft, setRulesDraft] = useState("");
+  const [infoSaving, setInfoSaving] = useState(false);
+  const [infoMessage, setInfoMessage] = useState("");
   const [memberError, setMemberError] = useState("");
   const [predictionRounds, setPredictionRounds] = useState<AdminPredictionRoundStatus[]>([]);
   const [expandedPendingMatchIds, setExpandedPendingMatchIds] = useState<Record<string, boolean>>({});
@@ -79,6 +83,8 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
         api.get(`/pools/${poolId}/admin/prediction-status`),
       ]);
       setIsPublic(!!poolRes.data.pool?.isPublic);
+      setPrizeDraft(poolRes.data.pool?.prizeDescription ?? "");
+      setRulesDraft(poolRes.data.pool?.rulesDescription ?? "");
       setPredictionRounds(predictionStatusRes.data.rounds ?? []);
     } catch {
       setPendingMembers([]);
@@ -113,6 +119,32 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
     await api.delete(`/pools/${poolId}/members/${memberId}`);
     await loadMembersAdmin();
     onResultSet();
+  }
+
+  async function handleSavePoolInfo() {
+    try {
+      setInfoSaving(true);
+      setInfoMessage("");
+
+      await api.patch(`/pools/${poolId}/prize`, {
+        prizeDescription: prizeDraft,
+      });
+
+      await api.patch(`/pools/${poolId}/rules`, {
+        rulesDescription: rulesDraft,
+      });
+
+      setInfoMessage("Informações do bolão salvas com sucesso.");
+      await loadMembersAdmin();
+      onResultSet();
+    } catch (err: any) {
+      setInfoMessage(
+        err?.response?.data?.error ||
+        "Erro ao salvar pagamento, premiação e regras."
+      );
+    } finally {
+      setInfoSaving(false);
+    }
   }
 
   return (
@@ -390,6 +422,54 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
 
         {settingsExpanded && (
           <div className="border-t border-zinc-800 px-4 py-4">
+            <div className="mb-5 rounded-2xl border border-zinc-800 bg-black/20 p-4">
+              <p className="text-xs font-black uppercase tracking-wide text-zinc-400">
+                Pagamento, premiação e regras
+              </p>
+              <p className="mt-1 text-[11px] text-zinc-500">
+                Preencha PIX/Zelle, valor de entrada, prazo, premiação e regras do bolão.
+              </p>
+
+              <div className="mt-4 space-y-3">
+                <label className="block">
+                  <span className="text-xs font-bold text-zinc-300">Pagamento e premiação</span>
+                  <textarea
+                    value={prizeDraft}
+                    onChange={(e) => setPrizeDraft(e.target.value)}
+                    rows={8}
+                    maxLength={3000}
+                    placeholder={"Pagamento:\nPIX: sua-chave-pix\nZelle: seu-email-ou-telefone\nValor: R$ 50\nPrazo: até 10/06\n\nPremiação:\n1º lugar: ...\n2º lugar: ..."}
+                    className="mt-2 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-3 text-sm text-white outline-none transition focus:border-brand/60"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="text-xs font-bold text-zinc-300">Regulamento e desempates</span>
+                  <textarea
+                    value={rulesDraft}
+                    onChange={(e) => setRulesDraft(e.target.value)}
+                    rows={6}
+                    maxLength={3000}
+                    placeholder={"Exemplo:\n- Palpites fecham no horário do jogo.\n- Critérios de desempate seguem a tabela do bolão.\n- Comprovante deve ser enviado no grupo."}
+                    className="mt-2 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-3 text-sm text-white outline-none transition focus:border-brand/60"
+                  />
+                </label>
+
+                {infoMessage && (
+                  <p className="text-xs font-bold text-zinc-300">{infoMessage}</p>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleSavePoolInfo}
+                  disabled={infoSaving}
+                  className="rounded-xl bg-brand px-4 py-2 text-xs font-black text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {infoSaving ? "Salvando..." : "Salvar informações"}
+                </button>
+              </div>
+            </div>
+
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-xs font-bold text-white">
