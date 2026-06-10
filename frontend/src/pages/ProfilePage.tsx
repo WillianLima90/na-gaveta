@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 import {
   User, Trophy, Target, Flame, Swords, Star,
   ChevronRight, ArrowLeft, TrendingUp, CheckCircle2,
-  BarChart2, Calendar, Award
+  BarChart2, Calendar, Award, Eye, EyeOff
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Badge, Spinner } from '../components/ui';
@@ -61,6 +61,9 @@ export default function ProfilePage() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
 
@@ -359,29 +362,67 @@ export default function ProfilePage() {
         <h2 className="font-bold text-white text-base mb-3">Alterar senha</h2>
 
         <div className="space-y-3">
-          <input
-            type="password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            placeholder="Senha atual"
-            className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-white outline-none focus:border-brand"
-          />
+          <div className="relative">
+            <input
+              type={showCurrentPassword ? "text" : "password"}
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Senha atual"
+              className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 pr-10 text-sm text-white outline-none focus:border-brand"
+            />
+            <button
+              type="button"
+              onClick={() => setShowCurrentPassword((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+            >
+              {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
 
-          <input
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="Nova senha"
-            className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-white outline-none focus:border-brand"
-          />
+          <div className="relative">
+            <input
+              type={showNewPassword ? "text" : "password"}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Nova senha"
+              className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 pr-10 text-sm text-white outline-none focus:border-brand"
+            />
+            <button
+              type="button"
+              onClick={() => setShowNewPassword((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+            >
+              {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
 
-          <input
-            type="password"
-            value={confirmNewPassword}
-            onChange={(e) => setConfirmNewPassword(e.target.value)}
-            placeholder="Confirmar nova senha"
-            className="w-full rounded-xl border border-zinc-700 bg-zinc-950/70 px-3 py-2 text-sm text-white outline-none focus:border-brand"
-          />
+          <div>
+            <div className="relative">
+              <input
+                type={showConfirmNewPassword ? "text" : "password"}
+                value={confirmNewPassword}
+                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                placeholder="Confirmar nova senha"
+                className={`w-full rounded-xl border bg-zinc-950/70 px-3 py-2 pr-10 text-sm text-white outline-none focus:border-brand ${
+                  confirmNewPassword && newPassword !== confirmNewPassword
+                    ? 'border-red-500/60'
+                    : 'border-zinc-700'
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmNewPassword((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+              >
+                {showConfirmNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {confirmNewPassword && newPassword !== confirmNewPassword && (
+              <p className="mt-1 text-xs font-bold text-red-300">
+                A confirmação da nova senha não confere.
+              </p>
+            )}
+          </div>
 
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs text-zinc-500">Use pelo menos 6 caracteres.</p>
