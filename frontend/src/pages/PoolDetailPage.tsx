@@ -23,9 +23,9 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Users, ArrowLeft, Copy, Check,
   Lock, UserPlus, BookOpen, X,
-  ChevronDown, ChevronUp
+  ChevronDown
 } from 'lucide-react';
-import { getPool, joinPoolById, joinPoolByCode, setFavoriteTeam, leavePool, cancelJoinRequest, updatePoolPrize, updatePoolRules, deletePool, type Pool } from '../services/pool.service';
+import { getPool, joinPoolById, joinPoolByCode, setFavoriteTeam, leavePool, cancelJoinRequest, deletePool, type Pool } from '../services/pool.service';
 import {
   getPoolMatches,
   savePrediction,
@@ -37,7 +37,6 @@ import { useAuth } from '../hooks/useAuth';
 import { MatchCard, isMatchLocked } from '../components/MatchCard';
 import { RulesTab } from '../components/RulesTab';
 import { RankingBlock } from '../components/RankingBlock';
-import { OfficialChampionshipTable } from '../components/OfficialChampionshipTable';
 import { RoundNavigator } from '../components/RoundNavigator';
 import { OpponentPredictionsDrawer } from '../components/OpponentPredictionsDrawer';
 import { Spinner, Badge } from '../components/ui';
@@ -90,7 +89,6 @@ export default function PoolDetailPage() {
   const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null);
 
   // Regras colapsado
-  const [showRegras, setShowRegras] = useState(false);
   const [showRulesModal, setShowRulesModal] = useState(false);
 
   // Drawer de palpites dos adversários
@@ -134,12 +132,6 @@ export default function PoolDetailPage() {
   // ── STAGING: salvar tudo ─────────────────────────────
   const [pendingPredictions, setPendingPredictions] = useState<Record<string, any>>({});
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
-  const [prizeDraft, setPrizeDraft] = useState('');
-  const [prizeSaving, setPrizeSaving] = useState(false);
-  const [prizeMessage, setPrizeMessage] = useState<string | null>(null);
-  const [rulesDraft, setRulesDraft] = useState('');
-  const [rulesSaving, setRulesSaving] = useState(false);
-  const [rulesMessage, setRulesMessage] = useState<string | null>(null);
 
   function handlePredictionStaged(matchId: string, prediction: any) {
     setPendingPredictions(prev => ({
@@ -183,46 +175,6 @@ export default function PoolDetailPage() {
     await loadData();
   }
 
-  async function handleSavePrize() {
-    if (!id) return;
-
-    setPrizeSaving(true);
-    setPrizeMessage(null);
-
-    try {
-      const result = await updatePoolPrize(id, prizeDraft);
-      setPool((prev) => prev ? { ...prev, prizeDescription: result.pool.prizeDescription } : prev);
-      setPrizeDraft(result.pool.prizeDescription ?? '');
-      setPrizeMessage('Premiação salva com sucesso.');
-      setTimeout(() => setPrizeMessage(null), 3000);
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
-      setPrizeMessage(msg || 'Erro ao salvar premiação.');
-    } finally {
-      setPrizeSaving(false);
-    }
-  }
-
-  async function handleSaveRules() {
-    if (!id) return;
-
-    setRulesSaving(true);
-    setRulesMessage(null);
-
-    try {
-      const result = await updatePoolRules(id, rulesDraft);
-      setPool((prev) => prev ? { ...prev, rulesDescription: result.pool.rulesDescription } : prev);
-      setRulesDraft(result.pool.rulesDescription ?? '');
-      setRulesMessage('Regras salvas com sucesso.');
-      setTimeout(() => setRulesMessage(null), 3000);
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
-      setRulesMessage(msg || 'Erro ao salvar regras.');
-    } finally {
-      setRulesSaving(false);
-    }
-  }
-
   const loadData = useCallback(async () => {
     if (!id) return;
     setLoading(true);
@@ -232,8 +184,6 @@ export default function PoolDetailPage() {
         getPoolMatches(id),
       ]);
       setPool(poolData);
-      setPrizeDraft(poolData.prizeDescription ?? '');
-      setRulesDraft(poolData.rulesDescription ?? '');
       setFavoriteTeamState((poolData as Pool & { myFavoriteTeam?: string | null }).myFavoriteTeam ?? "");
       setRounds(roundsData);
 
@@ -450,26 +400,7 @@ export default function PoolDetailPage() {
 
   const isMember = pool.isMember ?? false;
   const isOwner = user?.id === pool.ownerId;
-  const canEditPrize = pool.canEditPrize ?? false;
-  const prizeUpdatedLabel = pool.prizeUpdatedAt
-    ? new Date(pool.prizeUpdatedAt).toLocaleString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : null;
 
-  const rulesUpdatedLabel = pool.rulesUpdatedAt
-    ? new Date(pool.rulesUpdatedAt).toLocaleString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : null;
 
   // Rodada selecionada
   const fallbackRound =
@@ -478,7 +409,6 @@ export default function PoolDetailPage() {
     rounds[rounds.length - 1];
 
   const currentRound = rounds.find((r) => r.id === selectedRoundId) ?? fallbackRound;
-  const bonusRound = rounds.find((r) => r.id === pool?.bonusRoundId) ?? null;
 
   // Todos os jogos da rodada ordenados por hora
   const allRoundMatches: { match: Match; round: Round }[] = currentRound
@@ -819,7 +749,8 @@ const rightColumn = (
 
       {/* ── 2. TABELA DO BOLÃO ──────────────────────────────── */}
       {isMember && (
-        <RankingBlock
+        <div id="pool-ranking">
+          <RankingBlock
           ownerId={pool.ownerId}
           poolId={id!}
           currentUserId={user?.id}
@@ -827,180 +758,10 @@ const rightColumn = (
           isAuthenticated={isAuthenticated}
           isMember={isMember}
         />
-      )}
-
-      {/* ── 4. TABELA DO CAMPEONATO (sempre aberta) ─────────── */}
-
-
-      {(pool.championship?.slug?.includes('brasileirao') || pool.championship?.slug === 'copa-do-mundo-fifa-2026') && (
-        <div>
-          <OfficialChampionshipTable
-            championshipId={pool.championshipId}
-          />
         </div>
       )}
 
-      {/* ── PREMIAÇÃO DO BOLÃO ─────────────────────────────── */}
-      <CollapsibleSection
-        title="Premiação do bolão"
-        defaultOpen={isOwner || Boolean(pool.prizeDescription)}
-        onToggle={() => {}}
-        icon="book"
-      >
-        <div className="space-y-3">
-          <p className="text-xs text-zinc-400">Veja a distribuição de prêmios, valores e observações definidas pelo admin do bolão.</p>
-
-          {isOwner ? (
-            <div className="space-y-3">
-              {prizeUpdatedLabel && (
-                <p className="text-[11px] text-zinc-500">
-                  Última atualização: {prizeUpdatedLabel}
-                </p>
-              )}
-
-              {!canEditPrize && (
-                <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-3">
-                  <p className="text-xs font-bold text-yellow-200">Premiação bloqueada</p>
-                  <p className="mt-1 text-xs text-zinc-300">
-                    Após o fechamento do primeiro jogo do bolão, a premiação não pode mais ser alterada.
-                  </p>
-                </div>
-              )}
-
-              <textarea
-                value={prizeDraft}
-                onChange={(e) => setPrizeDraft(e.target.value)}
-                disabled={!canEditPrize}
-                maxLength={3000}
-                rows={14}
-                placeholder={'Exemplo:\n1º lugar: 50% do valor arrecadado + camisa da seleção campeã do mundo (versão torcedor)\n2º lugar: 30% do valor arrecadado\n3º lugar: 20% do valor arrecadado'}
-                className="w-full rounded-xl border border-zinc-700 bg-black/30 px-3 py-3 text-sm text-white outline-none focus:border-brand resize-none disabled:opacity-70 disabled:cursor-not-allowed"
-              />
-
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-[11px] text-zinc-500">{prizeDraft.length}/3000</span>
-                <button
-                  type="button"
-                  onClick={handleSavePrize}
-                  disabled={prizeSaving || !canEditPrize}
-                  className="rounded-lg bg-brand px-4 py-2 text-xs font-black text-white hover:bg-brand-light transition disabled:opacity-50"
-                >
-                  {prizeSaving ? 'Salvando...' : 'Salvar premiação'}
-                </button>
-              </div>
-
-              {prizeMessage && (
-                <p className="text-xs text-zinc-300">{prizeMessage}</p>
-              )}
-            </div>
-          ) : pool.prizeDescription ? (
-            <>
-              {prizeUpdatedLabel && (
-                <p className="text-[11px] text-zinc-500">
-                  Última atualização: {prizeUpdatedLabel}
-                </p>
-              )}
-              <div className="whitespace-pre-line rounded-2xl border border-yellow-400/30 bg-yellow-400/10 p-4 text-sm leading-relaxed text-zinc-100 shadow-sm">
-                {pool.prizeDescription}
-              </div>
-            </>
-          ) : (
-            <p className="rounded-xl border border-zinc-800 bg-black/20 p-3 text-xs text-zinc-500">
-              A premiação ainda não foi informada pelo admin do bolão.
-            </p>
-          )}
-        </div>
-      </CollapsibleSection>
-
-      {/* ── REGULAMENTO E DESEMPATES ───────────────────────── */}
-      <CollapsibleSection
-        title="Regulamento e desempates"
-        defaultOpen={isOwner || Boolean(pool.rulesDescription)}
-        onToggle={() => {}}
-        icon="book"
-      >
-        <div className="space-y-3">
-          <p className="text-xs text-zinc-400">
-            Regras gerais, critérios de desempate, pagamento e observações específicas deste bolão.
-          </p>
-
-          {isOwner ? (
-            <div className="space-y-3">
-              {rulesUpdatedLabel && (
-                <p className="text-[11px] text-zinc-500">
-                  Última atualização: {rulesUpdatedLabel}
-                </p>
-              )}
-
-              {!canEditPrize && (
-                <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-3">
-                  <p className="text-xs font-bold text-yellow-200">Regulamento bloqueado</p>
-                  <p className="mt-1 text-xs text-zinc-300">
-                    Após o fechamento do primeiro jogo do bolão, o regulamento não pode mais ser alterado.
-                  </p>
-                </div>
-              )}
-
-              <textarea
-                value={rulesDraft}
-                onChange={(e) => setRulesDraft(e.target.value)}
-                disabled={!canEditPrize}
-                maxLength={5000}
-                rows={14}
-                placeholder={'Exemplo:\nCritérios de desempate do ranking geral:\n1. Maior número de placares exatos\n2. Maior número de acertos de resultado\n3. Maior pontuação em uma rodada\n4. Persistindo empate, o prêmio será dividido'}
-                className="w-full rounded-xl border border-zinc-700 bg-black/30 px-3 py-3 text-sm text-white outline-none focus:border-brand resize-none disabled:opacity-70 disabled:cursor-not-allowed"
-              />
-
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-[11px] text-zinc-500">{rulesDraft.length}/5000</span>
-                <button
-                  type="button"
-                  onClick={handleSaveRules}
-                  disabled={rulesSaving || !canEditPrize}
-                  className="rounded-lg bg-brand px-4 py-2 text-xs font-black text-white hover:bg-brand-light transition disabled:opacity-50"
-                >
-                  {rulesSaving ? 'Salvando...' : 'Salvar regulamento'}
-                </button>
-              </div>
-
-              {rulesMessage && (
-                <p className="text-xs text-zinc-300">{rulesMessage}</p>
-              )}
-            </div>
-          ) : pool.rulesDescription ? (
-            <>
-              {rulesUpdatedLabel && (
-                <p className="text-[11px] text-zinc-500">
-                  Última atualização: {rulesUpdatedLabel}
-                </p>
-              )}
-              <div className="whitespace-pre-line rounded-2xl border border-zinc-700 bg-zinc-900/70 p-4 text-sm leading-relaxed text-zinc-100 shadow-sm">
-                {pool.rulesDescription}
-              </div>
-            </>
-          ) : (
-            <p className="rounded-xl border border-zinc-800 bg-black/20 p-3 text-xs text-zinc-500">
-              O regulamento ainda não foi informado pelo admin do bolão.
-            </p>
-          )}
-        </div>
-      </CollapsibleSection>
-
-      {/* ── 5. REGRAS (colapsado) ───────────────────────────── */}
-      <CollapsibleSection
-        title="Regras do bolão"
-        defaultOpen={showRegras}
-        onToggle={setShowRegras}
-        icon="book"
-      >
-        <RulesTab
-          poolId={id!}
-          isOwner={isOwner}
-          bonusRoundNumber={bonusRound?.number ?? null}
-          roundOptions={rounds.map((r) => ({ id: r.id, number: r.number, startDate: r.startDate }))}
-          onRulesSaved={loadData}
-        />
-      </CollapsibleSection>
+      {/* Blocos extras movidos para páginas próprias: Campeonato e Informações */}
     </div>
   );
 
@@ -1169,18 +930,31 @@ const rightColumn = (
       </div>
 
 
-      {/* ── ATALHO ADMIN DO BOLÃO ───────────────────────── */}
-      {isOwner && (
-        <div className="mb-4">
-          <button
-            type="button"
-            onClick={() => navigate(`/pools/${id}/admin`)}
-            className="w-full rounded-2xl border border-brand/30 bg-brand/10 px-4 py-3 text-sm font-black text-brand hover:bg-brand/20 transition"
-          >
-            Admin do bolão
+      {/* ── NAV DO BOLÃO ───────────────────────── */}
+      <div className="mb-4 overflow-x-auto border-y border-zinc-800/70 bg-black/40 py-2">
+        <div className="flex min-w-max items-center gap-2 px-1">
+          <button type="button" onClick={() => navigate(`/pools/${id}`)} className="shrink-0 rounded-full border border-brand/40 bg-brand/10 px-4 py-2 text-xs font-black text-brand">
+            Palpites
           </button>
+          <button type="button" onClick={() => navigate(`/pools/${id}/ranking`)} className="shrink-0 rounded-full border border-zinc-800 bg-zinc-900/90 px-4 py-2 text-xs font-black text-white hover:bg-zinc-800 transition">
+            Tabela do Bolão
+          </button>
+          <button type="button" onClick={() => navigate(`/pools/${id}/championship`)} className="shrink-0 rounded-full border border-zinc-800 bg-zinc-900/90 px-4 py-2 text-xs font-black text-white hover:bg-zinc-800 transition">
+            Tabela do Campeonato
+          </button>
+
+          <div className="h-6 w-px shrink-0 bg-zinc-800" />
+
+          <button type="button" onClick={() => navigate(`/pools/${id}/info`)} className="shrink-0 rounded-full border border-zinc-800 bg-zinc-950/80 px-4 py-2 text-xs font-black text-zinc-300 hover:bg-zinc-800 hover:text-white transition">
+            Premiação & Regras
+          </button>
+          {isOwner && (
+            <button type="button" onClick={() => navigate(`/pools/${id}/admin`)} className="shrink-0 rounded-full border border-zinc-800 bg-zinc-950/80 px-4 py-2 text-xs font-black text-zinc-300 hover:bg-zinc-800 hover:text-white transition">
+              Admin
+            </button>
+          )}
         </div>
-      )}
+      </div>
 
       {/* ── LAYOUT RESPONSIVO ───────────────────────────────── */}
       <div className="lg:grid lg:grid-cols-[minmax(760px,1fr)_500px] lg:gap-6 xl:grid-cols-[minmax(820px,1fr)_520px]">
@@ -1282,51 +1056,3 @@ function PredictionSection({ title, defaultOpen, badge, children }: PredictionSe
 }
 
 // ── Seção colapsável genérica ──────────────────────────────────
-interface CollapsibleSectionProps {
-  title: string;
-  defaultOpen?: boolean;
-  icon?: 'book' | 'table' | 'default';
-  onToggle?: (open: boolean) => void;
-  children: React.ReactNode;
-}
-
-function CollapsibleSection({
-  title, defaultOpen = false, icon = 'default', onToggle, children
-}: CollapsibleSectionProps) {
-  const [open, setOpen] = useState(defaultOpen);
-
-  function toggle() {
-    const next = !open;
-    setOpen(next);
-    onToggle?.(next);
-  }
-
-  const iconEl = (() => {
-    if (icon === 'book') return <BookOpen size={14} className="text-zinc-400" />;
-    if (icon === 'table') return <span className="text-sm">📊</span>;
-    return <span className="w-2 h-2 rounded-full bg-zinc-500 inline-block" />;
-  })();
-
-  return (
-    <div className="mb-2">
-      <button
-        onClick={toggle}
-        className="w-full flex items-center justify-between px-4 py-3.5 bg-zinc-900 border border-zinc-800 rounded-2xl hover:bg-zinc-800/80/60 transition-colors"
-      >
-        <div className="flex items-center gap-2">
-          {iconEl}
-          <span className="font-bold text-white text-sm">{title}</span>
-        </div>
-        {open
-          ? <ChevronUp size={16} className="text-zinc-400" />
-          : <ChevronDown size={16} className="text-zinc-400" />
-        }
-      </button>
-      {open && (
-        <div className="mt-2">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-}

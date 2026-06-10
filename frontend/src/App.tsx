@@ -25,6 +25,8 @@ import PoolsPage from './pages/PoolsPage';
 import PoolDetailPage from './pages/PoolDetailPage';
 import PoolRankingPage from './pages/PoolRankingPage';
 import PoolAdminPage from './pages/PoolAdminPage';
+import PoolInfoPage from './pages/PoolInfoPage';
+import PoolChampionshipPage from './pages/PoolChampionshipPage';
 import ProfilePage from './pages/ProfilePage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
 import { AdminPoolsPage } from './pages/AdminPoolsPage';
@@ -59,6 +61,8 @@ export default function App() {
               <Route path="/pools/:id" element={<PoolDetailPage />} />
               <Route path="/pools/:id/ranking" element={<PoolRankingPage />} />
               <Route path="/pools/:id/admin" element={<PoolAdminPage />} />
+              <Route path="/pools/:id/info" element={<PoolInfoPage />} />
+              <Route path="/pools/:id/championship" element={<PoolChampionshipPage />} />
 
               {/* Protegidas (requerem autenticação) */}
               <Route element={<ProtectedRoute />}>

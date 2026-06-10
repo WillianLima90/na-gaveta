@@ -53,8 +53,8 @@ interface AdminPredictionRoundStatus {
 }
 
 export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
-  const [playersExpanded, setPlayersExpanded] = useState(true);
-  const [predictionsExpanded, setPredictionsExpanded] = useState(true);
+  const [playersExpanded, setPlayersExpanded] = useState(false);
+  const [predictionsExpanded, setPredictionsExpanded] = useState(false);
   const [settingsExpanded, setSettingsExpanded] = useState(false);
   const [pendingMembers, setPendingMembers] = useState<PoolMemberAdmin[]>([]);
   const [approvedMembers, setApprovedMembers] = useState<PoolMemberAdmin[]>([]);
