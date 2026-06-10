@@ -613,6 +613,13 @@ export default function PoolDetailPage() {
             </button>
           </div>
 
+          {(pool as any)?.scoreRule?.jokerMultiplier > 1 && (
+            <div className="mb-3 rounded-xl border border-brand/25 bg-brand/10 px-3 py-2 text-xs leading-relaxed text-zinc-200">
+              <span className="font-black text-brand">Coringa:</span>{' '}
+              escolha 1 jogo por rodada para multiplicar sua pontuação. Use com estratégia antes de salvar seus palpites.
+            </div>
+          )}
+
           {/* Container com key por rodada: garante re-render completo ao trocar de rodada */}
           <div key={`round-sections-${currentRound?.id ?? 'none'}`}>
 
