@@ -187,6 +187,41 @@ export function AdminUsersPage() {
     }
   }
 
+  async function resetPassword(user: User) {
+    if (currentUser?.id === user.id) {
+      setError('Você não pode redefinir sua própria senha por aqui.');
+      return;
+    }
+
+    const newPassword = window.prompt(`Digite a nova senha temporária para ${user.name}:`);
+    if (!newPassword) return;
+
+    if (newPassword.length < 6) {
+      setError('A nova senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
+    if (!window.confirm(`Confirmar redefinição de senha para ${user.name}?`)) return;
+
+    try {
+      setSavingId(user.id);
+      setError('');
+      setMessage('');
+
+      await axios.patch(
+        `/api/admin/users/${user.id}/password`,
+        { newPassword },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setMessage(`Senha de ${user.name} redefinida com sucesso.`);
+    } catch (err: any) {
+      setError(err?.response?.data?.error || 'Erro ao redefinir senha.');
+    } finally {
+      setSavingId(null);
+    }
+  }
+
   async function changeRole(user: User, role: string) {
     if (role === user.role) return;
 
@@ -530,6 +565,14 @@ export function AdminUsersPage() {
                       ) : (
                         'Ativar'
                       )}
+                    </button>
+
+                    <button
+                      onClick={() => resetPassword(user)}
+                      disabled={isSaving || isSelf}
+                      className="h-10 px-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-sm font-semibold text-amber-300 transition-colors hover:bg-amber-500/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Redefinir senha
                     </button>
 
                     <button

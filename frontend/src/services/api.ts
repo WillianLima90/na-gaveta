@@ -34,8 +34,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Limpar sessão do localStorage
+    const requestUrl = String(error.config?.url || '');
+
+    if (error.response?.status === 401 && !requestUrl.includes('/auth/change-password')) {
+      // Limpar sessão do localStorage apenas quando a sessão/token é inválido.
+      // Erros 401 de regras de negócio, como senha atual incorreta, devem voltar para a tela.
       localStorage.removeItem('ng_token');
       localStorage.removeItem('ng_user');
       // Disparar evento customizado para que o AuthProvider trate via React Router

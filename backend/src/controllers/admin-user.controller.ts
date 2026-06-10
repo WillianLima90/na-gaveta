@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../types';
 import prisma from '../utils/prisma';
+import bcrypt from 'bcryptjs';
 
 const ALLOWED_ROLES = ['USER', 'POOL_ADMIN', 'ADMIN'] as const;
 const ALLOWED_PLANS = ['FREE', 'PRO', 'BUSINESS'] as const;
@@ -162,6 +163,51 @@ export async function updateUserActive(req: AuthRequest, res: Response): Promise
 
 
 
+
+export async function resetUserPassword(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    if (!req.user || req.user.role !== 'ADMIN') {
+      res.status(403).json({ error: 'Apenas ADMIN pode redefinir senhas.' });
+      return;
+    }
+
+    const { id } = req.params;
+    const { newPassword } = req.body as { newPassword?: string };
+
+    if (!newPassword || newPassword.length < 6) {
+      res.status(400).json({ error: 'A nova senha deve ter pelo menos 6 caracteres.' });
+      return;
+    }
+
+    if (req.user.userId === id) {
+      res.status(400).json({ error: 'Você não pode redefinir sua própria senha por aqui.' });
+      return;
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!existingUser) {
+      res.status(404).json({ error: 'Usuário não encontrado.' });
+      return;
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+
+    await prisma.user.update({
+      where: { id },
+      data: { passwordHash },
+      select: { id: true },
+    });
+
+    res.json({ message: 'Senha redefinida com sucesso.' });
+  } catch (err) {
+    console.error('[AdminUsers] Erro ao redefinir senha:', err);
+    res.status(500).json({ error: 'Erro ao redefinir senha do usuário.' });
+  }
+}
 
 export async function deleteUser(req: AuthRequest, res: Response): Promise<void> {
   try {

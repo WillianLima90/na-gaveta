@@ -396,7 +396,15 @@ export default function ProfilePage() {
           </div>
 
           {passwordMessage && (
-            <p className="text-xs text-zinc-300">{passwordMessage}</p>
+            <p
+              className={`rounded-xl border px-3 py-2 text-xs font-bold ${
+                passwordMessage === 'Senha alterada com sucesso.'
+                  ? 'border-green-500/20 bg-green-500/10 text-green-300'
+                  : 'border-red-500/20 bg-red-500/10 text-red-300'
+              }`}
+            >
+              {passwordMessage}
+            </p>
           )}
         </div>
       </div>
