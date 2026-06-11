@@ -168,12 +168,15 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
   }
 
   const apiMatches = await fetchApiMatches();
-  const syncable = apiMatches.filter(
-    (m: any) =>
-      ['FINISHED', 'IN_PLAY', 'PAUSED'].includes(m.status) &&
+  const syncable = apiMatches.filter((m: any) => {
+    if (!['FINISHED', 'IN_PLAY', 'PAUSED'].includes(m.status)) return false;
+    if (m.status === 'FINISHED') return true;
+
+    return (
       typeof m.score?.fullTime?.home === 'number' &&
       typeof m.score?.fullTime?.away === 'number'
-  );
+    );
+  });
 
   let matched = 0;
   let updated = 0;
@@ -225,6 +228,28 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
         const msg = err?.response?.data?.message || err?.message || 'erro desconhecido';
         logs.push(`REFETCH failed | ${localMatch.homeTeam} x ${localMatch.awayTeam} | ${msg}`);
       }
+    }
+
+    if (
+      sourceMatch.status === 'FINISHED' &&
+      (
+        typeof sourceMatch.score?.fullTime?.home !== 'number' ||
+        typeof sourceMatch.score?.fullTime?.away !== 'number'
+      ) &&
+      typeof localMatch.homeScore === 'number' &&
+      typeof localMatch.awayScore === 'number'
+    ) {
+      sourceMatch = {
+        ...sourceMatch,
+        score: {
+          ...sourceMatch.score,
+          fullTime: {
+            home: localMatch.homeScore,
+            away: localMatch.awayScore,
+          },
+        },
+      };
+      logs.push(`FINAL with local score | ${localMatch.homeTeam} x ${localMatch.awayTeam}`);
     }
 
     const apiStatus = sourceMatch.status;
