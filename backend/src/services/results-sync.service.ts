@@ -1,7 +1,7 @@
 import axios from 'axios';
 import prisma from '../utils/prisma';
 
-const API_URL = 'https://api.football-data.org/v4/competitions/BSA/matches';
+const API_COMPETITIONS = ['BSA', 'WC'];
 const MATCH_API_URL = 'https://api.football-data.org/v4/matches';
 const LOCAL_API = 'http://localhost:3001/api';
 
@@ -26,27 +26,34 @@ async function sleep(ms: number) {
 
 async function fetchApiMatches(retry = true) {
   const apiKey = getFootballDataApiKey();
+  const allMatches: any[] = [];
 
-  try {
-    const res = await axios.get(API_URL, {
-      headers: { 'X-Auth-Token': apiKey },
-      timeout: 15000,
-    });
+  for (const competitionCode of API_COMPETITIONS) {
+    const url = `https://api.football-data.org/v4/competitions/${competitionCode}/matches`;
 
-    return res.data.matches || [];
-  } catch (err: any) {
-    if (retry && err?.response?.status === 429) {
-      const waitSeconds = Number(err?.response?.headers?.['x-requestcounter-reset'] || 3);
+    try {
+      const res = await axios.get(url, {
+        headers: { 'X-Auth-Token': apiKey },
+        timeout: 15000,
+      });
 
-      console.log(`[SYNC] Rate limit atingido. Aguardando ${waitSeconds}s...`);
+      allMatches.push(...(res.data.matches || []));
+    } catch (err: any) {
+      if (retry && err?.response?.status === 429) {
+        const waitSeconds = Number(err?.response?.headers?.['x-requestcounter-reset'] || 3);
 
-      await sleep(waitSeconds * 1000);
+        console.log(`[SYNC] Rate limit atingido. Aguardando ${waitSeconds}s...`);
 
-      return fetchApiMatches(false);
+        await sleep(waitSeconds * 1000);
+
+        return fetchApiMatches(false);
+      }
+
+      throw err;
     }
-
-    throw err;
   }
+
+  return allMatches;
 }
 
 async function fetchApiMatchById(externalMatchId: number) {
