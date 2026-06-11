@@ -49,7 +49,9 @@ async function fetchApiMatches(retry = true) {
         return fetchApiMatches(false);
       }
 
-      throw err;
+      const msg = err?.response?.data?.message || err?.message || 'erro desconhecido';
+      console.log(`[SYNC] Falha ao buscar ${competitionCode}: ${msg}`);
+      continue;
     }
   }
 
