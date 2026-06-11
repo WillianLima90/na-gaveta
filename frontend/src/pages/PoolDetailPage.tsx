@@ -446,8 +446,9 @@ export default function PoolDetailPage() {
   //   2. PLACED    → doneMatches (tem palpite, não encerrado)
   //   3. OPEN      → openMatches (sem palpite: SCHEDULED aberto, SCHEDULED travado, LIVE)
   // Nenhum jogo pode ficar sem seção.
-  const openMatches = allRoundMatches.filter(({ match }) => getMatchState(match) === 'OPEN');
-  const doneMatches = allRoundMatches.filter(({ match }) => getMatchState(match) === 'PLACED');
+  const liveMatches = allRoundMatches.filter(({ match }) => match.status === 'LIVE');
+  const openMatches = allRoundMatches.filter(({ match }) => getMatchState(match) === 'OPEN' && match.status !== 'LIVE');
+  const doneMatches = allRoundMatches.filter(({ match }) => getMatchState(match) === 'PLACED' && match.status !== 'LIVE');
   const finishedMatches = allRoundMatches.filter(({ match }) => getMatchState(match) === 'FINISHED');
   const lockedJokerMatchId = allRoundMatches.find(({ match }) =>
     Boolean(match.myPrediction?.isJoker) &&
@@ -622,6 +623,39 @@ export default function PoolDetailPage() {
 
           {/* Container com key por rodada: garante re-render completo ao trocar de rodada */}
           <div key={`round-sections-${currentRound?.id ?? 'none'}`}>
+
+            {/* SEÇÃO LIVE: Jogos ao vivo sempre primeiro */}
+            {liveMatches.length > 0 && (
+              <PredictionSection
+                key={`live-${currentRound?.id}`}
+                title="AO VIVO AGORA"
+                defaultOpen={true}
+                badge={
+                  <span className="flex items-center gap-1 text-xs font-bold text-green-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block" />
+                    Ao vivo
+                  </span>
+                }
+              >
+                <div className="space-y-2">
+                  {liveMatches.map(({ match, round }) => (
+                    <MatchCard
+                      jokerEnabled={(pool as any)?.scoreRule?.jokerMultiplier > 1}
+                      jokerLockedByAnotherMatch={Boolean(lockedJokerMatchId && lockedJokerMatchId !== match.id)}
+                      key={match.id}
+                      match={match}
+                      round={round}
+                      poolId={id!}
+                      isAuthenticated={isAuthenticated}
+                      isMember={isMember}
+                      onPredictionSaved={handlePredictionSaved}
+                      onPredictionChange={handlePredictionStaged}
+                      onViewOpponentPredictions={setDrawerMatchId}
+                    />
+                  ))}
+                </div>
+              </PredictionSection>
+            )}
 
             {/* SEÇÃO 1: Palpites em aberto */}
             {openMatches.length > 0 && (
