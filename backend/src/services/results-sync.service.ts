@@ -200,19 +200,27 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
 
     let sourceMatch = apiMatch;
 
-    const shouldRefetchFinal =
-      sourceMatch.status === 'FINISHED' &&
+    const shouldRefetch =
       localMatch.externalMatchId &&
       (
-        localMatch.status !== 'FINISHED' ||
-        localMatch.homeScore !== sourceMatch.score.fullTime.home ||
-        localMatch.awayScore !== sourceMatch.score.fullTime.away
+        (
+          sourceMatch.status === 'FINISHED' &&
+          (
+            localMatch.status !== 'FINISHED' ||
+            localMatch.homeScore !== sourceMatch.score.fullTime.home ||
+            localMatch.awayScore !== sourceMatch.score.fullTime.away
+          )
+        ) ||
+        (
+          ['IN_PLAY', 'PAUSED'].includes(sourceMatch.status) &&
+          localMatch.status === 'LIVE'
+        )
       );
 
-    if (shouldRefetchFinal) {
+    if (shouldRefetch) {
       try {
         sourceMatch = await fetchApiMatchById(localMatch.externalMatchId!);
-        logs.push(`REFETCH final | ${localMatch.homeTeam} x ${localMatch.awayTeam}`);
+        logs.push(`REFETCH match | ${localMatch.homeTeam} x ${localMatch.awayTeam}`);
       } catch (err: any) {
         const msg = err?.response?.data?.message || err?.message || 'erro desconhecido';
         logs.push(`REFETCH failed | ${localMatch.homeTeam} x ${localMatch.awayTeam} | ${msg}`);
