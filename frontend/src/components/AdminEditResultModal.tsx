@@ -8,6 +8,7 @@ interface Props {
   matchId: string;
   homeScore: number | null;
   awayScore: number | null;
+  status: string;
   onSuccess: () => void;
 }
 
@@ -17,6 +18,7 @@ export function AdminEditResultModal({
   matchId,
   homeScore,
   awayScore,
+  status,
   onSuccess,
 }: Props) {
   const [home, setHome] = useState(String(homeScore ?? 0));
@@ -44,10 +46,13 @@ export function AdminEditResultModal({
     setError(null);
 
     try {
+      const isLiveCorrection = status === 'LIVE';
+
       await api.patch(`/matches/${matchId}/result`, {
         homeScore: h,
         awayScore: a,
-        status: 'FINISHED',
+        status: isLiveCorrection ? 'LIVE' : 'FINISHED',
+        isManualOverride: !isLiveCorrection,
       });
 
       onSuccess();
@@ -62,7 +67,14 @@ export function AdminEditResultModal({
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
       <div className="bg-zinc-900 rounded-2xl p-6 w-[320px] border border-zinc-800">
-        <h2 className="text-lg font-bold text-white mb-4">Corrigir resultado</h2>
+        <h2 className="text-lg font-bold text-white mb-1">
+          {status === 'LIVE' ? 'Atualizar placar ao vivo' : 'Corrigir resultado final'}
+        </h2>
+        <p className="text-xs text-zinc-400 mb-4">
+          {status === 'LIVE'
+            ? 'Não trava a API. O placar automático poderá continuar atualizando depois.'
+            : 'Trava o resultado como correção manual definitiva.'}
+        </p>
 
         <div className="flex gap-2 mb-4">
           <Input value={home} onChange={(e) => setHome(e.target.value)} />
@@ -72,7 +84,7 @@ export function AdminEditResultModal({
         {error && <p className="text-xs text-red-400 mb-2">{error}</p>}
 
         <Button onClick={handleSave} isLoading={loading} fullWidth>
-          Salvar
+          {status === 'LIVE' ? 'Atualizar ao vivo' : 'Salvar correção final'}
         </Button>
 
         <button

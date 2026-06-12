@@ -831,6 +831,7 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
           matchId={match.id}
           homeScore={match.homeScore}
           awayScore={match.awayScore}
+          status={match.status}
           onSuccess={() => window.location.reload()}
         />
 
@@ -921,6 +922,7 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
           matchId={match.id}
           homeScore={match.homeScore}
           awayScore={match.awayScore}
+          status={match.status}
           onSuccess={() => window.location.reload()}
         />
         <AdminMatchHistoryModal

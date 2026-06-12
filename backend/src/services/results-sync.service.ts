@@ -84,6 +84,7 @@ async function findLocalMatch(apiMatch: any) {
       externalMatchId: true,
       apiStatus: true,
       apiLastUpdated: true,
+      updatedAt: true,
       isManualOverride: true,
     },
   });
@@ -106,6 +107,7 @@ async function findLocalMatch(apiMatch: any) {
       externalMatchId: true,
       apiStatus: true,
       apiLastUpdated: true,
+      updatedAt: true,
       isManualOverride: true,
     },
   });
@@ -285,13 +287,19 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
 
     const localGoals = (localMatch.homeScore ?? 0) + (localMatch.awayScore ?? 0);
     const apiGoals = sourceMatch.score.fullTime.home + sourceMatch.score.fullTime.away;
-    const isLiveRegression =
+    const apiIsOlderThanLocal =
+      Boolean(apiLastUpdated) &&
+      localMatch.updatedAt &&
+      apiLastUpdated!.getTime() < localMatch.updatedAt.getTime();
+
+    const isStaleLiveRegression =
       localMatch.status === 'LIVE' &&
       targetStatus === 'LIVE' &&
+      apiIsOlderThanLocal &&
       apiGoals < localGoals;
 
-    if (isLiveRegression) {
-      logs.push(`SKIP live regression | ${localMatch.homeTeam} x ${localMatch.awayTeam} | local ${localMatch.homeScore ?? 0}-${localMatch.awayScore ?? 0} api ${sourceMatch.score.fullTime.home}-${sourceMatch.score.fullTime.away}`);
+    if (isStaleLiveRegression) {
+      logs.push(`SKIP stale live regression | ${localMatch.homeTeam} x ${localMatch.awayTeam} | local ${localMatch.homeScore ?? 0}-${localMatch.awayScore ?? 0} api ${sourceMatch.score.fullTime.home}-${sourceMatch.score.fullTime.away}`);
       continue;
     }
 
