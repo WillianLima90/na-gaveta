@@ -306,6 +306,7 @@ return (
         roundExacts: selectedStats?.exactScores ?? 0,
         roundOutcomes: selectedStats?.correctOutcomes ?? 0,
         favoriteTeam: e.favoriteTeam ?? null,
+        favoriteTeamCrest: e.favoriteTeamCrest ?? null,
         heartTeamScore: e.heartTeamScore ?? 0,
       };
     })
@@ -437,6 +438,7 @@ return (
         return {
           userId: entry.userId,
           favoriteTeam: entry.favoriteTeam ?? null,
+          favoriteTeamCrest: entry.favoriteTeamCrest ?? null,
           totalPoints: entry.totalPoints - laterTotals.points,
           exactScores: (entry.exactScores ?? 0) - laterTotals.exactScores,
           correctOutcomes: (entry.correctOutcomes ?? 0) - laterTotals.correctOutcomes,
@@ -460,6 +462,7 @@ return (
       roundNumber: round.number,
       points: winner.roundPoints ?? 0,
       favoriteTeam: winner.favoriteTeam ?? null,
+      favoriteTeamCrest: winner.favoriteTeamCrest ?? null,
     });
     computedWinsMap.set(winner.userId, current);
   });
@@ -646,7 +649,7 @@ return (
 
                         <div className="flex items-center justify-center min-w-0">
                           {userWins && userWins.wins.length > 0 ? (
-                            <div className="inline-flex items-center gap-1 rounded-full border border-yellow-400/20 bg-yellow-400/5 px-1.5 py-1">
+                            <div className="inline-flex items-center justify-center">
                               <ShieldList wins={userWins.wins} maxVisible={5} size={20} />
                               <span className="text-[10px] font-black text-yellow-300 tabular-nums">
                                 {userWins.wins.length}x
@@ -870,20 +873,16 @@ return (
                     <div className="flex items-center justify-center min-w-0">
                       {filterRoundId !== 'geral' && selectedRound ? (
                         isSelectedRoundWinner ? (
-                          <div className="inline-flex items-center gap-1 rounded-full border border-yellow-400/20 bg-yellow-400/5 px-1.5 py-1">
-                            <ShieldList wins={[{ roundNumber: selectedRound.number, points: entry.roundPoints ?? 0, favoriteTeam: entry.favoriteTeam ?? null }]} maxVisible={1} size={22} />
-                            <span className="text-[11px] font-black text-yellow-300 tabular-nums">1x</span>
+                          <div className="inline-flex items-center justify-center">
+                            <ShieldList wins={[{ roundNumber: selectedRound.number, points: entry.roundPoints ?? 0, favoriteTeam: entry.favoriteTeam ?? null }]} maxVisible={1} size={28} />
+                             
                           </div>
                         ) : (
                           <span className="text-xs text-zinc-700">—</span>
                         )
                       ) : userWins && userWins.wins.length > 0 ? (
-                        <div className="inline-flex items-center gap-1 rounded-full border border-yellow-400/20 bg-yellow-400/5 px-1.5 py-1">
-                          <ShieldList wins={userWins.wins} maxVisible={8} size={22} />
-                          <span className="text-[11px] font-black text-yellow-300 tabular-nums">
-                            {userWins.wins.length}x
-                          </span>
-                        </div>
+                        <div className="inline-flex items-center justify-center">
+                          <ShieldList wins={userWins.wins} maxVisible={8} size={28} />                        </div>
                       ) : (
                         <span className="text-xs text-zinc-700">—</span>
                       )}

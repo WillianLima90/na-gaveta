@@ -101,167 +101,10 @@ export const ShieldNormal: React.FC<ShieldNormalProps> = ({ teamName, externalLo
   );
 };
 
-// ── FootballBallSVG — bola de futebol em SVG puro ───────────────────────
-// Dois níveis de detalhe controlados por `size`:
-//   < 28px → volume esférico + reflexo + escudo (sem painéis — invisíveis nesse tamanho)
-//   ≥ 28px → painéis curvos + volume esférico + escudo
-interface FootballBallSVGProps {
-  size: number;
-  logoUrl: string | null;
-  teamName?: string | null;
-  onImgError: () => void;
-}
-
-const FootballBallSVG: React.FC<FootballBallSVGProps> = ({ size, logoUrl, teamName, onImgError }) => {
-  const r = size / 2;
-  const cx = r;
-  const cy = r;
-  const isLarge = size >= 28;
-
-  // IDs únicos para evitar conflito entre múltiplas instâncias
-  const uid = `fb-${size}-${(teamName ?? 'none').replace(/[^a-z0-9]/gi, '')}`;
-  const gradId = `${uid}-grad`;
-  const shadowId = `${uid}-shadow`;
-  const reflectId = `${uid}-reflect`;
-  const clipId = `${uid}-clip`;
-  const logoClipId = `${uid}-logoclip`;
-
-  // Tamanho do escudo dentro da bola
-  // Pequeno: ocupa ~60% do diâmetro; grande: ~50%
-  const logoSize = isLarge ? size * 0.58 : size * 0.82;
-  const logoOffsetX = (size - logoSize) / 2;
-  const logoOffsetY = ((size - logoSize) / 2) - (isLarge ? 3.5 : 4);
-
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-      xmlns="http://www.w3.org/2000/svg"
-      style={{ display: 'block', flexShrink: 0 }}
-    >
-      <defs>
-        {/* Gradiente esférico: luz vinda do canto superior esquerdo */}
-        <radialGradient id={gradId} cx="35%" cy="30%" r="65%" fx="30%" fy="25%">
-          <stop offset="0%"   stopColor="#e8e8e8" stopOpacity="1" />
-          <stop offset="40%"  stopColor="#c0c0c0" stopOpacity="1" />
-          <stop offset="75%"  stopColor="#888888" stopOpacity="1" />
-          <stop offset="100%" stopColor="#3a3a3a" stopOpacity="1" />
-        </radialGradient>
-
-        {/* Sombra interna na borda inferior para reforçar volume */}
-        <radialGradient id={shadowId} cx="50%" cy="80%" r="55%" fx="50%" fy="90%">
-          <stop offset="0%"   stopColor="#000000" stopOpacity="0.55" />
-          <stop offset="100%" stopColor="#000000" stopOpacity="0" />
-        </radialGradient>
-
-        {/* Reflexo de luz no topo */}
-        <radialGradient id={reflectId} cx="38%" cy="22%" r="35%" fx="35%" fy="18%">
-          <stop offset="0%"   stopColor="#ffffff" stopOpacity="0.75" />
-          <stop offset="60%"  stopColor="#ffffff" stopOpacity="0.15" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-        </radialGradient>
-
-        {/* Clip circular para a bola inteira */}
-        <clipPath id={clipId}>
-          <circle cx={cx} cy={cy} r={r - 0.5} />
-        </clipPath>
-
-        {/* Clip circular para o escudo */}
-        <clipPath id={logoClipId}>
-          <circle cx={cx} cy={cy} r={logoSize / 2 - 0.5} />
-        </clipPath>
-      </defs>
-
-      {/* ── Camada 1: base da bola (gradiente esférico) ── */}
-      <circle cx={cx} cy={cy} r={r - 0.5} fill={`url(#${gradId})`} />
-
-      {/* ── Camada 2 (apenas versão grande): painéis curvos escuros ── */}
-      {isLarge && (
-        <g clipPath={`url(#${clipId})`} opacity="0.22">
-          {/* Painel central superior — pentágono curvo simplificado */}
-          <path
-            d={`M ${cx} ${cy - r * 0.55}
-                C ${cx + r * 0.35} ${cy - r * 0.55}, ${cx + r * 0.55} ${cy - r * 0.1}, ${cx + r * 0.45} ${cy + r * 0.25}
-                C ${cx + r * 0.2} ${cy + r * 0.45}, ${cx - r * 0.2} ${cy + r * 0.45}, ${cx - r * 0.45} ${cy + r * 0.25}
-                C ${cx - r * 0.55} ${cy - r * 0.1}, ${cx - r * 0.35} ${cy - r * 0.55}, ${cx} ${cy - r * 0.55} Z`}
-            fill="#111111"
-          />
-          {/* Painel inferior esquerdo */}
-          <path
-            d={`M ${cx - r * 0.75} ${cy + r * 0.1}
-                C ${cx - r * 0.9} ${cy + r * 0.5}, ${cx - r * 0.5} ${cy + r * 0.85}, ${cx - r * 0.1} ${cy + r * 0.85}
-                C ${cx - r * 0.35} ${cy + r * 0.5}, ${cx - r * 0.5} ${cy + r * 0.2}, ${cx - r * 0.75} ${cy + r * 0.1} Z`}
-            fill="#111111"
-          />
-          {/* Painel inferior direito */}
-          <path
-            d={`M ${cx + r * 0.75} ${cy + r * 0.1}
-                C ${cx + r * 0.9} ${cy + r * 0.5}, ${cx + r * 0.5} ${cy + r * 0.85}, ${cx + r * 0.1} ${cy + r * 0.85}
-                C ${cx + r * 0.35} ${cy + r * 0.5}, ${cx + r * 0.5} ${cy + r * 0.2}, ${cx + r * 0.75} ${cy + r * 0.1} Z`}
-            fill="#111111"
-          />
-        </g>
-      )}
-
-      {/* ── Camada 3: sombra inferior para volume ── */}
-      <circle cx={cx} cy={cy} r={r - 0.5} fill={`url(#${shadowId})`} clipPath={`url(#${clipId})`} />
-
-      {/* ── Camada 4: escudo do time integrado na bola ── */}
-      {logoUrl ? (
-        <>
-          {/* Fundo branco suave atrás do escudo para legibilidade */}
-          <circle
-            cx={cx}
-            cy={cy}
-            r={logoSize / 2 - (isLarge ? 1 : 2)}
-            fill="rgba(255,255,255,0.38)"
-            clipPath={`url(#${clipId})`}
-          />
-          <image
-            href={logoUrl}
-            x={logoOffsetX}
-            y={logoOffsetY}
-            width={logoSize}
-            height={logoSize}
-            clipPath={`url(#${logoClipId})`}
-            preserveAspectRatio="xMidYMid meet"
-            onError={onImgError}
-          />
-        </>
-      ) : (
-        /* Sem escudo: símbolo ⚽ como texto SVG */
-        <text
-          x={cx}
-          y={cy}
-          textAnchor="middle"
-          dominantBaseline="central"
-          fontSize={size * 0.42}
-          fill="rgba(0,0,0,0.5)"
-        >
-          ⚽
-        </text>
-      )}
-
-      {/* ── Camada 5: reflexo de luz no topo (sobre tudo) ── */}
-      <circle cx={cx} cy={cy} r={r - 0.5} fill={`url(#${reflectId})`} clipPath={`url(#${clipId})`} />
-
-      {/* ── Camada 6: borda fina para definição ── */}
-      <circle
-        cx={cx}
-        cy={cy}
-        r={r - 0.75}
-        fill="none"
-        stroke="rgba(0,0,0,0.4)"
-        strokeWidth="1"
-      />
-    </svg>
-  );
-};
-
 // ── ShieldBall — bola de futebol com escudo do time ─────────────────────
 interface ShieldBallProps {
   teamName?: string | null;
+  externalLogo?: string | null;
   tooltip?: string;
   size?: number;
   roundNumber?: number;
@@ -269,6 +112,7 @@ interface ShieldBallProps {
 
 export const ShieldBall: React.FC<ShieldBallProps> = ({
   teamName,
+  externalLogo,
   tooltip,
   size = 16,
   roundNumber,
@@ -276,23 +120,46 @@ export const ShieldBall: React.FC<ShieldBallProps> = ({
   const [showTooltip, setShowTooltip] = useState(false);
   const [imgError, setImgError] = useState(false);
 
-  const logoUrl = imgError ? null : getTeamLogoUrl(teamName);
+  const normalizedTeamName = String(teamName ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+
+  const customBallUrl =
+    normalizedTeamName === 'brasil' || normalizedTeamName === 'brazil'
+      ? '/assets/team-balls/brazil-ball.png'
+      : normalizedTeamName === 'japan' || normalizedTeamName === 'japao' || normalizedTeamName === 'japão'
+        ? '/assets/team-balls/japan-ball.png'
+        : normalizedTeamName === 'france' || normalizedTeamName === 'franca' || normalizedTeamName === 'frança'
+          ? '/assets/team-balls/france-ball.png'
+          : normalizedTeamName === 'portugal'
+            ? '/assets/team-balls/portugal-ball.png'
+            : null;
+
+  const logoUrl = imgError ? null : (customBallUrl ?? getTeamLogoUrl(teamName, externalLogo));
 
   return (
     <div
       className="relative inline-flex items-center justify-center flex-shrink-0"
-      style={{ width: size, height: size }}
+      style={{ width: size + 6, height: size + 4 }}
       onMouseEnter={() => tooltip && setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
       onTouchStart={() => tooltip && setShowTooltip(true)}
       onTouchEnd={() => setTimeout(() => setShowTooltip(false), 1500)}
     >
-      <FootballBallSVG
-        size={size}
-        logoUrl={logoUrl}
-        teamName={teamName}
-        onImgError={() => setImgError(true)}
-      />
+      {logoUrl ? (
+        <img
+          src={logoUrl}
+          alt={teamName ?? 'time'}
+          className={customBallUrl ? "object-contain" : "object-cover rounded-sm"}
+          style={customBallUrl ? { width: size, height: size } : { width: size, height: Math.max(10, size * 0.68) }}
+          onError={() => setImgError(true)}
+          loading="lazy"
+        />
+      ) : (
+        <span style={{ fontSize: size * 0.65, lineHeight: 1, opacity: 0.5 }}>⚽</span>
+      )}
 
       {roundNumber && (
         <span
@@ -303,7 +170,6 @@ export const ShieldBall: React.FC<ShieldBallProps> = ({
         </span>
       )}
 
-      {/* Tooltip */}
       {showTooltip && tooltip && (
         <div
           className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-50 whitespace-nowrap"
@@ -331,6 +197,7 @@ interface ShieldBallListProps {
     roundId: string;
     roundName: string;
     favoriteTeam?: string | null;
+    favoriteTeamCrest?: string | null;
     roundNumber?: number;
   }>;
   maxVisible?: number;
@@ -353,6 +220,7 @@ export const ShieldBallList: React.FC<ShieldBallListProps> = ({
         <ShieldBall
           key={win.roundId}
           teamName={win.favoriteTeam}
+          externalLogo={win.favoriteTeamCrest}
           tooltip={`${win.roundName} — Vitória na rodada`}
           size={size}
           roundNumber={win.roundNumber}
