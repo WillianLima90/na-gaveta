@@ -707,6 +707,14 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
             {!isLive ? (
               <span className="text-xs text-zinc-600">Aguardando</span>
             ) : null}
+            {isAdmin && isLive && (
+              <button
+                onClick={() => setAdminEditOpen(true)}
+                className="text-xs text-red-400 hover:text-red-300 underline ml-1"
+              >
+                Corrigir
+              </button>
+            )}
             {onViewOpponentPredictions && (
               <button
                 onClick={() => onViewOpponentPredictions(match.id)}
@@ -717,6 +725,15 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
             )}
           </div>
         </div>
+        <AdminEditResultModal
+          isOpen={adminEditOpen}
+          onClose={() => setAdminEditOpen(false)}
+          matchId={match.id}
+          homeScore={match.homeScore}
+          awayScore={match.awayScore}
+          status={match.status}
+          onSuccess={() => window.location.reload()}
+        />
       </div>
     );
   }
