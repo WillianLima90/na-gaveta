@@ -473,7 +473,7 @@ return (
     filterRoundId !== 'geral' && selectedRound && displayRanking.length > 0
       ? [{
           userId: displayRanking[0].userId,
-          wins: [{ roundNumber: selectedRound.number, points: displayRanking[0].roundPoints ?? 0, favoriteTeam: displayRanking[0].favoriteTeam ?? null }],
+          wins: [{ roundNumber: selectedRound.number, points: displayRanking[0].roundPoints ?? 0, favoriteTeam: displayRanking[0].favoriteTeam ?? null, favoriteTeamCrest: displayRanking[0].favoriteTeamCrest ?? null }],
         }]
       : computedRoundWinners;
 

@@ -135,7 +135,9 @@ export const ShieldBall: React.FC<ShieldBallProps> = ({
           ? '/assets/team-balls/franca-ball.png'
           : normalizedTeamName === 'portugal'
             ? '/assets/team-balls/portugal-ball.png'
-            : null;
+            : normalizedTeamName === 'spain' || normalizedTeamName === 'espanha' || normalizedTeamName === 'espana'
+              ? '/assets/team-balls/spain-ball.png'
+              : null;
 
   const logoUrl = imgError ? null : (customBallUrl ?? getTeamLogoUrl(teamName, externalLogo));
 
