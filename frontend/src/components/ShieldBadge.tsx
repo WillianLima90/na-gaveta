@@ -132,7 +132,7 @@ export const ShieldBall: React.FC<ShieldBallProps> = ({
       : normalizedTeamName === 'japan' || normalizedTeamName === 'japao' || normalizedTeamName === 'japão'
         ? '/assets/team-balls/japan-ball.png'
         : normalizedTeamName === 'france' || normalizedTeamName === 'franca' || normalizedTeamName === 'frança'
-          ? '/assets/team-balls/france-ball.png'
+          ? '/assets/team-balls/franca-ball.png'
           : normalizedTeamName === 'portugal'
             ? '/assets/team-balls/portugal-ball.png'
             : null;
