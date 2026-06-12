@@ -137,11 +137,18 @@ async function findLocalMatch(apiMatch: any) {
 }
 
 async function pushResult(localMatchId: string, apiMatch: any, adminToken: string, status: 'LIVE' | 'FINISHED') {
+  const homeScore = apiMatch.score?.fullTime?.home;
+  const awayScore = apiMatch.score?.fullTime?.away;
+
+  if (typeof homeScore !== 'number' || typeof awayScore !== 'number') {
+    throw new Error(`Placar inválido recebido da API: ${homeScore}-${awayScore}`);
+  }
+
   return axios.patch(
     `${LOCAL_API}/matches/${localMatchId}/result`,
     {
-      homeScore: apiMatch.score?.fullTime?.home ?? 0,
-      awayScore: apiMatch.score?.fullTime?.away ?? 0,
+      homeScore,
+      awayScore,
       status,
       isManualOverride: false,
     },

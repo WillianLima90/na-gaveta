@@ -887,7 +887,7 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
           <div className="flex items-center gap-1.5">
             {isLive && <span className="flex items-center gap-1 text-xs text-green-500"><Radio size={9} /> Ao vivo</span>}
             {isFinished && <span className="text-xs text-zinc-700">Encerrado</span>}
-            {isFinished && isAdmin && (
+            {isAdmin && (isLive || isFinished) && (
               <>
                 <button
                   onClick={() => setAdminEditOpen(true)}
