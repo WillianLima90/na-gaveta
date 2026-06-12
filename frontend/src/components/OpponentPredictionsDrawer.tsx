@@ -204,7 +204,12 @@ export function OpponentPredictionsDrawer({
 
         const oa = ra ? order[ra] : 4;
         const ob = rb ? order[rb] : 4;
-        return oa - ob;
+        if (oa !== ob) return oa - ob;
+
+        if (a.homeScoreTip !== b.homeScoreTip) return a.homeScoreTip - b.homeScoreTip;
+        if (a.awayScoreTip !== b.awayScoreTip) return a.awayScoreTip - b.awayScoreTip;
+
+        return a.userName.localeCompare(b.userName, 'pt-BR');
       })
     : [];
 
