@@ -681,7 +681,7 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
 
               {isLivePts && (
                 <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide">
-                  parcial
+                  AO VIVO
                 </span>
               )}
             </div>
@@ -791,7 +791,7 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
               )}
               {(result === 'partial' || result === 'miss') && (
                 <span className="block text-[9px] font-semibold uppercase tracking-wide opacity-70 leading-none mt-0.5">
-                  {result === 'partial' ? 'parcial' : 'errou'}
+                  {result === 'partial' ? 'AO VIVO' : 'Errou'}
                 </span>
               )}
             </span>

@@ -87,10 +87,10 @@ function getPredictionResult(
 
 const RESULT_STYLES: Record<PredictionResult & string, { border: string; text: string; label: string }> = {
   exact: { border: 'border-zinc-500/40', text: 'text-zinc-200', label: 'Exato' },
-  outcome: { border: 'border-zinc-700', text: 'text-zinc-300', label: 'Acertou resultado' },
-  homeGoal: { border: 'border-zinc-800', text: 'text-zinc-400', label: 'Gol mandante' },
-  awayGoal: { border: 'border-zinc-800', text: 'text-zinc-400', label: 'Gol visitante' },
-  partial: { border: 'border-zinc-800', text: 'text-zinc-400', label: 'Parcial' },
+  outcome: { border: 'border-zinc-700', text: 'text-zinc-300', label: 'Acertando resultado' },
+  homeGoal: { border: 'border-zinc-800', text: 'text-zinc-400', label: 'Acertando gol mandante' },
+  awayGoal: { border: 'border-zinc-800', text: 'text-zinc-400', label: 'Acertando gol visitante' },
+  partial: { border: 'border-zinc-800', text: 'text-zinc-400', label: 'AO VIVO' },
   miss: { border: 'border-zinc-900', text: 'text-zinc-600', label: 'Errou' },
 };
 
@@ -359,7 +359,7 @@ export function OpponentPredictionsDrawer({
 
                           {isLivePartial && (
                             <span className="text-[9px] px-1 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold">
-                              parcial
+                              AO VIVO
                             </span>
                           )}
 
