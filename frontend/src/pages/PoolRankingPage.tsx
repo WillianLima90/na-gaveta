@@ -630,7 +630,7 @@ return (
                         key={`mobile-stats-${entry.userId}`}
                         className="grid items-center gap-2 px-2 h-[62px]"
                         style={{
-                          gridTemplateColumns: filterRoundId === 'geral' ? '80px 80px 90px 150px' : '80px 80px 90px 150px 90px',
+                          gridTemplateColumns: filterRoundId === 'geral' ? '80px 80px 80px 90px 150px' : '80px 80px 90px 150px 90px',
                           background: pos === 1
                             ? 'linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))'
                             : isCurrentUser
