@@ -86,12 +86,12 @@ function getPredictionResult(
 
 
 const RESULT_STYLES: Record<PredictionResult & string, { border: string; text: string; label: string }> = {
-  exact: { border: 'border-zinc-500/40', text: 'text-zinc-200', label: 'Exato' },
+  exact: { border: 'border-zinc-500/40', text: 'text-zinc-200', label: 'Acertando placar exato' },
   outcome: { border: 'border-zinc-700', text: 'text-zinc-300', label: 'Acertando resultado' },
   homeGoal: { border: 'border-zinc-800', text: 'text-zinc-400', label: 'Acertando gol mandante' },
   awayGoal: { border: 'border-zinc-800', text: 'text-zinc-400', label: 'Acertando gol visitante' },
   partial: { border: 'border-zinc-800', text: 'text-zinc-400', label: 'AO VIVO' },
-  miss: { border: 'border-zinc-900', text: 'text-zinc-600', label: 'Errou' },
+  miss: { border: 'border-zinc-900', text: 'text-zinc-600', label: 'Não pontuando' },
 };
 
 function calcPredictionPoints(
