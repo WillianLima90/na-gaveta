@@ -308,6 +308,21 @@ export function OpponentPredictionsDrawer({
 
                   const displayPoints = calcPredictionPoints(p, homeScore, awayScore, scoreRule, isBonusRound);
                   const isLivePartial = hasResults && p.scoredAt === null;
+                  const statusLabel = !result
+                    ? null
+                    : isLivePartial
+                      ? RESULT_STYLES[result].label
+                      : result === 'exact'
+                        ? 'Acertou placar exato'
+                        : result === 'outcome'
+                          ? 'Acertou resultado'
+                          : result === 'homeGoal'
+                            ? 'Acertou gol mandante'
+                            : result === 'awayGoal'
+                              ? 'Acertou gol visitante'
+                              : result === 'partial'
+                                ? 'Acertou parcialmente'
+                                : 'Não pontuou';
 
                   return (
                     <div
@@ -371,7 +386,7 @@ export function OpponentPredictionsDrawer({
                       {style && (
                         <div className="col-start-2 col-span-3 flex items-center gap-1.5 min-w-0">
                           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${result === 'miss' ? 'bg-red-400' : 'bg-emerald-400'}`} />
-                          <span className={`text-xs truncate ${style.text}`}>{style.label}</span>
+                          <span className={`text-xs truncate ${style.text}`}>{statusLabel}</span>
                         </div>
                       )}
                     </div>
