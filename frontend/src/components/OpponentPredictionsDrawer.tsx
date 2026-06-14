@@ -256,7 +256,7 @@ export function OpponentPredictionsDrawer({
                   <img
                     src={getTeamLogo(data.homeTeam)!}
                     alt={getTeamName(data.homeTeam)}
-                    className="w-5 h-5 object-contain shrink-0"
+                    className="w-6 h-6 object-contain shrink-0"
                   />
                 )}
               </div>
@@ -270,7 +270,7 @@ export function OpponentPredictionsDrawer({
                   <img
                     src={getTeamLogo(data.awayTeam)!}
                     alt={getTeamName(data.awayTeam)}
-                    className="w-5 h-5 object-contain shrink-0"
+                    className="w-6 h-6 object-contain shrink-0"
                   />
                 )}
                 <span className="text-sm font-semibold text-zinc-300 truncate">
