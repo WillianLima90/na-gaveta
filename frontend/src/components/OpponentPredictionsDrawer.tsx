@@ -246,7 +246,7 @@ export function OpponentPredictionsDrawer({
         {/* Placar real (se disponível) */}
         {hasResults && data && (
           <div className="px-4 py-3 bg-zinc-900/50 border-b border-zinc-800">
-            <p className="text-xs text-zinc-500 mb-1">Resultado final</p>
+            <p className="text-xs text-zinc-500 mb-1">Placar da partida</p>
             <div className="flex items-center justify-center gap-3">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="text-sm font-semibold text-zinc-300 truncate">
