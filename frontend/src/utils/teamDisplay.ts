@@ -1,4 +1,12 @@
 export const TEAM_DISPLAY: Record<string, { name: string; logo: string }> = {
+  "Ivory Coast": {
+    "name": "Ivory Coast",
+    "logo": "https://crests.football-data.org/1085.svg"
+  },
+  "Ecuador": {
+    "name": "Ecuador",
+    "logo": "https://crests.football-data.org/791.svg"
+  },
   "CA Mineiro": {
     "name": "Atlético-MG",
     "logo": "https://crests.football-data.org/1766.png"
