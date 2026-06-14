@@ -312,7 +312,7 @@ export function OpponentPredictionsDrawer({
                   return (
                     <div
                       key={p.userId}
-                      className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                      className={`grid grid-cols-[32px_1fr_54px_78px] items-center gap-x-3 gap-y-1 p-3 rounded-xl border transition-all ${
                         style?.border ?? 'border-zinc-800'
                       } ${isCurrentUser ? 'bg-brand/5' : 'bg-zinc-900/60'}`}
                     >
@@ -322,7 +322,7 @@ export function OpponentPredictionsDrawer({
                       </div>
 
                       {/* Nome */}
-                      <div className="flex-1 min-w-0">
+                      <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                           <span className={`text-sm font-semibold truncate ${isCurrentUser ? 'text-brand' : 'text-zinc-200'}`}>
                             {p.userName}
@@ -331,9 +331,6 @@ export function OpponentPredictionsDrawer({
                             <span className="text-xs text-brand/70 font-medium shrink-0">você</span>
                           )}
                         </div>
-                        {style && (
-                          <span className={`text-xs ${style.text}`}>{style.label}</span>
-                        )}
                       </div>
 
                       {/* Palpite */}
@@ -368,6 +365,13 @@ export function OpponentPredictionsDrawer({
                               ⚡ Coringa ×2
                             </span>
                           )}
+                        </div>
+                      )}
+
+                      {style && (
+                        <div className="col-start-2 col-span-3 flex items-center gap-1.5 min-w-0">
+                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${result === 'miss' ? 'bg-red-400' : 'bg-emerald-400'}`} />
+                          <span className={`text-xs truncate ${style.text}`}>{style.label}</span>
                         </div>
                       )}
                     </div>
