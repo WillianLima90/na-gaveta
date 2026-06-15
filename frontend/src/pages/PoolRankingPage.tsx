@@ -75,14 +75,19 @@ export default function PoolRankingPage() {
 
   async function handleShareBiggestScores() {
     const text = [
-      'TOP Maiores pontuações — Na Gaveta',
+      '🏆 Maiores pontuações por rodada — Na Gaveta',
+      '',
+      'O ranking dos melhores desempenhos até agora:',
       '',
       ...sortedBiggestRoundScores.slice(0, 5).map((score, index) => {
-        const medal = [`#${index + 1}`][0];
+        const medal = ['🥇', '🥈', '🥉'][index] ?? `#${index + 1}`;
 
-        return `${medal} ${score.playerName} — ${score.points} pts (Rodada ${score.roundNumber})`;
+        return `${medal} ${score.playerName} — ${score.points} pts | Rodada ${score.roundNumber}`;
       }),
       '',
+      '🔥 Quem vai bater essa marca na próxima rodada?',
+      '',
+      'Acompanhe o bolão:',
       'https://nagaveta.com',
     ].join('\n');
 
