@@ -30,6 +30,7 @@ import PoolChampionshipPage from './pages/PoolChampionshipPage';
 import ProfilePage from './pages/ProfilePage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
 import { AdminPoolsPage } from './pages/AdminPoolsPage';
+import { AdminMatchesPage } from './pages/AdminMatchesPage';
 import PricingPage from './pages/PricingPage';
 
 // Configuração do React Query
@@ -75,6 +76,7 @@ export default function App() {
             </Route>
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/pools" element={<AdminPoolsPage />} />
+            <Route path="/admin/matches" element={<AdminMatchesPage />} />
 </Routes>
         </AuthProvider>
       </BrowserRouter>

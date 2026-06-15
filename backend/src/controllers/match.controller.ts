@@ -34,7 +34,7 @@ export async function listMatches(req: Request, res: Response): Promise<void> {
         },
       },
       orderBy: { matchDate: 'asc' },
-      take: 50,
+      take: 500,
     });
 
     res.json({ matches });

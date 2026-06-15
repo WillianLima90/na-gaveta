@@ -76,6 +76,11 @@ export function Navbar() {
                 label: 'Admin Pools',
                 icon: <Trophy className="w-4 h-4" />,
               },
+              {
+                to: '/admin/matches',
+                label: 'Admin Jogos',
+                icon: <Trophy className="w-4 h-4" />,
+              },
             ]
           : []),
       ]
