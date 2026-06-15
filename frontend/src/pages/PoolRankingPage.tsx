@@ -708,8 +708,8 @@ return (
             gridTemplateColumns:
               window.innerWidth < 768
                 ? (filterRoundId === 'geral'
-                    ? '36px 120px 80px 80px 90px 150px 80px'
-                    : '36px 120px 90px 90px 100px 150px 90px')
+                    ? '36px 145px 70px 70px 80px 135px 75px'
+                    : '36px 145px 75px 75px 85px 135px 80px')
                 : (filterRoundId === 'geral'
                     ? '36px 280px 120px 120px 140px 155px 210px'
                     : '36px 280px 140px 140px 120px 140px 155px 210px')
