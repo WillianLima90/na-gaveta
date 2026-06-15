@@ -28,6 +28,18 @@ import { ShieldNormal } from '../components/ShieldBadge';
 const MEDAL_EMOJI = ['🥇', '🥈', '🥉'];
 const MEDAL_TEXT_COLOR = ['#FFD700', '#C0C0C0', '#CD7F32'];
 
+const NAME_CONNECTORS = new Set(['de', 'da', 'do', 'das', 'dos', 'e']);
+
+function getShortPlayerName(fullName?: string | null): string {
+  const parts = (fullName || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length <= 2) return parts.join(' ');
+
+  const first = parts[0];
+  const second = parts.slice(1).find((part) => !NAME_CONNECTORS.has(part.toLowerCase()));
+
+  return [first, second].filter(Boolean).join(' ');
+}
+
 type RoundPointsMap = Map<string, { points: number; exactScores: number; correctOutcomes: number }>;
 
 export default function PoolRankingPage() {
@@ -593,7 +605,7 @@ return (
                         <ShieldNormal teamName={entry.favoriteTeam} externalLogo={entry.favoriteTeamCrest} size={20} />
 
                         <span className="text-xs font-semibold text-white truncate">
-                          {(entry.displayName || entry.name).split(' ')[0]}
+                          {getShortPlayerName(entry.displayName || entry.name)}
                         </span>
                       </div>
                     </div>
@@ -798,7 +810,7 @@ return (
                             className="text-sm font-semibold tracking-tight truncate text-white"
                             style={{ color: '#FFFFFF' }}
                           >
-                            {window.innerWidth < 768 ? (entry.displayName || entry.name).split(' ')[0] : (entry.displayName || entry.name)}
+                            {window.innerWidth < 768 ? getShortPlayerName(entry.displayName || entry.name) : (entry.displayName || entry.name)}
                           </span>
 
                           {(() => {
@@ -984,7 +996,7 @@ return (
                         <ShieldNormal teamName={entry.favoriteTeam} externalLogo={entry.favoriteTeamCrest} size={16} />
 
                         <span className="truncate">
-                          {window.innerWidth < 768 ? (entry.displayName || entry.name).split(' ')[0] : (entry.displayName || entry.name)}
+                          {window.innerWidth < 768 ? getShortPlayerName(entry.displayName || entry.name) : (entry.displayName || entry.name)}
                         </span>
 
                         {isCurrentUser && <span className="text-xs opacity-50">você</span>}

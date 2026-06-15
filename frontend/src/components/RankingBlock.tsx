@@ -34,6 +34,18 @@ interface RankingBlockProps {
   isMember: boolean;
 }
 
+const NAME_CONNECTORS = new Set(['de', 'da', 'do', 'das', 'dos', 'e']);
+
+function getShortPlayerName(fullName?: string | null): string {
+  const parts = (fullName || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length <= 2) return parts.join(' ');
+
+  const first = parts[0];
+  const second = parts.slice(1).find((part) => !NAME_CONNECTORS.has(part.toLowerCase()));
+
+  return [first, second].filter(Boolean).join(' ');
+}
+
 // Medalhas e cores
 const MEDAL_EMOJI = ['🥇', '🥈', '🥉'];
 const MEDAL_BG = [
@@ -446,7 +458,7 @@ export function RankingBlock({
                               className={`${pos === 1 ? 'text-sm' : 'text-xs'} font-semibold truncate`}
                               style={{ color: medalTextColor ?? '#E5E7EB' }}
                             >
-                              {row.name.split(' ').slice(0, 2).join(' ')}
+                              {getShortPlayerName(row.name)}
                             </span>
                             {isCurrentUser && (
                               <span className="text-xs flex-shrink-0 text-zinc-500">
