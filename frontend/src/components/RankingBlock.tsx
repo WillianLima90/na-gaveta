@@ -446,7 +446,7 @@ export function RankingBlock({
                               className={`${pos === 1 ? 'text-sm' : 'text-xs'} font-semibold truncate`}
                               style={{ color: medalTextColor ?? '#E5E7EB' }}
                             >
-                              {row.name.split(' ')[0]}
+                              {row.name.split(' ').slice(0, 2).join(' ')}
                             </span>
                             {isCurrentUser && (
                               <span className="text-xs flex-shrink-0 text-zinc-500">
