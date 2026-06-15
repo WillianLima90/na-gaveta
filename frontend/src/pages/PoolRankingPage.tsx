@@ -4,7 +4,7 @@
 // Estatísticas detalhadas: ranking geral + por rodada + escudos
 // ============================================================
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Trophy, Target, CheckCircle, Flame, Share2 } from 'lucide-react';
 import {
@@ -24,6 +24,8 @@ import { Spinner } from '../components/ui';
 import { ShieldList } from '../components/ShieldBadge';
 import { getTeamLogo } from '../utils/teamDisplay';
 import { ShieldNormal } from '../components/ShieldBadge';
+import { toBlob } from 'html-to-image';
+import { BiggestScoresShareCard } from '../components/BiggestScoresShareCard';
 
 const MEDAL_EMOJI = ['🥇', '🥈', '🥉'];
 const MEDAL_TEXT_COLOR = ['#FFD700', '#C0C0C0', '#CD7F32'];
@@ -61,6 +63,7 @@ export default function PoolRankingPage() {
   const [roundWinners, setRoundWinners] = useState<UserRoundWins[]>([]);
   const [roundPointsData, setRoundPointsData] = useState<Map<string, RoundPointsMap>>(new Map());
   const [roundDataLoading, setRoundDataLoading] = useState(false);
+  const biggestScoresShareCardRef = useRef<HTMLDivElement | null>(null);
   const [biggestScoresSort, setBiggestScoresSort] = useState<{ key: 'round' | 'player' | 'points'; direction: 'asc' | 'desc' }>({
     key: 'round',
     direction: 'asc',
@@ -74,29 +77,58 @@ export default function PoolRankingPage() {
   }
 
   async function handleShareBiggestScores() {
+    const topScore = sortedBiggestRoundScores[0];
+
     const text = [
-      '🏆 Maiores pontuações por rodada — Na Gaveta',
+      '*NA GAVETA*',
+      '*Maior pontuação de uma rodada*',
       '',
-      'O ranking dos melhores desempenhos até agora:',
+      topScore ? `*Recorde atual:* ${topScore.playerName}` : null,
+      topScore ? `*Pontuação:* ${topScore.points} pts` : null,
+      topScore ? `*Rodada:* ${topScore.roundNumber}` : null,
+      '',
+      'Ranking dos melhores desempenhos:',
       '',
       ...sortedBiggestRoundScores.slice(0, 5).map((score, index) => {
-        const medal = ['🥇', '🥈', '🥉'][index] ?? `#${index + 1}`;
-
-        return `${medal} ${score.playerName} — ${score.points} pts | Rodada ${score.roundNumber}`;
+        const rank = `#${index + 1}`;
+        return `${rank} ${score.playerName} — ${score.points} pts | Rodada ${score.roundNumber}`;
       }),
       '',
-      '🔥 Quem vai bater essa marca na próxima rodada?',
+      'Quem vai bater essa marca na próxima rodada?',
       '',
       'Acompanhe o bolão:',
       'https://nagaveta.com',
-    ].join('\n');
+    ].filter(Boolean).join('\n');
 
     try {
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
+      const card = biggestScoresShareCardRef.current;
+      const blob = card
+        ? await toBlob(card, {
+            cacheBust: true,
+            pixelRatio: 2,
+            backgroundColor: '#111827',
+          })
+        : null;
+
+      if (blob && navigator.canShare) {
+        const file = new File([blob], 'hall-da-fama-na-gaveta.png', { type: 'image/png' });
+
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: 'Hall da Fama — Na Gaveta',
+            text: 'Hall da Fama do bolão — maiores pontuações por rodada.',
+            files: [file],
+          });
+
+          return;
+        }
+      }
+
       if (navigator.share && isMobile) {
         await navigator.share({
-          title: 'Maiores pontuações — Na Gaveta',
+          title: 'Hall da Fama — Na Gaveta',
           text,
         });
 
@@ -1097,6 +1129,23 @@ return (
           </div>
         </div>
       )}
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          left: '-2000px',
+          top: 0,
+          width: 1080,
+          height: 1350,
+          pointerEvents: 'none',
+          opacity: 0,
+        }}
+      >
+        <div ref={biggestScoresShareCardRef}>
+          <BiggestScoresShareCard scores={sortedBiggestRoundScores.slice(0, 5)} />
+        </div>
+      </div>
 
       <div className="h-8" />
     </div>
