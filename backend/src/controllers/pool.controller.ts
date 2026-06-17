@@ -919,21 +919,22 @@ export async function adminPredictionStatus(req: AuthRequest, res: Response): Pr
 
     const predictions = await prisma.prediction.findMany({
       where: { poolId, matchId: { in: matchIds } },
-      select: { userId: true, matchId: true, updatedAt: true, isJoker: true },
+      select: { userId: true, matchId: true, updatedAt: true },
+    });
+
+    const jokerPredictions = await prisma.prediction.findMany({
+      where: { poolId, isJoker: true },
+      select: { userId: true },
     });
 
     const predictionByMatchId = new Map<string, Set<string>>();
-    const jokerUserIds = new Set<string>();
+    const jokerUserIds = new Set<string>(jokerPredictions.map((prediction) => prediction.userId));
 
     for (const prediction of predictions) {
       if (!predictionByMatchId.has(prediction.matchId)) {
         predictionByMatchId.set(prediction.matchId, new Set<string>());
       }
       predictionByMatchId.get(prediction.matchId)!.add(prediction.userId);
-
-      if (prediction.isJoker) {
-        jokerUserIds.add(prediction.userId);
-      }
     }
 
     const approvedUsers = members.map((member) => ({
