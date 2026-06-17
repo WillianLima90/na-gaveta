@@ -1,11 +1,195 @@
 export const TEAM_DISPLAY: Record<string, { name: string; logo: string }> = {
+  "Algeria": {
+    "name": "Algeria",
+    "logo": "https://flagcdn.com/dz.svg"
+  },
+  "Argentina": {
+    "name": "Argentina",
+    "logo": "https://flagcdn.com/ar.svg"
+  },
+  "Australia": {
+    "name": "Australia",
+    "logo": "https://flagcdn.com/au.svg"
+  },
+  "Austria": {
+    "name": "Austria",
+    "logo": "https://flagcdn.com/at.svg"
+  },
+  "Belgium": {
+    "name": "Belgium",
+    "logo": "https://flagcdn.com/be.svg"
+  },
+  "Bosnia-Herzegovina": {
+    "name": "Bosnia-Herzegovina",
+    "logo": "https://flagcdn.com/ba.svg"
+  },
+  "Brazil": {
+    "name": "Brazil",
+    "logo": "https://flagcdn.com/br.svg"
+  },
+  "Canada": {
+    "name": "Canada",
+    "logo": "https://flagcdn.com/ca.svg"
+  },
+  "Cape Verde Islands": {
+    "name": "Cape Verde Islands",
+    "logo": "https://flagcdn.com/cv.svg"
+  },
+  "Colombia": {
+    "name": "Colombia",
+    "logo": "https://flagcdn.com/co.svg"
+  },
+  "Congo DR": {
+    "name": "Congo DR",
+    "logo": "https://flagcdn.com/cd.svg"
+  },
+  "Croatia": {
+    "name": "Croatia",
+    "logo": "https://flagcdn.com/hr.svg"
+  },
+  "Curaçao": {
+    "name": "Curaçao",
+    "logo": "https://flagcdn.com/cw.svg"
+  },
+  "Czechia": {
+    "name": "Czechia",
+    "logo": "https://flagcdn.com/cz.svg"
+  },
+  "Ecuador": {
+    "name": "Ecuador",
+    "logo": "https://flagcdn.com/ec.svg"
+  },
+  "Egypt": {
+    "name": "Egypt",
+    "logo": "https://flagcdn.com/eg.svg"
+  },
+  "England": {
+    "name": "England",
+    "logo": "https://flagcdn.com/gb-eng.svg"
+  },
+  "France": {
+    "name": "France",
+    "logo": "https://flagcdn.com/fr.svg"
+  },
+  "Germany": {
+    "name": "Germany",
+    "logo": "https://flagcdn.com/de.svg"
+  },
+  "Ghana": {
+    "name": "Ghana",
+    "logo": "https://flagcdn.com/gh.svg"
+  },
+  "Haiti": {
+    "name": "Haiti",
+    "logo": "https://flagcdn.com/ht.svg"
+  },
+  "Iran": {
+    "name": "Iran",
+    "logo": "https://flagcdn.com/ir.svg"
+  },
+  "Iraq": {
+    "name": "Iraq",
+    "logo": "https://flagcdn.com/iq.svg"
+  },
   "Ivory Coast": {
     "name": "Ivory Coast",
     "logo": "https://flagcdn.com/ci.svg"
   },
-  "Ecuador": {
-    "name": "Ecuador",
-    "logo": "https://crests.football-data.org/791.svg"
+  "Japan": {
+    "name": "Japan",
+    "logo": "https://flagcdn.com/jp.svg"
+  },
+  "Jordan": {
+    "name": "Jordan",
+    "logo": "https://flagcdn.com/jo.svg"
+  },
+  "Mexico": {
+    "name": "Mexico",
+    "logo": "https://flagcdn.com/mx.svg"
+  },
+  "Morocco": {
+    "name": "Morocco",
+    "logo": "https://flagcdn.com/ma.svg"
+  },
+  "Netherlands": {
+    "name": "Netherlands",
+    "logo": "https://flagcdn.com/nl.svg"
+  },
+  "New Zealand": {
+    "name": "New Zealand",
+    "logo": "https://flagcdn.com/nz.svg"
+  },
+  "Norway": {
+    "name": "Norway",
+    "logo": "https://flagcdn.com/no.svg"
+  },
+  "Panama": {
+    "name": "Panama",
+    "logo": "https://flagcdn.com/pa.svg"
+  },
+  "Paraguay": {
+    "name": "Paraguay",
+    "logo": "https://flagcdn.com/py.svg"
+  },
+  "Portugal": {
+    "name": "Portugal",
+    "logo": "https://flagcdn.com/pt.svg"
+  },
+  "Qatar": {
+    "name": "Qatar",
+    "logo": "https://flagcdn.com/qa.svg"
+  },
+  "Saudi Arabia": {
+    "name": "Saudi Arabia",
+    "logo": "https://flagcdn.com/sa.svg"
+  },
+  "Scotland": {
+    "name": "Scotland",
+    "logo": "https://flagcdn.com/gb-sct.svg"
+  },
+  "Senegal": {
+    "name": "Senegal",
+    "logo": "https://flagcdn.com/sn.svg"
+  },
+  "South Africa": {
+    "name": "South Africa",
+    "logo": "https://flagcdn.com/za.svg"
+  },
+  "South Korea": {
+    "name": "South Korea",
+    "logo": "https://flagcdn.com/kr.svg"
+  },
+  "Spain": {
+    "name": "Spain",
+    "logo": "https://flagcdn.com/es.svg"
+  },
+  "Sweden": {
+    "name": "Sweden",
+    "logo": "https://flagcdn.com/se.svg"
+  },
+  "Switzerland": {
+    "name": "Switzerland",
+    "logo": "https://flagcdn.com/ch.svg"
+  },
+  "Tunisia": {
+    "name": "Tunisia",
+    "logo": "https://flagcdn.com/tn.svg"
+  },
+  "Turkey": {
+    "name": "Turkey",
+    "logo": "https://flagcdn.com/tr.svg"
+  },
+  "United States": {
+    "name": "United States",
+    "logo": "https://flagcdn.com/us.svg"
+  },
+  "Uruguay": {
+    "name": "Uruguay",
+    "logo": "https://flagcdn.com/uy.svg"
+  },
+  "Uzbekistan": {
+    "name": "Uzbekistan",
+    "logo": "https://flagcdn.com/uz.svg"
   },
   "CA Mineiro": {
     "name": "Atlético-MG",
