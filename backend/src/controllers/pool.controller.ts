@@ -919,15 +919,21 @@ export async function adminPredictionStatus(req: AuthRequest, res: Response): Pr
 
     const predictions = await prisma.prediction.findMany({
       where: { poolId, matchId: { in: matchIds } },
-      select: { userId: true, matchId: true, updatedAt: true },
+      select: { userId: true, matchId: true, updatedAt: true, isJoker: true },
     });
 
     const predictionByMatchId = new Map<string, Set<string>>();
+    const jokerUserIds = new Set<string>();
+
     for (const prediction of predictions) {
       if (!predictionByMatchId.has(prediction.matchId)) {
         predictionByMatchId.set(prediction.matchId, new Set<string>());
       }
       predictionByMatchId.get(prediction.matchId)!.add(prediction.userId);
+
+      if (prediction.isJoker) {
+        jokerUserIds.add(prediction.userId);
+      }
     }
 
     const approvedUsers = members.map((member) => ({
@@ -943,6 +949,9 @@ export async function adminPredictionStatus(req: AuthRequest, res: Response): Pr
         id: round.id,
         number: round.number,
         name: round.name,
+        jokerDefinedCount: jokerUserIds.size,
+        jokerPendingCount: Math.max(members.length - jokerUserIds.size, 0),
+        jokerPendingUsers: approvedUsers.filter((user) => !jokerUserIds.has(user.userId)),
         matches: round.matches.map((match) => {
           const doneUserIds = predictionByMatchId.get(match.id) ?? new Set<string>();
           const pendingUsers = approvedUsers.filter((user) => !doneUserIds.has(user.userId));

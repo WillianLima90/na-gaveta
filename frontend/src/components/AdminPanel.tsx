@@ -50,6 +50,9 @@ interface AdminPredictionRoundStatus {
   id: string;
   number: number;
   name?: string | null;
+  jokerDefinedCount?: number;
+  jokerPendingCount?: number;
+  jokerPendingUsers?: PendingPredictionUser[];
   matches: AdminPredictionMatchStatus[];
 }
 
@@ -330,6 +333,9 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
                           <p className="mt-0.5 text-[11px] font-bold text-zinc-500">
                             {round.matches.length} jogos · {completeMatches} completos · {pendingMatches.length} com pendência
                           </p>
+                          <p className="mt-0.5 text-[11px] font-bold text-zinc-500">
+                            Coringas definidos: {round.jokerDefinedCount ?? 0}/{round.matches[0]?.totalMembers ?? 0}
+                          </p>
                         </div>
 
                         {pendingMatches.length > 0 && (
@@ -349,6 +355,21 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
                           </button>
                         )}
                       </div>
+
+                      {(round.jokerPendingUsers?.length ?? 0) > 0 && (
+                        <div className="mb-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-3">
+                          <p className="text-sm font-bold text-amber-300">
+                            Coringa pendente: {round.jokerPendingUsers?.length} participante{round.jokerPendingUsers?.length !== 1 ? 's' : ''}
+                          </p>
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {round.jokerPendingUsers?.map((user) => (
+                              <span key={user.userId} className="rounded-full bg-zinc-800 px-2 py-1 text-[11px] font-semibold text-zinc-300">
+                                {user.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       {pendingMatches.length === 0 ? (
                         <div className="rounded-xl border border-green-500/20 bg-green-500/5 px-3 py-3 text-sm font-bold text-green-300">

@@ -164,15 +164,32 @@ export async function getMemberStats(
               homeScore: true,
               awayScore: true,
               status: true,
+              isJoker: true,
+              roundId: true,
+            },
+          },
+          pool: {
+            select: {
+              bonusRoundId: true,
+              scoreRule: true,
             },
           },
         },
       });
 
       const scored = predictions.filter((p) => p.scoredAt !== null);
+      const livePredictions = predictions.filter(
+        (p) =>
+          p.scoredAt === null &&
+          p.match.status === 'LIVE' &&
+          p.match.homeScore !== null &&
+          p.match.awayScore !== null
+      );
+
       let exactScores = 0;
       let correctOutcomes = 0;
       let missedPredictions = 0;
+      let livePoints = 0;
 
       for (const p of scored) {
         const hScore = p.match.homeScore;
@@ -184,6 +201,36 @@ export async function getMemberStats(
         if ((p.points ?? 0) === 0) missedPredictions++;
       }
 
+      for (const p of livePredictions) {
+        const rule = p.pool.scoreRule ?? {
+          pointsForOutcome: 10,
+          pointsForHomeGoals: 5,
+          pointsForAwayGoals: 5,
+          exactScoreBonus: 0,
+          jokerMultiplier: 2,
+          bonusRoundMultiplier: 2,
+        };
+
+        const breakdown = calculateScore({
+          prediction: {
+            homeScoreTip: p.homeScoreTip,
+            awayScoreTip: p.awayScoreTip,
+            isJoker: p.isJoker,
+          },
+          match: {
+            homeScore: p.match.homeScore as number,
+            awayScore: p.match.awayScore as number,
+            isJoker: p.match.isJoker,
+          },
+          round: {
+            isBonusRound: p.pool.bonusRoundId === p.match.roundId,
+          },
+          rule,
+        });
+
+        livePoints += breakdown.points;
+      }
+
       return {
         userId: member.userId,
         name: member.user.displayName || member.user.name,
@@ -191,7 +238,7 @@ export async function getMemberStats(
         favoriteTeam: member.favoriteTeam ?? null,
         favoriteTeamCrest: member.favoriteTeam ? crestMap.get(member.favoriteTeam) ?? null : null,
         heartTeamScore: member.heartTeamScore,
-        totalPoints: member.score,
+        totalPoints: member.score + livePoints,
         exactScores,
         correctOutcomes,
         totalPredictions: predictions.length,

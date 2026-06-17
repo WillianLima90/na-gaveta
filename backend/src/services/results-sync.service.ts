@@ -204,10 +204,41 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
 
     matched += 1;
 
-    // 🔒 PROTEÇÃO: não sobrescrever resultado manual
+    // 🔒 PROTEÇÃO: manual override não deve retroceder placar,
+    // mas pode aceitar avanço seguro da API.
     if (localMatch.isManualOverride) {
-      logs.push(`LOCKED (manual override) | ${localMatch.homeTeam} x ${localMatch.awayTeam}`);
-      continue;
+      const apiHome =
+        apiMatch.status === 'FINISHED'
+          ? apiMatch.score.fullTime.home
+          : apiMatch.score.fullTime.home ?? apiMatch.score.halfTime.home;
+      const apiAway =
+        apiMatch.status === 'FINISHED'
+          ? apiMatch.score.fullTime.away
+          : apiMatch.score.fullTime.away ?? apiMatch.score.halfTime.away;
+
+      const localHome = localMatch.homeScore ?? 0;
+      const localAway = localMatch.awayScore ?? 0;
+      const apiHasScore = typeof apiHome === 'number' && typeof apiAway === 'number';
+      const apiTotal = apiHasScore ? apiHome + apiAway : -1;
+      const localTotal = localHome + localAway;
+
+      const isSafeProgress =
+        apiHasScore &&
+        (
+          apiTotal > localTotal ||
+          (
+            apiTotal === localTotal &&
+            apiMatch.status === 'FINISHED' &&
+            localMatch.status !== 'FINISHED'
+          )
+        );
+
+      if (!isSafeProgress) {
+        logs.push(`LOCKED (manual override) | ${localMatch.homeTeam} x ${localMatch.awayTeam}`);
+        continue;
+      }
+
+      logs.push(`UNLOCK safe API progress | ${localMatch.homeTeam} x ${localMatch.awayTeam}`);
     }
 
     let sourceMatch = apiMatch;
