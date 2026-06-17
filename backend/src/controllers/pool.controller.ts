@@ -923,7 +923,11 @@ export async function adminPredictionStatus(req: AuthRequest, res: Response): Pr
     });
 
     const jokerPredictions = await prisma.prediction.findMany({
-      where: { poolId, isJoker: true },
+      where: {
+        poolId,
+        isJoker: true,
+        match: { round: { championshipId: pool.championshipId } },
+      },
       select: { userId: true },
     });
 
