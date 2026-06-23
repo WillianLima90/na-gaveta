@@ -661,9 +661,12 @@ return (
             <div className="min-w-[470px]">
               <div
                 className="grid items-center gap-2 px-2 py-3 h-[54px] border-b border-zinc-800/70 bg-white/[0.02]"
-                style={{ gridTemplateColumns: filterRoundId === 'geral' ? '80px 80px 80px 90px 150px' : '80px 80px 90px 150px 90px' }}
+                style={{ gridTemplateColumns: filterRoundId === 'geral' ? '80px 80px 80px 90px 150px' : '80px 80px 90px 150px' }}
               >
-                <span className="text-[10px] uppercase tracking-wider font-bold text-zinc-300 text-center"><span className="block">Pontos</span><span className="block">Geral</span></span>
+                <span className="text-[10px] uppercase tracking-wider font-bold text-zinc-300 text-center">
+                  <span className="block">Pontos</span>
+                  <span className="block">{filterRoundId === 'geral' ? 'Geral' : selectedRound?.name ?? 'Rodada'}</span>
+                </span>
                 {filterRoundId === 'geral' && currentRoundPoints && (
                   <span className="text-[10px] uppercase tracking-wider font-bold text-zinc-300 text-center"><span className="block">Rodada</span><span className="block">Atual</span></span>
                 )}
@@ -684,7 +687,7 @@ return (
                         key={`mobile-stats-${entry.userId}`}
                         className="grid items-center gap-2 px-2 h-[62px]"
                         style={{
-                          gridTemplateColumns: filterRoundId === 'geral' ? '80px 80px 80px 90px 150px' : '80px 80px 90px 150px 90px',
+                          gridTemplateColumns: filterRoundId === 'geral' ? '80px 80px 80px 90px 150px' : '80px 80px 90px 150px',
                           background: pos === 1
                             ? 'linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))'
                             : isCurrentUser
@@ -692,7 +695,9 @@ return (
                               : 'transparent',
                         }}
                       >
-                        <span className="text-center text-sm font-black text-white tabular-nums">{entry.totalPoints}</span>
+                        <span className={`text-center text-sm font-black tabular-nums ${filterRoundId === 'geral' ? 'text-white' : 'text-brand'}`}>
+                          {filterRoundId === 'geral' ? entry.totalPoints : (entry.roundPoints ?? 0)}
+                        </span>
 
                         {filterRoundId === 'geral' && currentRoundPoints && (
                           <span className="text-center text-sm font-black text-brand tabular-nums">{entry.roundPoints ?? 0}</span>
