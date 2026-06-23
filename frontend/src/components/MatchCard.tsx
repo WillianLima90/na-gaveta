@@ -143,10 +143,33 @@ function getPredictionResult(prediction: MyPrediction, match: Match): Prediction
   return 'miss';
 }
 
-function calcPoints(_prediction: MyPrediction, match: Match, round: Round, result: PredictionResult): number {
-  if (!result || result === 'miss') return 0;
-  const base = result === 'exact' ? 20 : result === 'outcome' ? 10 : 5;
-  return Math.round(base * (match.myPrediction?.isJoker ? 2 : 1) * (round.isBonusRound ? 1.5 : 1));
+function calcPoints(prediction: MyPrediction, match: Match, round: Round, result: PredictionResult): number {
+  if (!result || result === 'miss' || match.homeScore === null || match.awayScore === null) return 0;
+
+  const outcome = (h: number, a: number) => (h > a ? 'home' : a > h ? 'away' : 'draw');
+
+  let base = 0;
+
+  if (
+    prediction.homeScoreTip === match.homeScore &&
+    prediction.awayScoreTip === match.awayScore
+  ) {
+    base = 20;
+  } else {
+    if (outcome(prediction.homeScoreTip, prediction.awayScoreTip) === outcome(match.homeScore, match.awayScore)) {
+      base += 10;
+    }
+
+    if (prediction.homeScoreTip === match.homeScore) {
+      base += 5;
+    }
+
+    if (prediction.awayScoreTip === match.awayScore) {
+      base += 5;
+    }
+  }
+
+  return Math.round(base * (prediction.isJoker ? 2 : 1) * (round.isBonusRound ? 1.5 : 1));
 }
 
 // Configuração visual por estado — cores fortes, contraste alto
