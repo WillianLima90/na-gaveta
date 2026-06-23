@@ -360,8 +360,14 @@ return (
       };
     })
     .sort((a, b) => {
+      if (filterRoundId !== 'geral') {
+        if ((b.roundPoints ?? 0) !== (a.roundPoints ?? 0)) return (b.roundPoints ?? 0) - (a.roundPoints ?? 0);
+        if ((b.roundExacts ?? 0) !== (a.roundExacts ?? 0)) return (b.roundExacts ?? 0) - (a.roundExacts ?? 0);
+        if ((b.heartTeamScore ?? 0) !== (a.heartTeamScore ?? 0)) return (b.heartTeamScore ?? 0) - (a.heartTeamScore ?? 0);
+        return (b.roundOutcomes ?? 0) - (a.roundOutcomes ?? 0);
+      }
+
       if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
-      if (filterRoundId !== 'geral' && (b.roundPoints ?? 0) !== (a.roundPoints ?? 0)) return (b.roundPoints ?? 0) - (a.roundPoints ?? 0);
       if (b.exactScores !== a.exactScores) return b.exactScores - a.exactScores;
       if ((b.heartTeamScore ?? 0) !== (a.heartTeamScore ?? 0)) return (b.heartTeamScore ?? 0) - (a.heartTeamScore ?? 0);
       return b.correctOutcomes - a.correctOutcomes;
@@ -496,7 +502,6 @@ return (
         };
       })
       .sort((a, b) => {
-        if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
         if ((b.roundPoints ?? 0) !== (a.roundPoints ?? 0)) return (b.roundPoints ?? 0) - (a.roundPoints ?? 0);
         if (b.exactScores !== a.exactScores) return b.exactScores - a.exactScores;
         if ((b.heartTeamScore ?? 0) !== (a.heartTeamScore ?? 0)) return (b.heartTeamScore ?? 0) - (a.heartTeamScore ?? 0);
