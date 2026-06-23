@@ -746,10 +746,10 @@ return (
               window.innerWidth < 768
                 ? (filterRoundId === 'geral'
                     ? '36px 145px 70px 70px 80px 135px 75px'
-                    : '36px 145px 75px 75px 85px 135px 80px')
+                    : '36px 145px 75px 85px 135px 80px')
                 : (filterRoundId === 'geral'
                     ? '36px 280px 120px 120px 140px 155px 210px'
-                    : '36px 280px 140px 140px 120px 140px 155px 210px')
+                    : '36px 280px 140px 120px 140px 155px 210px')
           }}
         >
           <span className="text-[11px] uppercase tracking-wider text-zinc-400 text-center">#</span>
@@ -759,12 +759,7 @@ return (
               <span className="block">Pontos</span>
               <span className="block">Geral</span>
             </span>
-          ) : (
-            <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center">
-              <span className="block">Geral até</span>
-              <span className="block">{selectedRound?.name.replace('Rodada ', 'R') ?? ''}</span>
-            </span>
-          )}
+          ) : null}
           {filterRoundId === 'geral' && currentRoundPoints && (
             <span className="text-[11px] uppercase tracking-wider font-bold text-zinc-300 text-center"><span className="block">Rodada</span><span className="block">Atual</span></span>
           )}
@@ -821,10 +816,10 @@ return (
                         window.innerWidth < 768
                           ? (filterRoundId === 'geral'
                               ? '36px 120px 80px 80px 90px 150px 80px'
-                              : '36px 120px 90px 90px 100px 150px 90px')
+                              : '36px 120px 90px 100px 150px 90px')
                           : (filterRoundId === 'geral'
                               ? '36px 280px 120px 120px 140px 155px 210px'
-                              : '36px 280px 140px 140px 120px 140px 155px 210px')
+                              : '36px 280px 140px 120px 140px 155px 210px')
                     }}
                   >
                     {/* Posição */}
@@ -875,14 +870,16 @@ return (
                     </div>
 
                     {/* Pontos totais */}
-                    <div className="flex items-center justify-center text-center w-full">
-                      <span
-                        className="text-base font-black tracking-tight tabular-nums text-center mx-auto"
-                        style={{ color: '#FFFFFF' }}
-                      >
-                        {entry.totalPoints}
-                      </span>
-                    </div>
+                    {filterRoundId === 'geral' && (
+                      <div className="flex items-center justify-center text-center w-full">
+                        <span
+                          className="text-base font-black tracking-tight tabular-nums text-center mx-auto"
+                          style={{ color: '#FFFFFF' }}
+                        >
+                          {entry.totalPoints}
+                        </span>
+                      </div>
+                    )}
 
                     {/* Rodada atual */}
                     {filterRoundId === 'geral' && currentRoundPoints && (
