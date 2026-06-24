@@ -88,9 +88,9 @@ export function RankingBlock({
   const [roundDataMap, setRoundDataMap] = useState<Map<string, RoundEntry[]>>(new Map());
   const [roundDataLoading, setRoundDataLoading] = useState(false);
 
-  // FIX CRÍTICO: memoizar finishedRounds para evitar loop infinito
+  // Rodadas com placar relevante para tabela compacta: finalizadas ou ao vivo
   const finishedRounds = useMemo(
-    () => rounds.filter((r) => r.matches.some((m) => m.status === 'FINISHED')),
+    () => rounds.filter((r) => r.matches.some((m) => m.status === 'FINISHED' || m.status === 'LIVE')),
     [rounds]
   );
 
