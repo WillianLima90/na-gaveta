@@ -42,7 +42,7 @@ export default function PricingPage() {
         </div>
         <h1 className="text-3xl font-black text-white">Escolha seu plano</h1>
         <p className="mt-2 text-sm text-zinc-400">
-          Comece grátis. Faça upgrade quando quiser organizar mais bolões da Copa 2026.
+          Comece grátis. Faça upgrade quando quiser organizar mais bolões durante a temporada.
         </p>
       </div>
 
