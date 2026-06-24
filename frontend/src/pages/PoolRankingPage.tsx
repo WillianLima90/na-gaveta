@@ -77,7 +77,15 @@ export default function PoolRankingPage() {
   }
 
   async function handleShareBiggestScores() {
-    const topScore = sortedBiggestRoundScores[0];
+    const shareScores = [...visibleBiggestRoundScores]
+      .sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        if (a.roundNumber !== b.roundNumber) return a.roundNumber - b.roundNumber;
+        return a.playerName.localeCompare(b.playerName, 'pt-BR');
+      })
+      .slice(0, 5);
+
+    const topScore = shareScores[0];
 
     const text = [
       '*NA GAVETA*',
@@ -89,7 +97,7 @@ export default function PoolRankingPage() {
       '',
       'Ranking dos melhores desempenhos:',
       '',
-      ...sortedBiggestRoundScores.slice(0, 5).map((score, index) => {
+      ...shareScores.map((score, index) => {
         const rank = `#${index + 1}`;
         return `${rank} ${score.playerName} — ${score.points} pts | Rodada ${score.roundNumber}`;
       }),
@@ -1150,7 +1158,14 @@ return (
         }}
       >
         <div ref={biggestScoresShareCardRef}>
-          <BiggestScoresShareCard scores={sortedBiggestRoundScores.slice(0, 5)} />
+          <BiggestScoresShareCard scores={[...visibleBiggestRoundScores]
+            .sort((a, b) => {
+              if (b.points !== a.points) return b.points - a.points;
+              if (a.roundNumber !== b.roundNumber) return a.roundNumber - b.roundNumber;
+              return a.playerName.localeCompare(b.playerName, 'pt-BR');
+            })
+            .slice(0, 5)}
+          />
         </div>
       </div>
 

@@ -15,7 +15,7 @@ export function BiggestScoresShareCard({ scores }: BiggestScoresShareCardProps) 
     <div
       style={{
         width: 1080,
-        height: 1350,
+        height: 1650,
         padding: 72,
         background: 'linear-gradient(180deg, #050505 0%, #0b0b0d 55%, #111111 100%)',
         color: '#ffffff',
