@@ -451,11 +451,11 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
         {settingsExpanded && (
           <div className="border-t border-zinc-800 px-4 py-4">
             <div className="mb-5 rounded-2xl border border-zinc-800 bg-black/20 p-4">
-              <p className="text-xs font-black uppercase tracking-wide text-zinc-400">
-                Informações do bolão
+              <p className="text-xs font-black uppercase tracking-wide text-zinc-300">
+                Premiação, Pagamento e Regras
               </p>
               <p className="mt-1 text-[11px] text-zinc-500">
-                Configure a premiação, os dados para pagamento e o regulamento do bolão.
+                Essas informações ficam visíveis para todos os participantes e ajudam a organizar inscrições, pagamentos e distribuição dos prêmios.
               </p>
 
               <div className="mt-4 space-y-3">
@@ -505,7 +505,7 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
                   disabled={infoSaving}
                   className="rounded-xl bg-brand px-4 py-2 text-xs font-black text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {infoSaving ? "Salvando..." : "Salvar informações"}
+                  {infoSaving ? "Salvando..." : "Salvar informações do bolão"}
                 </button>
               </div>
             </div>
