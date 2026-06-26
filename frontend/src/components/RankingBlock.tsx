@@ -183,6 +183,21 @@ export function RankingBlock({
 
   const isRoundFilter = selectedRound !== 'geral';
 
+  const orderedRoundTabs = useMemo(() => {
+    const liveRound = finishedRounds
+      .filter((r) => r.matches.some((m) => m.status === 'LIVE'))
+      .sort((a, b) => b.number - a.number)[0];
+
+    const latestRound = liveRound ?? [...finishedRounds].sort((a, b) => b.number - a.number)[0];
+
+    const others = finishedRounds
+      .filter((r) => r.id !== latestRound?.id)
+      .sort((a, b) => b.number - a.number);
+
+    return latestRound ? [latestRound, ...others] : others;
+  }, [finishedRounds]);
+
+
   interface DisplayRow {
     userId: string;
     name: string;
@@ -348,7 +363,7 @@ export function RankingBlock({
               active={selectedRound === 'geral'}
               onClick={() => setSelectedRound('geral')}
             />
-            {finishedRounds.map((r) => (
+            {orderedRoundTabs.map((r) => (
               <FilterBtn
                 key={r.id}
                 label={r.name.replace(/^Rodada\s+/i, 'R')}

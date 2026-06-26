@@ -11,6 +11,7 @@ import { MatchStatus } from '@prisma/client';
 import prisma from '../utils/prisma';
 import { AuthRequest } from '../types';
 import { recalculatePredictionsForMatch } from '../services/scoring.service';
+import { computeAndSaveRoundWinners } from '../services/statistics.service';
 
 // ── GET /api/matches ─────────────────────────────────────────
 // Lista partidas com filtros opcionais por campeonato/rodada/status
@@ -192,6 +193,16 @@ export async function setMatchResult(req: AuthRequest, res: Response): Promise<v
     // Disparar motor de pontuação se a partida foi finalizada
     if (updatedMatch.status === MatchStatus.FINISHED) {
       await recalculatePredictionsForMatch(id);
+
+      const affectedPools = await prisma.prediction.findMany({
+        where: { matchId: id },
+        distinct: ['poolId'],
+        select: { poolId: true },
+      });
+
+      await Promise.all(
+        affectedPools.map((p) => computeAndSaveRoundWinners(p.poolId))
+      );
 
       const predictionsCount = await prisma.prediction.count({
         where: { matchId: id, scoredAt: { not: null } },
