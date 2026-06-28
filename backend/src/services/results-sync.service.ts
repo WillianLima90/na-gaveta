@@ -178,7 +178,8 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
 
   const apiMatches = await fetchApiMatches();
   const syncable = apiMatches.filter((m: any) => {
-    if (!['FINISHED', 'IN_PLAY', 'PAUSED'].includes(m.status)) return false;
+    if (!['FINISHED', 'IN_PLAY', 'PAUSED', 'TIMED', 'SCHEDULED'].includes(m.status)) return false;
+    if (m.status === 'TIMED' || m.status === 'SCHEDULED') return true;
     if (m.status === 'FINISHED') return true;
 
     return (
@@ -304,10 +305,15 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
           ? 'FINISHED'
           : 'LIVE';
 
+    const sameTeams =
+      localMatch.homeTeam === sourceMatch.homeTeam?.name &&
+      localMatch.awayTeam === sourceMatch.awayTeam?.name;
+
     const sameScore =
-      localMatch.homeScore === sourceMatch.score.fullTime.home &&
-      localMatch.awayScore === sourceMatch.score.fullTime.away &&
-      localMatch.status === targetStatus;
+      localMatch.homeScore === sourceMatch.score?.fullTime?.home &&
+      localMatch.awayScore === sourceMatch.score?.fullTime?.away &&
+      localMatch.status === targetStatus &&
+      sameTeams;
 
     // Segurança:
     // se API já finalizou mas jogo local ainda está LIVE,
@@ -317,7 +323,7 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
       localMatch.status !== 'FINISHED';
 
     const localGoals = (localMatch.homeScore ?? 0) + (localMatch.awayScore ?? 0);
-    const apiGoals = sourceMatch.score.fullTime.home + sourceMatch.score.fullTime.away;
+    const apiGoals = (sourceMatch.score?.fullTime?.home ?? 0) + (sourceMatch.score?.fullTime?.away ?? 0);
     const apiIsOlderThanLocal =
       Boolean(apiLastUpdated) &&
       localMatch.updatedAt &&
