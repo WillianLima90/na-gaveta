@@ -296,6 +296,15 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
     const apiStatus = sourceMatch.status;
     const apiLastUpdated = sourceMatch.lastUpdated ? new Date(sourceMatch.lastUpdated) : null;
 
+    if (
+      sourceMatch.status === 'FINISHED' &&
+      ['LAST_32', 'LAST_16', 'QUARTER_FINALS', 'SEMI_FINALS', 'THIRD_PLACE', 'FINAL'].includes(sourceMatch.stage)
+    ) {
+      logs.push(
+        `KNOCKOUT SCORE RAW | ${sourceMatch.homeTeam?.name} x ${sourceMatch.awayTeam?.name} | stage=${sourceMatch.stage} | score=${JSON.stringify(sourceMatch.score)}`
+      );
+    }
+
     // Regra anti-regressão:
     // se local já está FINISHED, nunca volta para LIVE por inconsistência/cache da API.
     const targetStatus =
