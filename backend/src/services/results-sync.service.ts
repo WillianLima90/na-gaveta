@@ -343,6 +343,12 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
       await prisma.match.update({
         where: { id: localMatch.id },
         data: {
+          homeTeam: sourceMatch.homeTeam?.name ?? localMatch.homeTeam,
+          awayTeam: sourceMatch.awayTeam?.name ?? localMatch.awayTeam,
+          homeTeamTla: sourceMatch.homeTeam?.tla ?? null,
+          awayTeamTla: sourceMatch.awayTeam?.tla ?? null,
+          homeTeamCrest: sourceMatch.homeTeam?.crest ?? null,
+          awayTeamCrest: sourceMatch.awayTeam?.crest ?? null,
           apiStatus,
           apiLastUpdated,
         },
