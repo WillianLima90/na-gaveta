@@ -14,6 +14,24 @@ function normalizeName(name: string | null | undefined): string {
     .toLowerCase();
 }
 
+function resolveOfficialScore(apiMatch: any): { home: number | null; away: number | null; source: 'regularTime' | 'fullTime' | 'none' } {
+  const regularHome = apiMatch.score?.regularTime?.home;
+  const regularAway = apiMatch.score?.regularTime?.away;
+
+  if (typeof regularHome === 'number' && typeof regularAway === 'number') {
+    return { home: regularHome, away: regularAway, source: 'regularTime' };
+  }
+
+  const fullHome = apiMatch.score?.fullTime?.home;
+  const fullAway = apiMatch.score?.fullTime?.away;
+
+  if (typeof fullHome === 'number' && typeof fullAway === 'number') {
+    return { home: fullHome, away: fullAway, source: 'fullTime' };
+  }
+
+  return { home: null, away: null, source: 'none' };
+}
+
 function getFootballDataApiKey() {
   const apiKey = process.env.FOOTBALL_API_KEY || process.env.FOOTBALL_DATA_API_KEY || '';
   if (!apiKey) throw new Error('FOOTBALL_API_KEY/FOOTBALL_DATA_API_KEY ausente no .env');
@@ -139,11 +157,12 @@ async function findLocalMatch(apiMatch: any) {
 }
 
 async function pushResult(localMatchId: string, apiMatch: any, adminToken: string, status: 'LIVE' | 'FINISHED') {
-  const homeScore = apiMatch.score?.fullTime?.home;
-  const awayScore = apiMatch.score?.fullTime?.away;
+  const officialScore = resolveOfficialScore(apiMatch);
+  const homeScore = officialScore.home;
+  const awayScore = officialScore.away;
 
   if (typeof homeScore !== 'number' || typeof awayScore !== 'number') {
-    throw new Error(`Placar inválido recebido da API: ${homeScore}-${awayScore}`);
+    throw new Error(`Placar oficial inválido recebido da API: ${homeScore}-${awayScore}`);
   }
 
   return axios.patch(
@@ -182,9 +201,10 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
     if (m.status === 'TIMED' || m.status === 'SCHEDULED') return true;
     if (m.status === 'FINISHED') return true;
 
+    const officialScore = resolveOfficialScore(m);
     return (
-      typeof m.score?.fullTime?.home === 'number' &&
-      typeof m.score?.fullTime?.away === 'number'
+      typeof officialScore.home === 'number' &&
+      typeof officialScore.away === 'number'
     );
   });
 
@@ -208,14 +228,9 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
     // 🔒 PROTEÇÃO: manual override não deve retroceder placar,
     // mas pode aceitar avanço seguro da API.
     if (localMatch.isManualOverride) {
-      const apiHome =
-        apiMatch.status === 'FINISHED'
-          ? apiMatch.score.fullTime.home
-          : apiMatch.score.fullTime.home ?? apiMatch.score.halfTime.home;
-      const apiAway =
-        apiMatch.status === 'FINISHED'
-          ? apiMatch.score.fullTime.away
-          : apiMatch.score.fullTime.away ?? apiMatch.score.halfTime.away;
+      const manualOfficialScore = resolveOfficialScore(apiMatch);
+      const apiHome = manualOfficialScore.home ?? apiMatch.score?.halfTime?.home;
+      const apiAway = manualOfficialScore.away ?? apiMatch.score?.halfTime?.away;
 
       const localHome = localMatch.homeScore ?? 0;
       const localAway = localMatch.awayScore ?? 0;
@@ -251,8 +266,8 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
           sourceMatch.status === 'FINISHED' &&
           (
             localMatch.status !== 'FINISHED' ||
-            localMatch.homeScore !== sourceMatch.score.fullTime.home ||
-            localMatch.awayScore !== sourceMatch.score.fullTime.away
+            localMatch.homeScore !== resolveOfficialScore(sourceMatch).home ||
+            localMatch.awayScore !== resolveOfficialScore(sourceMatch).away
           )
         ) ||
         (
@@ -274,8 +289,8 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
     if (
       sourceMatch.status === 'FINISHED' &&
       (
-        typeof sourceMatch.score?.fullTime?.home !== 'number' ||
-        typeof sourceMatch.score?.fullTime?.away !== 'number'
+        typeof resolveOfficialScore(sourceMatch).home !== 'number' ||
+        typeof resolveOfficialScore(sourceMatch).away !== 'number'
       ) &&
       typeof localMatch.homeScore === 'number' &&
       typeof localMatch.awayScore === 'number'
@@ -300,8 +315,9 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
       sourceMatch.status === 'FINISHED' &&
       ['LAST_32', 'LAST_16', 'QUARTER_FINALS', 'SEMI_FINALS', 'THIRD_PLACE', 'FINAL'].includes(sourceMatch.stage)
     ) {
+      const officialScore = resolveOfficialScore(sourceMatch);
       logs.push(
-        `KNOCKOUT SCORE RAW | ${sourceMatch.homeTeam?.name} x ${sourceMatch.awayTeam?.name} | stage=${sourceMatch.stage} | score=${JSON.stringify(sourceMatch.score)}`
+        `KNOCKOUT SCORE RAW | ${sourceMatch.homeTeam?.name} x ${sourceMatch.awayTeam?.name} | stage=${sourceMatch.stage} | official=${officialScore.home}-${officialScore.away} source=${officialScore.source} | score=${JSON.stringify(sourceMatch.score)}`
       );
     }
 
@@ -319,8 +335,8 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
       localMatch.awayTeam === sourceMatch.awayTeam?.name;
 
     const sameScore =
-      localMatch.homeScore === sourceMatch.score?.fullTime?.home &&
-      localMatch.awayScore === sourceMatch.score?.fullTime?.away &&
+      localMatch.homeScore === resolveOfficialScore(sourceMatch).home &&
+      localMatch.awayScore === resolveOfficialScore(sourceMatch).away &&
       localMatch.status === targetStatus &&
       sameTeams;
 
@@ -332,7 +348,8 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
       localMatch.status !== 'FINISHED';
 
     const localGoals = (localMatch.homeScore ?? 0) + (localMatch.awayScore ?? 0);
-    const apiGoals = (sourceMatch.score?.fullTime?.home ?? 0) + (sourceMatch.score?.fullTime?.away ?? 0);
+    const scoreForRegression = resolveOfficialScore(sourceMatch);
+    const apiGoals = (scoreForRegression.home ?? 0) + (scoreForRegression.away ?? 0);
     const apiIsOlderThanLocal =
       Boolean(apiLastUpdated) &&
       localMatch.updatedAt &&
@@ -345,7 +362,8 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
       apiGoals < localGoals;
 
     if (isStaleLiveRegression) {
-      logs.push(`SKIP stale live regression | ${localMatch.homeTeam} x ${localMatch.awayTeam} | local ${localMatch.homeScore ?? 0}-${localMatch.awayScore ?? 0} api ${sourceMatch.score.fullTime.home}-${sourceMatch.score.fullTime.away}`);
+      const staleScore = resolveOfficialScore(sourceMatch);
+      logs.push(`SKIP stale live regression | ${localMatch.homeTeam} x ${localMatch.awayTeam} | local ${localMatch.homeScore ?? 0}-${localMatch.awayScore ?? 0} api ${staleScore.home ?? 0}-${staleScore.away ?? 0}`);
       continue;
     }
 
