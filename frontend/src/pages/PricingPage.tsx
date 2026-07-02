@@ -1,4 +1,6 @@
 import { Check, Trophy } from 'lucide-react';
+import axios from 'axios';
+import { useAuth } from '../hooks/useAuth';
 
 const WHATSAPP_URL =
   'https://wa.me/16892362739?text=' +
@@ -34,6 +36,30 @@ const plans = [
 ];
 
 export default function PricingPage() {
+  const { user } = useAuth();
+
+  async function registerPricingLead(planName: string) {
+    if (planName !== 'PRO' && planName !== 'BUSINESS') return;
+
+    try {
+      await axios.post('/api/crm/leads', {
+        name: user?.name || `Interesse ${planName}`,
+        email: user?.email || undefined,
+        type: planName === 'BUSINESS' ? 'COMPANY' : 'ORGANIZER',
+        source: 'Pricing Page',
+        nextAction: `Contato sobre plano ${planName}`,
+        notes: [
+          `Lead automático gerado ao clicar em ${planName} na página de preços.`,
+          user?.id ? `User ID: ${user.id}` : null,
+          user?.plan ? `Plano atual: ${user.plan}` : null,
+          `Interesse: ${planName}`,
+        ].filter(Boolean).join('\n'),
+      });
+    } catch {
+      // Não bloquear o WhatsApp se o CRM falhar.
+    }
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
       <div className="mb-8 text-center">
@@ -77,7 +103,9 @@ export default function PricingPage() {
 
             <button
               type="button"
-              onClick={() => {
+              onClick={async () => {
+                await registerPricingLead(plan.name);
+
                 if (plan.name === 'PRO') {
                   window.open(WHATSAPP_URL, '_blank');
                 } else if (plan.name === 'BUSINESS') {

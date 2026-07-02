@@ -169,8 +169,11 @@ model Match {
   awayTeamCrest String?  @map("away_team_crest")
   homeTeamTla   String?  @map("home_team_tla")
   awayTeamTla   String?  @map("away_team_tla")
-  homeScore  Int?        @map("home_score")  // null = não realizado
+  homeScore  Int?        @map("home_score")  // placar usado para pontuação: 90 minutos + acréscimos
   awayScore  Int?        @map("away_score")
+  finalHomeScore Int?    @map("final_home_score") // placar final oficial incluindo prorrogação/pênaltis quando aplicável
+  finalAwayScore Int?    @map("final_away_score")
+  decisionType String?   @map("decision_type") // REGULAR | EXTRA_TIME | PENALTIES
   externalMatchId Int?   @unique @map("external_match_id")
   apiStatus  String?     @map("api_status")
   apiLastUpdated DateTime? @map("api_last_updated")
@@ -309,6 +312,45 @@ enum NotificationType {
   ROUND_STARTED
   ROUND_RESULT
 }
+
+
+// ============================================================
+// CRM — LEADS COMERCIAIS DA PLATAFORMA
+// Usado para organizar vendas PRO/BUSINESS, parceiros e patrocinadores
+// ============================================================
+model CrmLead {
+  id          String        @id @default(uuid())
+  name        String
+  email       String?
+  phone       String?
+  type        CrmLeadType   @default(ORGANIZER)
+  status      CrmLeadStatus @default(NEW)
+  source      String?
+  notes       String?
+  nextAction  String?       @map("next_action")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  @@index([status, type])
+  @@index([createdAt])
+  @@map("crm_leads")
+}
+
+enum CrmLeadType {
+  ORGANIZER
+  COMPANY
+  PARTNER
+  SPONSOR
+}
+
+enum CrmLeadStatus {
+  NEW
+  CONTACTED
+  PROPOSAL_SENT
+  WON
+  LOST
+}
+
 
 // ============================================================
 // ENUM — status de uma partida

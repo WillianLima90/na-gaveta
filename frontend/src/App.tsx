@@ -31,6 +31,7 @@ import ProfilePage from './pages/ProfilePage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
 import { AdminPoolsPage } from './pages/AdminPoolsPage';
 import { AdminMatchesPage } from './pages/AdminMatchesPage';
+import { AdminCrmPage } from './pages/AdminCrmPage';
 import PricingPage from './pages/PricingPage';
 
 // Configuração do React Query
@@ -77,6 +78,7 @@ export default function App() {
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/pools" element={<AdminPoolsPage />} />
             <Route path="/admin/matches" element={<AdminMatchesPage />} />
+            <Route path="/admin/crm" element={<AdminCrmPage />} />
 </Routes>
         </AuthProvider>
       </BrowserRouter>

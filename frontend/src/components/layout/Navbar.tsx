@@ -72,6 +72,11 @@ export function Navbar() {
                 icon: <Shield className="w-4 h-4" />,
               },
               {
+                to: '/admin/crm',
+                label: 'CRM',
+                icon: <Shield className="w-4 h-4" />,
+              },
+              {
                 to: '/admin/pools',
                 label: 'Admin Pools',
                 icon: <Trophy className="w-4 h-4" />,
