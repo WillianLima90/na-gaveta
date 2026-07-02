@@ -29,6 +29,9 @@ export interface Match {
   awayTeamTla?: string | null;
   homeScore?: number | null;
   awayScore?: number | null;
+  finalHomeScore?: number | null;
+  finalAwayScore?: number | null;
+  decisionType?: 'REGULAR' | 'EXTRA_TIME' | 'PENALTIES' | null;
   status: MatchStatus;
   matchDate: string;
   venue?: string;

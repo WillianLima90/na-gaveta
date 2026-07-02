@@ -62,6 +62,41 @@ function resolveOfficialScore(apiMatch: any): { home: number | null; away: numbe
   return { home: null, away: null, source: 'none' };
 }
 
+function resolveFinalScore(apiMatch: any): { home: number | null; away: number | null } {
+  const fullHome = apiMatch.score?.fullTime?.home;
+  const fullAway = apiMatch.score?.fullTime?.away;
+
+  if (typeof fullHome === 'number' && typeof fullAway === 'number') {
+    return { home: fullHome, away: fullAway };
+  }
+
+  return { home: null, away: null };
+}
+
+function resolveDecisionType(apiMatch: any): 'REGULAR' | 'EXTRA_TIME' | 'PENALTIES' | null {
+  if (
+    typeof apiMatch.score?.penalties?.home === 'number' ||
+    typeof apiMatch.score?.penalties?.away === 'number' ||
+    apiMatch.score?.duration === 'PENALTY_SHOOTOUT'
+  ) {
+    return 'PENALTIES';
+  }
+
+  if (
+    typeof apiMatch.score?.extraTime?.home === 'number' ||
+    typeof apiMatch.score?.extraTime?.away === 'number' ||
+    apiMatch.score?.duration === 'EXTRA_TIME'
+  ) {
+    return 'EXTRA_TIME';
+  }
+
+  if (apiMatch.status === 'FINISHED' || apiMatch.score?.duration === 'REGULAR') {
+    return 'REGULAR';
+  }
+
+  return null;
+}
+
 function getFootballDataApiKey() {
   const apiKey = process.env.FOOTBALL_API_KEY || process.env.FOOTBALL_DATA_API_KEY || '';
   if (!apiKey) throw new Error('FOOTBALL_API_KEY/FOOTBALL_DATA_API_KEY ausente no .env');
@@ -412,6 +447,9 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
           awayTeamTla: sourceMatch.awayTeam?.tla ?? null,
           homeTeamCrest: sourceMatch.homeTeam?.crest ?? null,
           awayTeamCrest: sourceMatch.awayTeam?.crest ?? null,
+          finalHomeScore: resolveFinalScore(sourceMatch).home,
+          finalAwayScore: resolveFinalScore(sourceMatch).away,
+          decisionType: resolveDecisionType(sourceMatch),
           apiStatus,
           apiLastUpdated,
         },

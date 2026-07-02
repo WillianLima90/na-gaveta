@@ -72,6 +72,33 @@ function teamLogo(name: string, apiCrest?: string | null): string | null {
   return apiCrest || getTeamLogo(name);
 }
 
+function hasDifferentFinalScore(match: Match): boolean {
+  return (
+    typeof match.homeScore === 'number' &&
+    typeof match.awayScore === 'number' &&
+    typeof match.finalHomeScore === 'number' &&
+    typeof match.finalAwayScore === 'number' &&
+    (
+      match.homeScore !== match.finalHomeScore ||
+      match.awayScore !== match.finalAwayScore
+    )
+  );
+}
+
+function decisionLabel(match: Match): string | null {
+  if (!hasDifferentFinalScore(match)) return null;
+
+  if (match.decisionType === 'PENALTIES') {
+    return `Final após pênaltis: ${match.finalHomeScore}–${match.finalAwayScore}`;
+  }
+
+  if (match.decisionType === 'EXTRA_TIME') {
+    return `Final após prorrogação: ${match.finalHomeScore}–${match.finalAwayScore}`;
+  }
+
+  return `Final oficial: ${match.finalHomeScore}–${match.finalAwayScore}`;
+}
+
 // ── Helpers de tempo ─────────────────────────────────────────
 const LOCK_MINUTES_BEFORE = 10;
 const SAO_PAULO_TZ = 'America/Sao_Paulo';
@@ -788,11 +815,16 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
             {hasScore && (
               <div className="mt-1.5 text-center leading-tight">
                 <div className="text-[10px] text-zinc-500 uppercase tracking-wide">
-                  Resultado
+                  {hasDifferentFinalScore(match) ? 'Pontuação 90\'' : 'Resultado'}
                 </div>
                 <div className="text-base font-bold text-zinc-200">
                   {match.homeScore}–{match.awayScore}
                 </div>
+                {decisionLabel(match) && (
+                  <div className="mt-1 text-[10px] font-bold text-amber-300">
+                    {decisionLabel(match)}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -910,8 +942,13 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
           </div>
           <div className="flex flex-col items-center justify-center mt-2">
             <span className={`text-xs font-bold tabular-nums transition-all duration-300 ${goalFlash ? "text-white scale-125 drop-shadow-[0_0_10px_rgba(255,255,255,0.35)]" : "text-zinc-300"}`}>
-              {match.status === 'LIVE' ? 'Ao vivo: ' : 'Resultado final: '}{match.homeScore ?? '-'}–{match.awayScore ?? '-'}
+              {match.status === 'LIVE' ? 'Ao vivo: ' : hasDifferentFinalScore(match) ? 'Pontuação 90\': ' : 'Resultado final: '}{match.homeScore ?? '-'}–{match.awayScore ?? '-'}
             </span>
+            {decisionLabel(match) && (
+              <div className="mt-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+                {decisionLabel(match)}
+              </div>
+            )}
             {match.isManualOverride && (
               <div className="text-[10px] text-amber-400 font-semibold mt-1">
                 Corrigido manualmente
