@@ -14,7 +14,7 @@ function normalizeName(name: string | null | undefined): string {
     .toLowerCase();
 }
 
-function resolveOfficialScore(apiMatch: any): { home: number | null; away: number | null; source: 'regularTime' | 'fullTime' | 'none' } {
+function resolveOfficialScore(apiMatch: any): { home: number | null; away: number | null; source: 'regularTime' | 'derivedRegularTime' | 'fullTime' | 'none' } {
   const regularHome = apiMatch.score?.regularTime?.home;
   const regularAway = apiMatch.score?.regularTime?.away;
 
@@ -24,6 +24,36 @@ function resolveOfficialScore(apiMatch: any): { home: number | null; away: numbe
 
   const fullHome = apiMatch.score?.fullTime?.home;
   const fullAway = apiMatch.score?.fullTime?.away;
+  const extraHome = apiMatch.score?.extraTime?.home;
+  const extraAway = apiMatch.score?.extraTime?.away;
+  const penaltyHome = apiMatch.score?.penalties?.home;
+  const penaltyAway = apiMatch.score?.penalties?.away;
+
+  if (
+    typeof fullHome === 'number' &&
+    typeof fullAway === 'number' &&
+    typeof penaltyHome === 'number' &&
+    typeof penaltyAway === 'number'
+  ) {
+    return {
+      home: fullHome - penaltyHome - (typeof extraHome === 'number' ? extraHome : 0),
+      away: fullAway - penaltyAway - (typeof extraAway === 'number' ? extraAway : 0),
+      source: 'derivedRegularTime',
+    };
+  }
+
+  if (
+    typeof fullHome === 'number' &&
+    typeof fullAway === 'number' &&
+    typeof extraHome === 'number' &&
+    typeof extraAway === 'number'
+  ) {
+    return {
+      home: fullHome - extraHome,
+      away: fullAway - extraAway,
+      source: 'derivedRegularTime',
+    };
+  }
 
   if (typeof fullHome === 'number' && typeof fullAway === 'number') {
     return { home: fullHome, away: fullAway, source: 'fullTime' };
