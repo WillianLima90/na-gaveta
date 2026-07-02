@@ -43,6 +43,9 @@ interface OpponentPredictionsDrawerProps {
   currentUserId?: string;
   homeScore?: number | null;
   awayScore?: number | null;
+  finalHomeScore?: number | null;
+  finalAwayScore?: number | null;
+  decisionType?: 'REGULAR' | 'EXTRA_TIME' | 'PENALTIES' | null;
   scoreRule?: ScoreRule | null;
   isBonusRound?: boolean;
   onClose: () => void;
@@ -64,6 +67,39 @@ function getAvatarColor(name: string): string {
   ];
   const idx = name.charCodeAt(0) % colors.length;
   return colors[idx];
+}
+
+function hasDifferentFinalScore(
+  homeScore?: number | null,
+  awayScore?: number | null,
+  finalHomeScore?: number | null,
+  finalAwayScore?: number | null
+): boolean {
+  return (
+    typeof homeScore === 'number' &&
+    typeof awayScore === 'number' &&
+    typeof finalHomeScore === 'number' &&
+    typeof finalAwayScore === 'number' &&
+    (homeScore !== finalHomeScore || awayScore !== finalAwayScore)
+  );
+}
+
+function decisionLabel(
+  decisionType?: 'REGULAR' | 'EXTRA_TIME' | 'PENALTIES' | null,
+  finalHomeScore?: number | null,
+  finalAwayScore?: number | null
+): string | null {
+  if (typeof finalHomeScore !== 'number' || typeof finalAwayScore !== 'number') return null;
+
+  if (decisionType === 'PENALTIES') {
+    return `Final após pênaltis: ${finalHomeScore}–${finalAwayScore}`;
+  }
+
+  if (decisionType === 'EXTRA_TIME') {
+    return `Final após prorrogação: ${finalHomeScore}–${finalAwayScore}`;
+  }
+
+  return `Final oficial: ${finalHomeScore}–${finalAwayScore}`;
 }
 
 type PredictionResult = 'exact' | 'outcome' | 'homeGoal' | 'awayGoal' | 'partial' | 'miss' | null;
@@ -147,6 +183,9 @@ export function OpponentPredictionsDrawer({
   currentUserId,
   homeScore,
   awayScore,
+  finalHomeScore,
+  finalAwayScore,
+  decisionType,
   scoreRule,
   isBonusRound,
   onClose,
@@ -243,10 +282,12 @@ export function OpponentPredictionsDrawer({
           </button>
         </div>
 
-        {/* Placar real (se disponível) */}
+        {/* Placar válido para pontuação */}
         {hasResults && data && (
           <div className="px-4 py-3 bg-zinc-900/50 border-b border-zinc-800">
-            <p className="text-xs text-zinc-500 mb-1">Placar da partida</p>
+            <p className="text-xs text-zinc-500 mb-1">
+              {hasDifferentFinalScore(homeScore, awayScore, finalHomeScore, finalAwayScore) ? "Placar do Bolão" : "Placar da partida"}
+            </p>
             <div className="flex items-center justify-center gap-3">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="text-sm font-semibold text-zinc-300 truncate">
@@ -278,6 +319,14 @@ export function OpponentPredictionsDrawer({
                 </span>
               </div>
             </div>
+
+            {hasDifferentFinalScore(homeScore, awayScore, finalHomeScore, finalAwayScore) && (
+              <div className="mt-2 flex justify-center">
+                <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+                  {decisionLabel(decisionType, finalHomeScore, finalAwayScore)}
+                </span>
+              </div>
+            )}
           </div>
         )}
 

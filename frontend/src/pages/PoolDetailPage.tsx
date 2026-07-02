@@ -1017,6 +1017,9 @@ const rightColumn = (
             currentUserId={user?.id}
             homeScore={m?.homeScore ?? null}
             awayScore={m?.awayScore ?? null}
+            finalHomeScore={(m as any)?.finalHomeScore ?? null}
+            finalAwayScore={(m as any)?.finalAwayScore ?? null}
+            decisionType={(m as any)?.decisionType ?? null}
             scoreRule={(pool as any)?.scoreRule ?? null}
             isBonusRound={Boolean(drawerRound && pool?.bonusRoundId === drawerRound.id)}
             onClose={() => setDrawerMatchId(null)}
