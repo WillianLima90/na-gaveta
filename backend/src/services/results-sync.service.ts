@@ -163,6 +163,9 @@ async function findLocalMatch(apiMatch: any) {
       awayTeam: true,
       homeScore: true,
       awayScore: true,
+      finalHomeScore: true,
+      finalAwayScore: true,
+      decisionType: true,
       status: true,
       externalMatchId: true,
       apiStatus: true,
@@ -186,6 +189,9 @@ async function findLocalMatch(apiMatch: any) {
       awayTeam: true,
       homeScore: true,
       awayScore: true,
+      finalHomeScore: true,
+      finalAwayScore: true,
+      decisionType: true,
       status: true,
       externalMatchId: true,
       apiStatus: true,
@@ -399,11 +405,21 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
       localMatch.homeTeam === sourceMatch.homeTeam?.name &&
       localMatch.awayTeam === sourceMatch.awayTeam?.name;
 
+    const officialScore = resolveOfficialScore(sourceMatch);
+    const finalScore = resolveFinalScore(sourceMatch);
+    const decisionType = resolveDecisionType(sourceMatch);
+
+    const sameFinalData =
+      localMatch.finalHomeScore === finalScore.home &&
+      localMatch.finalAwayScore === finalScore.away &&
+      localMatch.decisionType === decisionType;
+
     const sameScore =
-      localMatch.homeScore === resolveOfficialScore(sourceMatch).home &&
-      localMatch.awayScore === resolveOfficialScore(sourceMatch).away &&
+      localMatch.homeScore === officialScore.home &&
+      localMatch.awayScore === officialScore.away &&
       localMatch.status === targetStatus &&
-      sameTeams;
+      sameTeams &&
+      sameFinalData;
 
     // Segurança:
     // se API já finalizou mas jogo local ainda está LIVE,
@@ -447,9 +463,9 @@ export async function syncResultsFromApi(adminToken: string): Promise<SyncResult
           awayTeamTla: sourceMatch.awayTeam?.tla ?? null,
           homeTeamCrest: sourceMatch.homeTeam?.crest ?? null,
           awayTeamCrest: sourceMatch.awayTeam?.crest ?? null,
-          finalHomeScore: resolveFinalScore(sourceMatch).home,
-          finalAwayScore: resolveFinalScore(sourceMatch).away,
-          decisionType: resolveDecisionType(sourceMatch),
+          finalHomeScore: finalScore.home,
+          finalAwayScore: finalScore.away,
+          decisionType,
           apiStatus,
           apiLastUpdated,
         },
