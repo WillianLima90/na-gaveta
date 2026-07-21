@@ -35,6 +35,7 @@ export interface ScoreInput {
 
 export interface ScoreBreakdown {
   points: number;
+  heartTeamPoints: number;
   outcomePoints: number;
   homeGoalPoints: number;
   awayGoalPoints: number;
@@ -108,8 +109,16 @@ export function calculateScore(input: ScoreInput): ScoreBreakdown {
 
   const totalPoints = Math.round(basePoints * multiplier);
 
+  let heartTeamMultiplier = 1;
+  if (bonusRoundApplied) {
+    heartTeamMultiplier *= rule.bonusRoundMultiplier;
+  }
+
+  const heartTeamPoints = Math.round(basePoints * heartTeamMultiplier);
+
   return {
     points: totalPoints,
+    heartTeamPoints,
     outcomePoints,
     homeGoalPoints,
     awayGoalPoints,
@@ -219,36 +228,54 @@ export async function recalculatePredictionsForMatch(
         rule: scoreRule,
       });
 
+      const member = memberByUserAndPool.get(
+        `${prediction.userId}:${prediction.poolId}`
+      );
+
+      const isHeartMatch =
+        Boolean(member?.favoriteTeam) &&
+        (
+          match.homeTeam === member?.favoriteTeam ||
+          match.awayTeam === member?.favoriteTeam
+        );
+
+      const newHeartTeamPoints = isHeartMatch
+        ? breakdown.heartTeamPoints
+        : 0;
+
       const oldPoints = prediction.points ?? 0;
+      const oldHeartTeamPoints = prediction.heartTeamPoints ?? 0;
       const pointsDiff = breakdown.points - oldPoints;
+      const heartTeamPointsDiff =
+        newHeartTeamPoints - oldHeartTeamPoints;
 
       await tx.prediction.update({
         where: { id: prediction.id },
         data: {
           points: breakdown.points,
+          heartTeamPoints: newHeartTeamPoints,
           scoredAt,
         },
       });
 
-      const member = memberByUserAndPool.get(
-        `${prediction.userId}:${prediction.poolId}`
-      );
+      if (!member) continue;
 
-      if (!member || pointsDiff === 0) continue;
-
-      const isHeartMatch =
-        Boolean(member.favoriteTeam) &&
-        (
-          match.homeTeam === member.favoriteTeam ||
-          match.awayTeam === member.favoriteTeam
-        );
+      if (pointsDiff === 0 && heartTeamPointsDiff === 0) {
+        continue;
+      }
 
       await tx.poolMember.update({
         where: { id: member.id },
         data: {
-          score: { increment: pointsDiff },
-          ...(isHeartMatch
-            ? { heartTeamScore: { increment: pointsDiff } }
+          ...(pointsDiff !== 0
+            ? { score: { increment: pointsDiff } }
+            : {}),
+          ...(heartTeamPointsDiff !== 0
+            ? {
+                heartTeamScore: {
+                  increment: heartTeamPointsDiff,
+                },
+              }
             : {}),
         },
       });

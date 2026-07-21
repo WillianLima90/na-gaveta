@@ -224,8 +224,9 @@ model Prediction {
   homeScoreTip   Int       @map("home_score_tip")
   awayScoreTip   Int       @map("away_score_tip")
   isJoker        Boolean   @default(false) @map("is_joker")
-  points         Int       @default(0)          // pontos ganhos neste palpite
-  scoredAt       DateTime? @map("scored_at")    // quando foi calculado
+  points          Int       @default(0)          // pontos ganhos neste palpite
+  heartTeamPoints Int       @default(0) @map("heart_team_points") // contribuição sem multiplicador do coringa
+  scoredAt        DateTime? @map("scored_at")    // quando foi calculado
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
