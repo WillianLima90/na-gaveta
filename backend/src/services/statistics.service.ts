@@ -766,49 +766,62 @@ export async function computeAndSaveRoundWinners(
     // Calcular ranking da rodada
     const ranking = await getRoundRanking(poolId, round.id);
 
-    if (ranking.length === 0) continue;
-
     // Identificar vencedor usando desempate completo.
     // Se todos os critérios empatarem, dividir vitória.
     const top = ranking[0];
-    if (top.roundPoints === 0) continue;
 
-    const winners = ranking.filter((r) =>
-      r.roundPoints === top.roundPoints &&
-      r.exactScores === top.exactScores &&
-      (r.heartTeamScore ?? 0) === (top.heartTeamScore ?? 0) &&
-      r.correctOutcomes === top.correctOutcomes
+    const winners =
+      top && top.roundPoints > 0
+        ? ranking.filter((r) =>
+            r.roundPoints === top.roundPoints &&
+            r.exactScores === top.exactScores &&
+            (r.heartTeamScore ?? 0) === (top.heartTeamScore ?? 0) &&
+            r.correctOutcomes === top.correctOutcomes
+          )
+        : [];
+
+    const memberships = winners.length > 0
+      ? await prisma.poolMember.findMany({
+          where: {
+            poolId,
+            userId: { in: winners.map((winner) => winner.userId) },
+          },
+          select: {
+            userId: true,
+            favoriteTeam: true,
+          },
+        })
+      : [];
+
+    const favoriteTeamByUserId = new Map(
+      memberships.map((membership) => [
+        membership.userId,
+        membership.favoriteTeam,
+      ])
     );
 
-    // Salvar vencedores (upsert para evitar duplicatas)
-    for (const winner of winners) {
-      // Buscar time do coração do usuário neste bolão
-      const membership = await prisma.poolMember.findUnique({
-        where: { userId_poolId: { userId: winner.userId, poolId } },
-        select: { favoriteTeam: true },
+    // Reconstruir atomicamente os vencedores desta rodada.
+    // Isso remove vencedores antigos após qualquer correção de placar.
+    await prisma.$transaction(async (tx) => {
+      await tx.roundWinner.deleteMany({
+        where: {
+          poolId,
+          roundId: round.id,
+        },
       });
 
-      await prisma.roundWinner.upsert({
-        where: {
-          poolId_roundId_userId: {
+      for (const winner of winners) {
+        await tx.roundWinner.create({
+          data: {
             poolId,
             roundId: round.id,
             userId: winner.userId,
+            favoriteTeam: favoriteTeamByUserId.get(winner.userId) ?? null,
+            roundPoints: winner.roundPoints,
           },
-        },
-        create: {
-          poolId,
-          roundId: round.id,
-          userId: winner.userId,
-          favoriteTeam: membership?.favoriteTeam ?? null,
-          roundPoints: winner.roundPoints,
-        },
-        update: {
-          favoriteTeam: membership?.favoriteTeam ?? null,
-          roundPoints: winner.roundPoints,
-        },
-      });
-    }
+        });
+      }
+    });
   }
 }
 

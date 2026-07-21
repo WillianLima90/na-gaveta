@@ -162,38 +162,51 @@ export async function setMatchResult(req: AuthRequest, res: Response): Promise<v
     const prevHome = existingMatch.homeScore;
     const prevAway = existingMatch.awayScore;
 
-    // Atualizar a partida
-    const updatedMatch = await prisma.match.update({
-      where: { id },
-      data: {
-        homeScore,
-        awayScore,
-        status: (status as MatchStatus) ?? MatchStatus.FINISHED,
-        isManualOverride,
-      },
-      include: {
-        round: {
-          include: { championship: { select: { name: true } } },
-        },
-      },
-    });
+    // Atualizar partida, registrar histórico e recalcular pontuações
+    // na mesma transação para impedir estados parciais.
+    const updatedMatch = await prisma.$transaction(
+      async (tx) => {
+        const match = await tx.match.update({
+          where: { id },
+          data: {
+            homeScore,
+            awayScore,
+            status: (status as MatchStatus) ?? MatchStatus.FINISHED,
+            isManualOverride,
+          },
+          include: {
+            round: {
+              include: { championship: { select: { name: true } } },
+            },
+          },
+        });
 
-    // Salvar histórico de alteração
-    await prisma.matchResultHistory.create({
-      data: {
-        matchId: id,
-        adminUserId: req.user!.userId,
-        prevHome,
-        prevAway,
-        newHome: homeScore,
-        newAway: awayScore,
-      },
-    });
+        await tx.matchResultHistory.create({
+          data: {
+            matchId: id,
+            adminUserId: req.user!.userId,
+            prevHome,
+            prevAway,
+            newHome: homeScore,
+            newAway: awayScore,
+          },
+        });
 
-    // Disparar motor de pontuação se a partida foi finalizada
+        if (match.status === MatchStatus.FINISHED) {
+          await recalculatePredictionsForMatch(id, tx);
+        }
+
+        return match;
+      },
+      {
+        maxWait: 5000,
+        timeout: 30000,
+      }
+    );
+
+    // Os vencedores possuem reconstrução atômica própria e são
+    // recalculados somente após a confirmação da transação principal.
     if (updatedMatch.status === MatchStatus.FINISHED) {
-      await recalculatePredictionsForMatch(id);
-
       const affectedPools = await prisma.prediction.findMany({
         where: { matchId: id },
         distinct: ['poolId'],

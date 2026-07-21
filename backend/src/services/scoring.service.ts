@@ -4,9 +4,8 @@
 // Toda lógica de pontuação passa por aqui — nunca nos controllers.
 // ============================================================
 
-import { PrismaClient, Prediction, Match, ScoreRule, Round } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { Prisma } from '@prisma/client';
+import prisma from '../utils/prisma';
 
 // ── Tipos internos ────────────────────────────────────────────
 
@@ -129,108 +128,137 @@ export function calculateScore(input: ScoreInput): ScoreBreakdown {
  * Atualiza Prediction.points, Prediction.scoredAt e PoolMember.score.
  * Deve ser chamada sempre que uma partida for marcada como FINISHED.
  */
-export async function recalculatePredictionsForMatch(matchId: string): Promise<void> {
-  // Buscar a partida com a rodada
-  const match = await prisma.match.findUnique({
-    where: { id: matchId },
-    include: { round: true },
-  });
-
-  if (!match || match.homeScore === null || match.awayScore === null) {
-    throw new Error('Partida não encontrada ou sem resultado registrado.');
-  }
-
-  // Buscar todos os palpites desta partida com a regra do bolão
-  const predictions = await prisma.prediction.findMany({
-    where: { matchId },
-    include: {
-      pool: {
-        include: { scoreRule: true },
-      },
-    },
-  });
-
-  if (predictions.length === 0) return;
-
-  // Calcular e atualizar cada palpite
-  for (const prediction of predictions) {
-    const rule = prediction.pool.scoreRule;
-
-    // Se o bolão não tem regra, usar defaults
-    const scoreRule = rule ?? {
-      pointsForOutcome: 10,
-      pointsForHomeGoals: 5,
-      pointsForAwayGoals: 5,
-      exactScoreBonus: 0,
-      jokerMultiplier: 2,
-      bonusRoundMultiplier: 2,
-    };
-
-    const pool = await prisma.pool.findUnique({
-      where: { id: prediction.poolId },
-      select: { bonusRoundId: true },
+export async function recalculatePredictionsForMatch(
+  matchId: string,
+  transactionClient?: Prisma.TransactionClient
+): Promise<void> {
+  const executeRecalculation = async (tx: Prisma.TransactionClient) => {
+    // Buscar a partida já dentro da transação.
+    const match = await tx.match.findUnique({
+      where: { id: matchId },
+      include: { round: true },
     });
 
-    const breakdown = calculateScore({
-      prediction: {
-        homeScoreTip: prediction.homeScoreTip,
-        awayScoreTip: prediction.awayScoreTip,
-        isJoker: prediction.isJoker,
-      },
-      match: {
-        homeScore: match.homeScore as number,
-        awayScore: match.awayScore as number,
-        isJoker: match.isJoker,
-      },
-      round: {
-        isBonusRound: pool?.bonusRoundId === match.round.id,
-      },
-      rule: scoreRule,
-    });
+    if (!match || match.homeScore === null || match.awayScore === null) {
+      throw new Error('Partida não encontrada ou sem resultado registrado.');
+    }
 
-    // Atualizar o palpite com os pontos calculados
-    await prisma.prediction.update({
-      where: { id: prediction.id },
-      data: {
-        points: breakdown.points,
-        scoredAt: new Date(),
-      },
-    });
-
-    // Atualizar o score acumulado do membro no bolão
-    // Primeiro, buscar o score atual para recalcular corretamente
-    const member = await prisma.poolMember.findUnique({
-      where: {
-        userId_poolId: {
-          userId: prediction.userId,
-          poolId: prediction.poolId,
+    // Carregar todos os dados necessários em uma única consulta.
+    const predictions = await tx.prediction.findMany({
+      where: { matchId },
+      include: {
+        pool: {
+          select: {
+            bonusRoundId: true,
+            scoreRule: true,
+          },
         },
       },
     });
 
-    if (member) {
-      // Subtrair pontos antigos e adicionar os novos (para suportar recálculo)
+    if (predictions.length === 0) return;
+
+    // Buscar todos os membros afetados de uma só vez.
+    const memberKeys = Array.from(
+      new Map(
+        predictions.map((prediction) => [
+          `${prediction.userId}:${prediction.poolId}`,
+          {
+            userId: prediction.userId,
+            poolId: prediction.poolId,
+          },
+        ])
+      ).values()
+    );
+
+    const members = await tx.poolMember.findMany({
+      where: {
+        OR: memberKeys,
+      },
+      select: {
+        id: true,
+        userId: true,
+        poolId: true,
+        favoriteTeam: true,
+      },
+    });
+
+    const memberByUserAndPool = new Map(
+      members.map((member) => [
+        `${member.userId}:${member.poolId}`,
+        member,
+      ])
+    );
+
+    const scoredAt = new Date();
+
+    for (const prediction of predictions) {
+      const scoreRule = prediction.pool.scoreRule ?? {
+        pointsForOutcome: 10,
+        pointsForHomeGoals: 5,
+        pointsForAwayGoals: 5,
+        exactScoreBonus: 0,
+        jokerMultiplier: 2,
+        bonusRoundMultiplier: 2,
+      };
+
+      const breakdown = calculateScore({
+        prediction: {
+          homeScoreTip: prediction.homeScoreTip,
+          awayScoreTip: prediction.awayScoreTip,
+          isJoker: prediction.isJoker,
+        },
+        match: {
+          homeScore: match.homeScore,
+          awayScore: match.awayScore,
+          isJoker: match.isJoker,
+        },
+        round: {
+          isBonusRound: prediction.pool.bonusRoundId === match.round.id,
+        },
+        rule: scoreRule,
+      });
+
       const oldPoints = prediction.points ?? 0;
       const pointsDiff = breakdown.points - oldPoints;
 
-      await prisma.poolMember.update({
-        where: { id: member.id },
-        data: { score: { increment: pointsDiff } },
+      await tx.prediction.update({
+        where: { id: prediction.id },
+        data: {
+          points: breakdown.points,
+          scoredAt,
+        },
       });
 
-      // ❤️ Atualizar pontuação do time do coração
-      if (member.favoriteTeam) {
-        const isHeartMatch =
-          match.homeTeam === member.favoriteTeam ||
-          match.awayTeam === member.favoriteTeam;
+      const member = memberByUserAndPool.get(
+        `${prediction.userId}:${prediction.poolId}`
+      );
 
-        if (isHeartMatch) {
-          await prisma.poolMember.update({
-            where: { id: member.id },
-            data: { heartTeamScore: { increment: pointsDiff } },
-          });
-        }
-      }
+      if (!member || pointsDiff === 0) continue;
+
+      const isHeartMatch =
+        Boolean(member.favoriteTeam) &&
+        (
+          match.homeTeam === member.favoriteTeam ||
+          match.awayTeam === member.favoriteTeam
+        );
+
+      await tx.poolMember.update({
+        where: { id: member.id },
+        data: {
+          score: { increment: pointsDiff },
+          ...(isHeartMatch
+            ? { heartTeamScore: { increment: pointsDiff } }
+            : {}),
+        },
+      });
     }
+  };
+
+  if (transactionClient) {
+    await executeRecalculation(transactionClient);
+    return;
   }
+
+  await prisma.$transaction(executeRecalculation);
 }

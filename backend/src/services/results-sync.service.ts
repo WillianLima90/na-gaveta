@@ -1,7 +1,6 @@
 import axios from 'axios';
 import prisma from '../utils/prisma';
 
-const API_COMPETITIONS = ['BSA', 'WC'];
 const MATCH_API_URL = 'https://api.football-data.org/v4/matches';
 const LOCAL_API = 'http://localhost:3001/api';
 
@@ -111,7 +110,29 @@ async function fetchApiMatches(retry = true) {
   const apiKey = getFootballDataApiKey();
   const allMatches: any[] = [];
 
-  for (const competitionCode of API_COMPETITIONS) {
+  const championships = await prisma.championship.findMany({
+    where: {
+      isActive: true,
+      apiCompetitionCode: { not: null },
+    },
+    select: {
+      apiCompetitionCode: true,
+    },
+    orderBy: {
+      createdAt: 'asc',
+    },
+  });
+
+  const competitionCodes = championships
+    .map((championship) => championship.apiCompetitionCode)
+    .filter((code): code is string => Boolean(code));
+
+  if (competitionCodes.length === 0) {
+    console.log('[SYNC] Nenhum campeonato ativo configurado para sincronização.');
+    return allMatches;
+  }
+
+  for (const competitionCode of competitionCodes) {
     const url = `https://api.football-data.org/v4/competitions/${competitionCode}/matches`;
 
     try {

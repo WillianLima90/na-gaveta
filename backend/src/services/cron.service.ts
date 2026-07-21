@@ -3,6 +3,8 @@ import prisma from '../utils/prisma';
 import { notifyUsersAboutNextMatch, REMINDER_WINDOW_MINUTES } from './reminder.service';
 import { syncResultsFromApi } from './results-sync.service';
 
+let resultsSyncRunning = false;
+
 export function startReminderCron() {
   cron.schedule('*/15 * * * *', async () => {
     console.log('[CRON] Running reminder job...');
@@ -77,7 +79,13 @@ export function startReminderCron() {
 
 export function startResultsSyncCron() {
   cron.schedule('* * * * *', async () => {
+    if (resultsSyncRunning) {
+      console.log('[CRON] Results sync skipped: previous execution still running');
+      return;
+    }
+
     console.log('[CRON] Running results sync...');
+    resultsSyncRunning = true;
 
     try {
       const token = process.env.ADMIN_SYNC_TOKEN;
@@ -94,9 +102,10 @@ export function startResultsSyncCron() {
         updated: summary.updated,
         skipped: summary.skipped,
       });
-
     } catch (err) {
       console.error('[CRON] Sync error:', err);
+    } finally {
+      resultsSyncRunning = false;
     }
   });
 }
