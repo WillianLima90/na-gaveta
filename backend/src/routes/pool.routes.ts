@@ -22,6 +22,7 @@ import { authenticate, optionalAuthenticate } from '../middlewares/auth.middlewa
 import { poolMatchesRouter } from './match.routes';
 import { poolRankingRouter, poolRoundsRouter, poolUsersRouter, poolRoundWinnersRouter } from './ranking.routes';
 import { poolRulesRouter } from './score-rule.routes';
+import standingPredictionRouter from './standing-prediction.routes';
 
 const router = Router();
 
@@ -58,6 +59,7 @@ router.use('/:id/ranking', poolRankingRouter);   // ranking geral
 router.use('/:id/rounds', poolRoundsRouter);     // ranking e destaques por rodada
 router.use('/:id/users', poolUsersRouter);       // histórico do usuário
 router.use('/:id/rules', poolRulesRouter);       // regras de pontuação
+router.use('/:id/standing-prediction', standingPredictionRouter); // previsão da classificação
 router.use('/:id/round-winners', poolRoundWinnersRouter); // vencedores de rodada com escudos
 
 export default router;

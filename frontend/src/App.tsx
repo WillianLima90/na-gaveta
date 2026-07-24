@@ -27,6 +27,7 @@ import PoolRankingPage from './pages/PoolRankingPage';
 import PoolAdminPage from './pages/PoolAdminPage';
 import PoolInfoPage from './pages/PoolInfoPage';
 import PoolChampionshipPage from './pages/PoolChampionshipPage';
+import PoolStandingPredictionPage from './pages/PoolStandingPredictionPage';
 import ProfilePage from './pages/ProfilePage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
 import { AdminPoolsPage } from './pages/AdminPoolsPage';
@@ -65,6 +66,7 @@ export default function App() {
               <Route path="/pools/:id/admin" element={<PoolAdminPage />} />
               <Route path="/pools/:id/info" element={<PoolInfoPage />} />
               <Route path="/pools/:id/championship" element={<PoolChampionshipPage />} />
+              <Route path="/pools/:id/standing-prediction" element={<PoolStandingPredictionPage />} />
 
               {/* Protegidas (requerem autenticação) */}
               <Route element={<ProtectedRoute />}>

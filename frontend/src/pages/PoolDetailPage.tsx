@@ -983,6 +983,9 @@ const rightColumn = (
           <button type="button" onClick={() => navigate(`/pools/${id}/championship`)} className="shrink-0 rounded-full border border-zinc-800 bg-zinc-900/90 px-4 py-2 text-xs font-black text-white hover:bg-zinc-800 transition">
             Tabela do Campeonato
           </button>
+          <button type="button" onClick={() => navigate(`/pools/${id}/standing-prediction`)} className="shrink-0 rounded-full border border-zinc-800 bg-zinc-900/90 px-4 py-2 text-xs font-black text-white hover:bg-zinc-800 transition">
+            Previsão da Classificação
+          </button>
 
           <div className="h-6 w-px shrink-0 bg-zinc-800" />
 

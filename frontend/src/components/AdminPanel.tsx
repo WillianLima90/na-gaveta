@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp, Users, CheckCircle2, XCircle, ClipboardList } from 'lucide-react';
 import api from "../services/api";
+import { getPoolMatches, type Round } from '../services/match.service';
 import { RulesTab } from './RulesTab';
 
 interface AdminPanelProps {
@@ -70,6 +71,7 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
   const [infoMessage, setInfoMessage] = useState("");
   const [memberError, setMemberError] = useState("");
   const [predictionRounds, setPredictionRounds] = useState<AdminPredictionRoundStatus[]>([]);
+  const [officialRounds, setOfficialRounds] = useState<Round[]>([]);
   const [expandedPendingMatchIds, setExpandedPendingMatchIds] = useState<Record<string, boolean>>({});
 
 
@@ -83,19 +85,22 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
       setPendingMembers(pendingRes.data.members ?? []);
       setApprovedMembers(approvedRes.data.members ?? []);
 
-      const [poolRes, predictionStatusRes] = await Promise.all([
+      const [poolRes, predictionStatusRes, officialRoundsData] = await Promise.all([
         api.get(`/pools/${poolId}`),
         api.get(`/pools/${poolId}/admin/prediction-status`),
+        getPoolMatches(poolId),
       ]);
       setIsPublic(!!poolRes.data.pool?.isPublic);
       setPrizeDraft(poolRes.data.pool?.prizeDescription ?? "");
       setRulesDraft(poolRes.data.pool?.rulesDescription ?? "");
       setPaymentDraft(poolRes.data.pool?.paymentDescription ?? "");
       setPredictionRounds(predictionStatusRes.data.rounds ?? []);
+      setOfficialRounds(officialRoundsData);
     } catch {
       setPendingMembers([]);
       setApprovedMembers([]);
       setPredictionRounds([]);
+      setOfficialRounds([]);
     }
   }
 
@@ -156,6 +161,34 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
       setInfoSaving(false);
     }
   }
+
+  const sortedOfficialRounds = [...officialRounds].sort(
+    (a, b) => a.number - b.number
+  );
+
+  const now = Date.now();
+
+  const currentStandingRound =
+    sortedOfficialRounds.find((round) => {
+      const start = new Date(round.startDate).getTime();
+      const end = new Date(round.endDate).getTime();
+
+      return now >= start && now <= end;
+    }) ??
+    sortedOfficialRounds.find(
+      (round) => new Date(round.startDate).getTime() > now
+    ) ??
+    sortedOfficialRounds.at(-1);
+
+  const currentStandingRoundNumber = currentStandingRound?.number ?? 1;
+
+  const availableStandingRounds = sortedOfficialRounds
+    .filter((round) => round.number >= currentStandingRoundNumber)
+    .map((round) => ({
+      id: round.id,
+      number: round.number,
+      startDate: round.startDate,
+    }));
 
   return (
     <div className="space-y-4">
@@ -521,11 +554,7 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
               <RulesTab
                 poolId={poolId}
                 isOwner={true}
-                roundOptions={predictionRounds.map((round) => ({
-                  id: round.id,
-                  number: round.number,
-                  startDate: round.matches[0]?.matchDate ?? new Date().toISOString(),
-                }))}
+                roundOptions={availableStandingRounds}
                 onRulesSaved={onResultSet}
               />
             </div>

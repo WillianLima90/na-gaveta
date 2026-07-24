@@ -129,3 +129,92 @@ export async function deletePool(poolId: string): Promise<{ message: string }> {
   const { data } = await api.delete(`/pools/${poolId}`);
   return data;
 }
+
+// ============================================================================
+// Standing Prediction
+// ============================================================================
+
+export interface StandingPredictionTeam {
+  teamKey: string;
+  teamName: string;
+  teamTla?: string | null;
+  teamCrest?: string | null;
+}
+
+export interface StandingPredictionItem extends StandingPredictionTeam {
+  group: 'TOP' | 'BOTTOM';
+  predictedPosition: number;
+}
+
+export interface StandingPredictionResponse {
+  pool: {
+    id: string;
+    name: string;
+    ownerId: string;
+    championship: {
+      id: string;
+      name: string;
+      slug?: string;
+    };
+  };
+
+  configuration: {
+    enabled: boolean;
+    size: number | null;
+    exactPoints: number;
+    groupPoints: number;
+    configuredLockRound: any;
+  };
+
+  deadline: any;
+  locked: boolean;
+
+  prediction: {
+    id: string;
+    submittedAt: string;
+    lockedAt?: string | null;
+    items: StandingPredictionItem[];
+  } | null;
+
+  teams: StandingPredictionTeam[];
+}
+
+export async function getStandingPrediction(
+  poolId: string
+): Promise<StandingPredictionResponse> {
+  const { data } = await api.get(
+    `/pools/${poolId}/standing-prediction`
+  );
+
+  return data;
+}
+
+export async function saveStandingPrediction(
+  poolId: string,
+  items: StandingPredictionItem[]
+) {
+  const { data } = await api.put(
+    `/pools/${poolId}/standing-prediction`,
+    { items }
+  );
+
+  return data;
+}
+
+export async function updateStandingPredictionConfig(
+  poolId: string,
+  payload: {
+    enabled: boolean;
+    size: number | null;
+    exactPoints: number;
+    groupPoints: number;
+    lockRoundId: string | null;
+  }
+) {
+  const { data } = await api.patch(
+    `/pools/${poolId}/standing-prediction/config`,
+    payload
+  );
+
+  return data;
+}

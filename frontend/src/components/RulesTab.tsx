@@ -9,6 +9,10 @@
 import { useState, useEffect } from 'react';
 import { Check, Save, X, Info } from 'lucide-react';
 import { getPoolRules, updatePoolRules, type ScoreRule } from '../services/match.service';
+import {
+  getStandingPrediction,
+  updateStandingPredictionConfig,
+} from '../services/pool.service';
 import { Spinner } from './ui';
 import { BonusRoundModal } from './BonusRoundModal';
 
@@ -80,6 +84,17 @@ export function RulesTab({ poolId, isOwner, bonusRoundNumber, roundOptions, onRu
   const [locked, setLocked] = useState(false);
   const [showBonusModal, setShowBonusModal] = useState(false);
 
+  const [standingConfigLoaded, setStandingConfigLoaded] = useState(false);
+  const [standingSaving, setStandingSaving] = useState(false);
+  const [standingSuccess, setStandingSuccess] = useState(false);
+  const [standingError, setStandingError] = useState<string | null>(null);
+  const [standingEnabled, setStandingEnabled] = useState(false);
+  const [standingSize, setStandingSize] = useState(4);
+  const [standingExactPoints, setStandingExactPoints] = useState<number | ''>(20);
+  const [standingGroupPoints, setStandingGroupPoints] = useState<number | ''>(8);
+  const [standingLockRoundId, setStandingLockRoundId] = useState<string | null>(null);
+  const [standingSaveAttempted, setStandingSaveAttempted] = useState(false);
+
   const isPresetDefault =
     rules?.pointsForOutcome === 10 &&
     rules?.pointsForHomeGoals === 5 &&
@@ -88,8 +103,11 @@ export function RulesTab({ poolId, isOwner, bonusRoundNumber, roundOptions, onRu
 
   useEffect(() => {
     loadRules();
+    if (isOwner) {
+      loadStandingConfig();
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [poolId]);
+  }, [poolId, isOwner]);
 
   async function loadRules() {
     setLoading(true);
@@ -102,6 +120,63 @@ export function RulesTab({ poolId, isOwner, bonusRoundNumber, roundOptions, onRu
       setError('Erro ao carregar regras');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadStandingConfig() {
+    setStandingConfigLoaded(false);
+    setStandingError(null);
+
+    try {
+      const data = await getStandingPrediction(poolId);
+      const configuration = data.configuration;
+
+      setStandingEnabled(configuration.enabled);
+      setStandingSize(configuration.size ?? 4);
+      setStandingExactPoints(configuration.exactPoints);
+      setStandingGroupPoints(configuration.groupPoints);
+      setStandingLockRoundId(configuration.configuredLockRound?.id ?? null);
+    } catch {
+      setStandingError('Erro ao carregar configurações de Indicações');
+    } finally {
+      setStandingConfigLoaded(true);
+    }
+  }
+
+  async function handleSaveStandingConfig() {
+    setStandingSaveAttempted(true);
+    setStandingError(null);
+    setStandingSuccess(false);
+
+    if (standingEnabled && !standingLockRoundId) {
+      return;
+    }
+
+    setStandingSaving(true);
+
+    try {
+      await updateStandingPredictionConfig(poolId, {
+        enabled: standingEnabled,
+        size: standingEnabled ? standingSize : null,
+        exactPoints: Number(standingExactPoints) || 0,
+        groupPoints: Number(standingGroupPoints) || 0,
+        lockRoundId: standingEnabled ? standingLockRoundId : null,
+      });
+
+      await loadStandingConfig();
+      await onRulesSaved?.();
+
+      setStandingSaveAttempted(false);
+      setStandingSuccess(true);
+      setTimeout(() => setStandingSuccess(false), 3000);
+    } catch (err: any) {
+      setStandingError(
+        err?.response?.data?.error ??
+          err?.response?.data?.message ??
+          'Erro ao salvar configurações de Indicações'
+      );
+    } finally {
+      setStandingSaving(false);
     }
   }
 
@@ -238,7 +313,7 @@ export function RulesTab({ poolId, isOwner, bonusRoundNumber, roundOptions, onRu
                   onClick={() => !locked && setEditing(true)}
                   className={`text-xs font-medium transition-colors ${locked ? 'text-zinc-500 cursor-not-allowed' : 'text-brand hover:text-brand-light'}`}
                 >
-                  Customizar regras
+                  Editar regras
                 </button>
               </div>
             ) : (
@@ -364,6 +439,228 @@ export function RulesTab({ poolId, isOwner, bonusRoundNumber, roundOptions, onRu
           </div>
         )}
       </div>
+
+      {isOwner && (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-zinc-800">
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-xs font-black uppercase tracking-wider text-white">
+                🏆 Indicações
+              </p>
+
+              {standingConfigLoaded && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStandingEnabled((current) => !current);
+                    setStandingSaveAttempted(false);
+                  }}
+                  disabled={standingSaving}
+                  aria-pressed={standingEnabled}
+                  aria-label={
+                    standingEnabled
+                      ? 'Desativar indicações'
+                      : 'Ativar indicações'
+                  }
+                  className={`inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border p-0.5 transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                    standingEnabled
+                      ? 'justify-end border-brand bg-brand'
+                      : 'justify-start border-zinc-600 bg-zinc-800'
+                  }`}
+                >
+                  <span className="block h-4 w-4 rounded-full bg-white shadow-sm" />
+                </button>
+              )}
+            </div>
+
+            <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">
+              Permite que os participantes indiquem os clubes que terminarão
+              entre os primeiros colocados e na zona de rebaixamento.
+            </p>
+
+            <div className="mt-3 flex items-center gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-wide text-zinc-500">
+                Status
+              </span>
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] font-bold ${
+                  standingEnabled
+                    ? 'bg-green-500/10 text-green-400'
+                    : 'bg-zinc-800 text-zinc-500'
+                }`}
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    standingEnabled ? 'bg-green-400' : 'bg-zinc-500'
+                  }`}
+                />
+                {standingEnabled ? 'Ativado' : 'Desativado'}
+              </span>
+            </div>
+          </div>
+
+          {!standingConfigLoaded ? (
+            <div className="flex justify-center py-6">
+              <Spinner size="sm" />
+            </div>
+          ) : (
+            <>
+              {standingEnabled && (
+                <div className="divide-y divide-zinc-800">
+                  <div className="px-4 py-5">
+                    <p className="text-xs font-bold text-white">Modalidade</p>
+                    <p className="mt-1 text-[11px] text-zinc-500">
+                      Quantidade de clubes indicados em cada grupo.
+                    </p>
+
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      {[4, 5, 6].map((size) => (
+                        <button
+                          key={size}
+                          type="button"
+                          onClick={() => setStandingSize(size)}
+                          disabled={standingSaving}
+                          className={`rounded-xl border px-3 py-2 text-xs font-black transition-colors disabled:opacity-50 ${
+                            standingSize === size
+                              ? 'border-brand bg-brand/15 text-brand'
+                              : 'border-zinc-700 bg-zinc-800/70 text-zinc-400 hover:border-zinc-600 hover:text-white'
+                          }`}
+                        >
+                          {size} clubes por grupo
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <label className="flex items-center justify-between gap-4 px-4 py-5">
+                    <div>
+                      <p className="text-sm font-medium text-white">
+                        Pontos por posição exata
+                      </p>
+                      <p className="mt-0.5 text-xs text-zinc-500">
+                        Quando o clube terminar exatamente na posição indicada.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-shrink-0 items-center gap-1.5">
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={standingExactPoints}
+                        disabled={standingSaving}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          setStandingExactPoints(
+                            value === '' ? '' : Math.max(0, Number(value))
+                          );
+                        }}
+                        onBlur={() => {
+                          if (standingExactPoints === '') {
+                            setStandingExactPoints(0);
+                          }
+                        }}
+                        className="w-16 rounded-lg border border-zinc-600 bg-zinc-800 py-1.5 text-center text-sm font-bold text-white outline-none focus:border-brand disabled:opacity-50"
+                      />
+                      <span className="text-xs text-zinc-500">pts</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center justify-between gap-4 px-4 py-5">
+                    <div>
+                      <p className="text-sm font-medium text-white">
+                        Pontos por clube no grupo
+                      </p>
+                      <p className="mt-0.5 text-xs text-zinc-500">
+                        Quando o clube estiver no grupo correto, mas em outra posição.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-shrink-0 items-center gap-1.5">
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={standingGroupPoints}
+                        disabled={standingSaving}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          setStandingGroupPoints(
+                            value === '' ? '' : Math.max(0, Number(value))
+                          );
+                        }}
+                        onBlur={() => {
+                          if (standingGroupPoints === '') {
+                            setStandingGroupPoints(0);
+                          }
+                        }}
+                        className="w-16 rounded-lg border border-zinc-600 bg-zinc-800 py-1.5 text-center text-sm font-bold text-white outline-none focus:border-brand disabled:opacity-50"
+                      />
+                      <span className="text-xs text-zinc-500">pts</span>
+                    </div>
+                  </label>
+
+                  <label className="block px-4 py-5">
+                    <p className="text-sm font-medium text-white">Rodada limite para alterações</p>
+                    <p className="mt-0.5 text-xs text-zinc-500">
+                      Depois do início desta rodada, as indicações não poderão ser alteradas.
+                    </p>
+
+                    <select
+                      value={standingLockRoundId ?? ''}
+                      disabled={standingSaving}
+                      onChange={(event) => {
+                        setStandingLockRoundId(event.target.value || null);
+                        setStandingSaveAttempted(false);
+                      }}
+                      className="mt-3 w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-white outline-none focus:border-brand disabled:opacity-50"
+                    >
+                      <option value="">Escolha a rodada...</option>
+                      {roundOptions.map((round) => (
+                        <option key={round.id} value={round.id}>
+                          Rodada {round.number}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              )}
+
+              <div className="border-t border-zinc-800 px-4 py-3">
+                <button
+                  type="button"
+                  onClick={handleSaveStandingConfig}
+                  disabled={standingSaving}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-xs font-black text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {standingSaving ? <Spinner size="sm" /> : <Save size={13} />}
+                  {standingSaving ? 'Salvando...' : 'Salvar configuração'}
+                </button>
+
+                {standingSaveAttempted && standingEnabled && !standingLockRoundId && (
+                  <p className="mt-2 text-center text-[11px] font-bold text-amber-400">
+                    Escolha a rodada limite para salvar a configuração.
+                  </p>
+                )}
+              </div>
+            </>
+          )}
+
+          {standingSuccess && (
+            <div className="flex items-center gap-2 border-t border-green-400/20 bg-green-400/10 px-4 py-3 text-sm text-green-400">
+              <Check size={14} />
+              <span>Configurações de Indicações atualizadas!</span>
+            </div>
+          )}
+
+          {standingError && (
+            <div className="flex items-center gap-2 border-t border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-400">
+              <X size={14} />
+              <span>{standingError}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Feedback de sucesso */}
       {saveSuccess && (
