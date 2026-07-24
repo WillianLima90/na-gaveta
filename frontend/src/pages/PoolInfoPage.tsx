@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, BookOpen, ChevronDown, CreditCard, Target, Trophy } from 'lucide-react';
 import { getPool, type Pool } from '../services/pool.service';
 import { Spinner } from '../components/ui';
@@ -8,12 +8,33 @@ import { RulesTab } from '../components/RulesTab';
 export default function PoolInfoPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [pool, setPool] = useState<Pool | null>(null);
   const [loading, setLoading] = useState(true);
   const [showPrize, setShowPrize] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [showScoring, setShowScoring] = useState(false);
+
+  useEffect(() => {
+    if (loading) return;
+
+    const section = location.hash.replace('#', '');
+
+    if (section === 'payment') setShowPayment(true);
+    if (section === 'scoring') setShowScoring(true);
+    if (section === 'rules') setShowRules(true);
+    if (section === 'prize') setShowPrize(true);
+
+    if (['payment', 'scoring', 'rules', 'prize'].includes(section)) {
+      window.requestAnimationFrame(() => {
+        document.getElementById(section)?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      });
+    }
+  }, [location.hash, loading]);
 
   useEffect(() => {
     if (!id) {
@@ -97,7 +118,7 @@ export default function PoolInfoPage() {
       </div>
 
       <section className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4">
-        <div className="rounded-2xl border border-yellow-400/20 bg-yellow-400/5">
+        <div id="prize" className="scroll-mt-24 rounded-2xl border border-yellow-400/20 bg-yellow-400/5">
           <button
             type="button"
             onClick={() => setShowPrize((v) => !v)}
@@ -132,7 +153,7 @@ export default function PoolInfoPage() {
         </div>
 
 
-        <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5">
+        <div id="payment" className="scroll-mt-24 rounded-2xl border border-emerald-400/20 bg-emerald-400/5">
           <button
             type="button"
             onClick={() => setShowPayment((v) => !v)}
@@ -167,7 +188,7 @@ export default function PoolInfoPage() {
         </div>
 
 
-        <div className="rounded-2xl border border-brand/20 bg-brand/5">
+        <div id="scoring" className="scroll-mt-24 rounded-2xl border border-brand/20 bg-brand/5">
           <button
             type="button"
             onClick={() => setShowScoring((v) => !v)}
@@ -192,7 +213,7 @@ export default function PoolInfoPage() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-zinc-800 bg-black/20">
+        <div id="rules" className="scroll-mt-24 rounded-2xl border border-zinc-800 bg-black/20">
           <button
             type="button"
             onClick={() => setShowRules((v) => !v)}

@@ -240,15 +240,21 @@ export default function PoolDetailPage() {
   function shareOnWhatsApp() {
     if (!pool) return;
 
-    const url = `https://www.bolaonagaveta.com.br/pools/${pool.id}`;
+    const baseUrl = `https://www.bolaonagaveta.com.br/pools/${pool.id}`;
     const message =
-      `⚽ Você foi convidado para participar do bolão "${pool.name}" no Na Gaveta!\n\n` +
+      `⚽ *Convite para o bolão ${pool.name}*\n\n` +
       `🏆 Campeonato: ${pool.championship?.name || 'Bolão esportivo'}\n` +
-      `🔑 Código de convite: ${pool.code}\n\n` +
-      `Entre pelo link abaixo, crie sua conta e solicite entrada no bolão.\n` +
-      `Depois é só fazer seus palpites e acompanhar o ranking em tempo real.\n\n` +
-      `${url}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+      `🔑 Código do convite: ${pool.code}\n\n` +
+      `👉 Entrar no bolão:\n${baseUrl}\n\n` +
+      `💳 Pagamento:\n${baseUrl}/info#payment\n\n` +
+      `📋 Regulamento e desempates:\n${baseUrl}/info#rules\n\n` +
+      `🎯 Pontuação do bolão:\n${baseUrl}/info#scoring`;
+
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(message)}`,
+      '_blank',
+      'noopener,noreferrer'
+    );
   }
 
   async function handleJoinByCode() {
