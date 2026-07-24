@@ -67,6 +67,7 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
   const [prizeDraft, setPrizeDraft] = useState("");
   const [rulesDraft, setRulesDraft] = useState("");
   const [paymentDraft, setPaymentDraft] = useState("");
+  const [entryFeeDraft, setEntryFeeDraft] = useState("");
   const [infoSaving, setInfoSaving] = useState(false);
   const [infoMessage, setInfoMessage] = useState("");
   const [memberError, setMemberError] = useState("");
@@ -94,6 +95,12 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
       setPrizeDraft(poolRes.data.pool?.prizeDescription ?? "");
       setRulesDraft(poolRes.data.pool?.rulesDescription ?? "");
       setPaymentDraft(poolRes.data.pool?.paymentDescription ?? "");
+      setEntryFeeDraft(
+        poolRes.data.pool?.entryFee !== null &&
+        poolRes.data.pool?.entryFee !== undefined
+          ? String(poolRes.data.pool.entryFee)
+          : ""
+      );
       setPredictionRounds(predictionStatusRes.data.rounds ?? []);
       setOfficialRounds(officialRoundsData);
     } catch {
@@ -147,6 +154,7 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
 
       await api.patch(`/pools/${poolId}/payment`, {
         paymentDescription: paymentDraft,
+        entryFee: entryFeeDraft.trim() === "" ? null : entryFeeDraft,
       });
 
       setInfoMessage("Informações do bolão salvas com sucesso.");
@@ -505,13 +513,35 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
                 </label>
 
                 <label className="block">
+                  <span className="text-xs font-bold text-zinc-300">Valor da inscrição</span>
+                  <div className="mt-2 flex items-center rounded-xl border border-zinc-800 bg-zinc-950 focus-within:border-brand/60">
+                    <span className="border-r border-zinc-800 px-3 py-3 text-sm font-bold text-zinc-400">
+                      R$
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      inputMode="decimal"
+                      value={entryFeeDraft}
+                      onChange={(e) => setEntryFeeDraft(e.target.value)}
+                      placeholder="50,00"
+                      className="w-full bg-transparent px-3 py-3 text-sm text-white outline-none"
+                    />
+                  </div>
+                  <span className="mt-1 block text-[11px] text-zinc-500">
+                    Este valor será exibido automaticamente no convite e na página de pagamento.
+                  </span>
+                </label>
+
+                <label className="block">
                   <span className="text-xs font-bold text-zinc-300">Dados para pagamento</span>
                   <textarea
                     value={paymentDraft}
                     onChange={(e) => setPaymentDraft(e.target.value)}
                     rows={6}
                     maxLength={3000}
-                    placeholder={"Exemplo:\nValor da inscrição: R$ 50,00\nChave PIX: sua-chave-pix\nTitular: Nome completo\nBanco: Nome do banco\nApós pagar, envie o comprovante para o administrador."}
+                    placeholder={"Exemplo:\nChave PIX: sua-chave-pix\nTitular: Nome completo\nBanco: Nome do banco\nApós pagar, envie o comprovante para o administrador."}
                     className="mt-2 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-3 text-sm text-white outline-none transition focus:border-brand/60"
                   />
                 </label>

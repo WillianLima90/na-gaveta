@@ -241,14 +241,27 @@ export default function PoolDetailPage() {
     if (!pool) return;
 
     const baseUrl = `https://www.bolaonagaveta.com.br/pools/${pool.id}`;
+    const numericEntryFee =
+      pool.entryFee !== null && pool.entryFee !== undefined
+        ? Number(pool.entryFee)
+        : null;
+    const formattedEntryFee =
+      numericEntryFee !== null && Number.isFinite(numericEntryFee)
+        ? numericEntryFee.toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+          })
+        : 'Consulte o administrador';
+
     const message =
-      `⚽ *Convite para o bolão ${pool.name}*\n\n` +
-      `🏆 Campeonato: ${pool.championship?.name || 'Bolão esportivo'}\n` +
-      `🔑 Código do convite: ${pool.code}\n\n` +
-      `👉 Entrar no bolão:\n${baseUrl}\n\n` +
-      `💳 Pagamento:\n${baseUrl}/info#payment\n\n` +
-      `📋 Regulamento e desempates:\n${baseUrl}/info#rules\n\n` +
-      `🎯 Pontuação do bolão:\n${baseUrl}/info#scoring`;
+      `*CONVITE - ${pool.name}*\n\n` +
+      `Campeonato: ${pool.championship?.name || 'Bolão esportivo'}\n` +
+      `Valor da inscrição: ${formattedEntryFee}\n` +
+      `Código do convite: ${pool.code}\n\n` +
+      `1. Entrar no bolão\n${baseUrl}\n\n` +
+      `2. Pagamento\n${baseUrl}/info#payment\n\n` +
+      `3. Regulamento e desempates\n${baseUrl}/info#rules\n\n` +
+      `4. Pontuação do bolão\n${baseUrl}/info#scoring`;
 
     window.open(
       `https://wa.me/?text=${encodeURIComponent(message)}`,

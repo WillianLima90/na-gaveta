@@ -1304,7 +1304,10 @@ export async function updatePoolPayment(req: AuthRequest, res: Response): Promis
   try {
     const userId = req.user!.userId;
     const { id: poolId } = req.params;
-    const { paymentDescription } = req.body as { paymentDescription?: string };
+    const { paymentDescription, entryFee } = req.body as {
+      paymentDescription?: string;
+      entryFee?: string | number | null;
+    };
 
     const isOwner = await assertPoolOwner(poolId, userId);
     const isPlatformAdmin = req.user?.role === 'ADMIN';
@@ -1349,6 +1352,19 @@ export async function updatePoolPayment(req: AuthRequest, res: Response): Promis
         ? paymentDescription.trim()
         : null;
 
+    const normalizedEntryFee =
+      entryFee === null || entryFee === undefined || String(entryFee).trim() === ''
+        ? null
+        : Number(entryFee);
+
+    if (
+      normalizedEntryFee !== null &&
+      (!Number.isFinite(normalizedEntryFee) || normalizedEntryFee < 0 || normalizedEntryFee > 99999999.99)
+    ) {
+      res.status(400).json({ error: 'Informe um valor de inscrição válido.' });
+      return;
+    }
+
     if (normalizedPayment && normalizedPayment.length > 3000) {
       res.status(400).json({ error: 'Os dados de pagamento devem ter no máximo 3000 caracteres.' });
       return;
@@ -1357,10 +1373,17 @@ export async function updatePoolPayment(req: AuthRequest, res: Response): Promis
     const pool = await prisma.pool.update({
       where: { id: poolId },
       data: {
+        entryFee: normalizedEntryFee,
         paymentDescription: normalizedPayment,
         paymentUpdatedAt: new Date(),
       },
-      select: { id: true, name: true, paymentDescription: true, paymentUpdatedAt: true },
+      select: {
+        id: true,
+        name: true,
+        entryFee: true,
+        paymentDescription: true,
+        paymentUpdatedAt: true,
+      },
     });
 
     res.json({

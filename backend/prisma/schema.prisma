@@ -54,6 +54,7 @@ model Pool {
   prizeUpdatedAt     DateTime? @map("prize_updated_at")
   rulesDescription   String?   @map("rules_description")
   rulesUpdatedAt     DateTime? @map("rules_updated_at")
+  entryFee           Decimal?  @db.Decimal(10,2) @map("entry_fee")
   paymentDescription String?   @map("payment_description")
   paymentUpdatedAt   DateTime? @map("payment_updated_at")
   isPublic           Boolean   @default(false) @map("is_public")

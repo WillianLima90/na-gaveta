@@ -14,6 +14,7 @@ export interface Pool {
   prizeUpdatedAt?: string | null;
   rulesDescription?: string | null;
   rulesUpdatedAt?: string | null;
+  entryFee?: string | number | null;
   paymentDescription?: string | null;
   paymentUpdatedAt?: string | null;
   canEditPrize?: boolean;
@@ -118,9 +119,13 @@ export async function updatePoolRules(
 
 export async function updatePoolPayment(
   poolId: string,
-  paymentDescription: string
+  paymentDescription: string,
+  entryFee?: string | number | null
 ): Promise<{ pool: Pool; message: string }> {
-  const { data } = await api.patch(`/pools/${poolId}/payment`, { paymentDescription });
+  const { data } = await api.patch(`/pools/${poolId}/payment`, {
+    paymentDescription,
+    entryFee,
+  });
   return data;
 }
 

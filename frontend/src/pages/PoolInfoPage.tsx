@@ -174,6 +174,20 @@ export default function PoolInfoPage() {
                 </p>
               )}
 
+              {pool.entryFee !== null && pool.entryFee !== undefined && (
+                <div className="mb-3 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4">
+                  <p className="text-[11px] font-black uppercase tracking-wide text-emerald-300">
+                    Valor da inscrição
+                  </p>
+                  <p className="mt-1 text-xl font-black text-white">
+                    {Number(pool.entryFee).toLocaleString('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                    })}
+                  </p>
+                </div>
+              )}
+
               {pool.paymentDescription ? (
                 <div className="whitespace-pre-line rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm leading-relaxed text-zinc-100">
                   {pool.paymentDescription}
