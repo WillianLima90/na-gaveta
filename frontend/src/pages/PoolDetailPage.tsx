@@ -674,6 +674,7 @@ export default function PoolDetailPage() {
                   {liveMatches.map(({ match, round }) => (
                     <MatchCard
                       jokerEnabled={(pool as any)?.scoreRule?.jokerMultiplier > 1}
+                      scoreRule={(pool as any)?.scoreRule ?? null}
                       jokerLockedByAnotherMatch={Boolean(lockedJokerMatchId && lockedJokerMatchId !== match.id)}
                       key={match.id}
                       match={match}
@@ -710,6 +711,7 @@ export default function PoolDetailPage() {
                   {openMatches.map(({ match, round }, idx) => (
                     <MatchCard
                       jokerEnabled={(pool as any)?.scoreRule?.jokerMultiplier > 1}
+                      scoreRule={(pool as any)?.scoreRule ?? null}
                       jokerLockedByAnotherMatch={Boolean(lockedJokerMatchId && lockedJokerMatchId !== match.id)}
                       key={match.id}
                       match={match}
@@ -759,6 +761,7 @@ export default function PoolDetailPage() {
                   {doneMatches.map(({ match, round }) => (
                     <MatchCard
                       jokerEnabled={(pool as any)?.scoreRule?.jokerMultiplier > 1}
+                      scoreRule={(pool as any)?.scoreRule ?? null}
                       jokerLockedByAnotherMatch={Boolean(lockedJokerMatchId && lockedJokerMatchId !== match.id)}
                       key={match.id}
                       match={match}
@@ -788,6 +791,7 @@ export default function PoolDetailPage() {
                   {finishedMatches.map(({ match, round }) => (
                     <MatchCard
                       jokerEnabled={(pool as any)?.scoreRule?.jokerMultiplier > 1}
+                      scoreRule={(pool as any)?.scoreRule ?? null}
                       jokerLockedByAnotherMatch={Boolean(lockedJokerMatchId && lockedJokerMatchId !== match.id)}
                       key={match.id}
                       match={match}

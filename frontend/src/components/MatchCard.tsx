@@ -38,6 +38,14 @@ export interface MatchCardProps {
   onViewOpponentPredictions?: (matchId: string) => void;
   jokerEnabled?: boolean;
   jokerLockedByAnotherMatch?: boolean;
+  scoreRule?: {
+    pointsForOutcome: number;
+    pointsForHomeGoals: number;
+    pointsForAwayGoals: number;
+    exactScoreBonus?: number;
+    jokerMultiplier: number;
+    bonusRoundMultiplier: number;
+  } | null;
 }
 
 
@@ -170,10 +178,25 @@ function getPredictionResult(prediction: MyPrediction, match: Match): Prediction
   return 'miss';
 }
 
-function calcPoints(prediction: MyPrediction, match: Match, round: Round, result: PredictionResult): number {
+function calcPoints(
+  prediction: MyPrediction,
+  match: Match,
+  round: Round,
+  result: PredictionResult,
+  scoreRule?: MatchCardProps['scoreRule']
+): number {
   if (!result || result === 'miss' || match.homeScore === null || match.awayScore === null) return 0;
 
   const outcome = (h: number, a: number) => (h > a ? 'home' : a > h ? 'away' : 'draw');
+
+  const rule = scoreRule ?? {
+    pointsForOutcome: 10,
+    pointsForHomeGoals: 5,
+    pointsForAwayGoals: 5,
+    exactScoreBonus: 0,
+    jokerMultiplier: 2,
+    bonusRoundMultiplier: 2,
+  };
 
   let base = 0;
 
@@ -181,22 +204,30 @@ function calcPoints(prediction: MyPrediction, match: Match, round: Round, result
     prediction.homeScoreTip === match.homeScore &&
     prediction.awayScoreTip === match.awayScore
   ) {
-    base = 20;
+    base =
+      rule.pointsForOutcome +
+      rule.pointsForHomeGoals +
+      rule.pointsForAwayGoals +
+      (rule.exactScoreBonus ?? 0);
   } else {
     if (outcome(prediction.homeScoreTip, prediction.awayScoreTip) === outcome(match.homeScore, match.awayScore)) {
-      base += 10;
+      base += rule.pointsForOutcome;
     }
 
     if (prediction.homeScoreTip === match.homeScore) {
-      base += 5;
+      base += rule.pointsForHomeGoals;
     }
 
     if (prediction.awayScoreTip === match.awayScore) {
-      base += 5;
+      base += rule.pointsForAwayGoals;
     }
   }
 
-  return Math.round(base * (prediction.isJoker ? 2 : 1) * (round.isBonusRound ? 1.5 : 1));
+  return Math.round(
+    base *
+    (prediction.isJoker ? rule.jokerMultiplier : 1) *
+    (round.isBonusRound ? rule.bonusRoundMultiplier : 1)
+  );
 }
 
 // Configuração visual por estado — cores fortes, contraste alto
@@ -286,7 +317,7 @@ function ModBadge({ type }: { type: 'joker' | 'bonus' }) {
 export function MatchCard({
   match, round, poolId, isAuthenticated, isMember,
   bracketLabel,
-  autoFocusFirst, onPredictionSaved, onPredictionChange, onSingleSaveSuccess, onViewOpponentPredictions, jokerEnabled = true, jokerLockedByAnotherMatch = false,
+  autoFocusFirst, onPredictionSaved, onPredictionChange, onSingleSaveSuccess, onViewOpponentPredictions, jokerEnabled = true, jokerLockedByAnotherMatch = false, scoreRule,
 }: MatchCardProps) {
   const locked = isMatchLocked(match.matchDate, match.status);
   const hasPrediction = !!match.myPrediction;
@@ -449,7 +480,7 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
 
   // Pontos
   const finalPts = match.myPrediction?.points ?? null;
-  const dynPts = hasPrediction && hasScore && result ? calcPoints(match.myPrediction!, match, round, result) : null;
+  const dynPts = hasPrediction && hasScore && result ? calcPoints(match.myPrediction!, match, round, result, scoreRule) : null;
   const pts = match.status === 'LIVE' && dynPts !== null ? dynPts : finalPts;
   const isLivePts = match.status === 'LIVE' && dynPts !== null;
 
