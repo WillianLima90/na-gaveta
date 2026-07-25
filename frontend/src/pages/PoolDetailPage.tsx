@@ -857,7 +857,7 @@ const rightColumn = (
       </Link>
 
       {/* ── CABEÇALHO DO BOLÃO ──────────────────────────────── */}
-      <div className="flex items-start gap-3 mb-5">
+      <div className="flex flex-wrap items-start gap-3 mb-5">
         {pool.championship?.logoUrl && (
           <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
             <img
@@ -872,41 +872,34 @@ const rightColumn = (
           </div>
         )}
 
-        <div className="flex-1 min-w-0 w-full">
+        <div className="flex-1 min-w-0">
           {pool.championship && (
             <p className="text-xs text-zinc-500 uppercase tracking-wider truncate">
               {pool.championship.name} · {pool.championship.season}
             </p>
           )}
-          <div className="flex items-center gap-2 min-w-0">
-            <h1 className="text-lg font-black text-white leading-tight truncate">{pool.name}</h1>
+          <div className="flex flex-col items-start gap-2 min-w-0 sm:flex-row sm:items-center">
+            <h1 className="w-full text-lg font-black text-white leading-tight truncate sm:w-auto">{pool.name}</h1>
 
-            {favoriteTeam && getFavoriteTeamLogo(favoriteTeam) && (
-              <img
-                src={getFavoriteTeamLogo(favoriteTeam)!}
-                alt={favoriteTeam}
-                className="w-6 h-6 object-contain shrink-0"
-              />
-            )}
             {isMember && (
-              <div className="flex items-center gap-2 ml-2 relative shrink-0">
+              <div className="flex max-w-full items-center gap-2 relative">
 
                 <div ref={favoriteTeamRef} className="relative">
                   <button
                     type="button"
                     disabled={!pool?.canEditFavoriteTeam}
                     onClick={() => setFavoriteTeamOpen(v => !v)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-800/80 border border-zinc-700 hover:bg-zinc-700/80 transition text-sm text-white shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="flex max-w-full items-center gap-2 px-3 py-1 rounded-xl bg-zinc-800/80 border border-zinc-700 hover:bg-zinc-700/80 transition text-sm text-white shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                   {(favoriteTeamDraft || favoriteTeam) && getFavoriteTeamLogo(favoriteTeamDraft || favoriteTeam) && (
                     <img
                       src={getFavoriteTeamLogo(favoriteTeamDraft || favoriteTeam)!}
                       alt={getTeamName(favoriteTeamDraft || favoriteTeam)}
-                      className="w-4 h-4 object-contain shrink-0"
+                      className="w-[18px] h-[18px] object-contain shrink-0"
                     />
                   )}
 
-                    <span className="whitespace-nowrap">
+                    <span className="max-w-[220px] truncate whitespace-nowrap">
                       {(favoriteTeamDraft || favoriteTeam)
                         ? getTeamName(favoriteTeamDraft || favoriteTeam)
                         : 'Escolher time'}
@@ -1019,8 +1012,8 @@ const rightColumn = (
 
 
       {/* ── NAV DO BOLÃO ───────────────────────── */}
-      <div className="mb-4 overflow-x-auto border-y border-zinc-800/70 bg-black/40 py-2">
-        <div className="flex min-w-max items-center gap-2 px-1">
+      <div className="mb-4 border-y border-zinc-800/70 bg-black/40 py-2 sm:overflow-x-auto">
+        <div className="flex flex-wrap items-center gap-2 px-1 sm:min-w-max sm:flex-nowrap">
           <button type="button" onClick={() => navigate(`/pools/${id}`)} className="shrink-0 rounded-full border border-brand/40 bg-brand/10 px-4 py-2 text-xs font-black text-brand">
             Palpites
           </button>
