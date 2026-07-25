@@ -109,12 +109,10 @@ export function calculateScore(input: ScoreInput): ScoreBreakdown {
 
   const totalPoints = Math.round(basePoints * multiplier);
 
-  let heartTeamMultiplier = 1;
-  if (bonusRoundApplied) {
-    heartTeamMultiplier *= rule.bonusRoundMultiplier;
-  }
-
-  const heartTeamPoints = Math.round(basePoints * heartTeamMultiplier);
+  // Time do Coração considera somente a pontuação base da partida.
+  // Coringa e Rodada Bônus continuam valendo no ranking geral,
+  // mas não aumentam a pontuação específica do Time do Coração.
+  const heartTeamPoints = basePoints;
 
   return {
     points: totalPoints,

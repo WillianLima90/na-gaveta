@@ -18,7 +18,8 @@ export interface UserStats {
   heartTeamScore: number;
   totalPoints: number;
   exactScores: number;       // acertou placar exato
-  correctOutcomes: number;   // acertou resultado (V/E/D)
+  correctOutcomes: number;   // acertou resultado (V/E/D), incluindo placares exatos
+  roundWins: number;          // quantidade de títulos de Melhor da Rodada
   totalPredictions: number;
   scoredPredictions: number; // palpites já pontuados
   missedPredictions: number; // palpites pontuados com 0 pts
@@ -154,6 +155,19 @@ export async function getMemberStats(
   });
   const crestMap = await getPoolTeamCrests(poolId);
 
+  const roundWinsGrouped = await prisma.roundWinner.groupBy({
+    by: ['userId'],
+    where: { poolId },
+    _count: { _all: true },
+  });
+
+  const roundWinsByUserId = new Map(
+    roundWinsGrouped.map((entry) => [
+      entry.userId,
+      entry._count._all,
+    ])
+  );
+
   const statsPerMember = await Promise.all(
     members.map(async (member) => {
       const predictions = await prisma.prediction.findMany({
@@ -241,6 +255,7 @@ export async function getMemberStats(
         totalPoints: member.score + livePoints,
         exactScores,
         correctOutcomes,
+        roundWins: roundWinsByUserId.get(member.userId) ?? 0,
         totalPredictions: predictions.length,
         scoredPredictions: scored.length,
         missedPredictions,
@@ -249,18 +264,25 @@ export async function getMemberStats(
     })
   );
 
-  // Ordenação com desempate em 5 critérios:
-  // 1. Total de pontos (maior primeiro)
-  // 2. Acertos exatos (maior primeiro)
-  // 3. Pontos no time do coração (maior primeiro)
-  // 4. Acertos de resultado (maior primeiro)
-  // 5. Menor quantidade de erros totais
+  // Ordenação do ranking geral:
+  // 1. Total de pontos
+  // 2. Placares exatos
+  // 3. Pontos no Time do Coração
+  // 4. Resultados corretos sem contar os placares exatos
+  // 5. Quantidade de títulos de Melhor da Rodada
   statsPerMember.sort((a, b) => {
     if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
     if (b.exactScores !== a.exactScores) return b.exactScores - a.exactScores;
     if (b.heartTeamScore !== a.heartTeamScore) return b.heartTeamScore - a.heartTeamScore;
-    if (b.correctOutcomes !== a.correctOutcomes) return b.correctOutcomes - a.correctOutcomes;
-    return a.missedPredictions - b.missedPredictions;
+
+    const bNonExactOutcomes = b.correctOutcomes - b.exactScores;
+    const aNonExactOutcomes = a.correctOutcomes - a.exactScores;
+
+    if (bNonExactOutcomes !== aNonExactOutcomes) {
+      return bNonExactOutcomes - aNonExactOutcomes;
+    }
+
+    return b.roundWins - a.roundWins;
   });
 
   return statsPerMember.map((s, i) => ({ ...s, position: i + 1 }));
@@ -345,7 +367,7 @@ export async function getRoundRanking(
         member.favoriteTeam &&
         (p.match.homeTeam === member.favoriteTeam || p.match.awayTeam === member.favoriteTeam)
       ) {
-        heartTeamScore += p.points ?? 0;
+        heartTeamScore += p.heartTeamPoints ?? 0;
       }
     }
 
@@ -387,7 +409,7 @@ export async function getRoundRanking(
         member.favoriteTeam &&
         (p.match.homeTeam === member.favoriteTeam || p.match.awayTeam === member.favoriteTeam)
       ) {
-        heartTeamScore += breakdown.points;
+        heartTeamScore += breakdown.heartTeamPoints;
       }
     }
 
@@ -406,12 +428,20 @@ export async function getRoundRanking(
     };
   });
 
-  // Ordenação: pontos > acertos exatos > time do coração > resultados certos
+  // Ordenação da rodada:
+  // pontos > placares exatos > Time do Coração > resultados não exatos
   entries.sort((a, b) => {
     if (b.roundPoints !== a.roundPoints) return b.roundPoints - a.roundPoints;
     if (b.exactScores !== a.exactScores) return b.exactScores - a.exactScores;
-    if ((b.heartTeamScore ?? 0) !== (a.heartTeamScore ?? 0)) return (b.heartTeamScore ?? 0) - (a.heartTeamScore ?? 0);
-    return b.correctOutcomes - a.correctOutcomes;
+
+    if ((b.heartTeamScore ?? 0) !== (a.heartTeamScore ?? 0)) {
+      return (b.heartTeamScore ?? 0) - (a.heartTeamScore ?? 0);
+    }
+
+    return (
+      (b.correctOutcomes - b.exactScores) -
+      (a.correctOutcomes - a.exactScores)
+    );
   });
 
   return entries.map((e, i) => ({ ...e, position: i + 1 }));
@@ -776,7 +806,8 @@ export async function computeAndSaveRoundWinners(
             r.roundPoints === top.roundPoints &&
             r.exactScores === top.exactScores &&
             (r.heartTeamScore ?? 0) === (top.heartTeamScore ?? 0) &&
-            r.correctOutcomes === top.correctOutcomes
+            (r.correctOutcomes - r.exactScores) ===
+              (top.correctOutcomes - top.exactScores)
           )
         : [];
 
