@@ -103,11 +103,9 @@ export function RulesTab({ poolId, isOwner, bonusRoundNumber, roundOptions, onRu
 
   useEffect(() => {
     loadRules();
-    if (isOwner) {
-      loadStandingConfig();
-    }
+    loadStandingConfig();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [poolId, isOwner]);
+  }, [poolId]);
 
   async function loadRules() {
     setLoading(true);
@@ -436,6 +434,34 @@ export function RulesTab({ poolId, isOwner, bonusRoundNumber, roundOptions, onRu
                 </div>
               );
             })}
+
+            {standingEnabled && (
+              <>
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <div className="w-2 h-2 rounded-full flex-shrink-0 bg-amber-400" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white">
+                      Indicações — posição exata
+                    </p>
+                  </div>
+                  <span className="text-base font-black flex-shrink-0 text-brand">
+                    {standingExactPoints || 0}pts
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <div className="w-2 h-2 rounded-full flex-shrink-0 bg-amber-400" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white">
+                      Indicações — time no grupo correto
+                    </p>
+                  </div>
+                  <span className="text-base font-black flex-shrink-0 text-brand">
+                    {standingGroupPoints || 0}pts
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
