@@ -551,8 +551,8 @@ export function AdminPanel({ poolId, onResultSet }: AdminPanelProps) {
                   <textarea
                     value={rulesDraft}
                     onChange={(e) => setRulesDraft(e.target.value)}
-                    rows={6}
-                    maxLength={3000}
+                    rows={10}
+                    maxLength={10000}
                     placeholder={"Exemplo:\n- Palpites fecham no horário do jogo.\n- Critérios de desempate seguem a tabela do bolão.\n- Comprovante deve ser enviado no grupo."}
                     className="mt-2 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-3 text-sm text-white outline-none transition focus:border-brand/60"
                   />

@@ -535,8 +535,8 @@ export async function updatePoolRules(req: AuthRequest, res: Response): Promise<
         ? rulesDescription.trim()
         : null;
 
-    if (normalizedRules && normalizedRules.length > 5000) {
-      res.status(400).json({ error: 'As regras devem ter no máximo 5000 caracteres.' });
+    if (normalizedRules && normalizedRules.length > 10000) {
+      res.status(400).json({ error: 'As regras devem ter no máximo 10000 caracteres.' });
       return;
     }
 
