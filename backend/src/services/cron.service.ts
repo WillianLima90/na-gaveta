@@ -2,8 +2,10 @@ import cron from 'node-cron';
 import prisma from '../utils/prisma';
 import { notifyUsersAboutNextMatch, REMINDER_WINDOW_MINUTES } from './reminder.service';
 import { syncResultsFromApi } from './results-sync.service';
+import { syncBrasileiraoFromFootballData } from '../integrations/football/syncBrasileirao';
 
 let resultsSyncRunning = false;
+let fixturesSyncRunning = false;
 
 export function startReminderCron() {
   cron.schedule('*/15 * * * *', async () => {
@@ -109,3 +111,36 @@ export function startResultsSyncCron() {
     }
   });
 }
+
+async function runFixturesSync() {
+  if (fixturesSyncRunning) {
+    console.log('[CRON] Fixtures sync skipped: previous execution still running');
+    return;
+  }
+
+  console.log('[CRON] Running fixtures sync...');
+  fixturesSyncRunning = true;
+
+  try {
+    const summary = await syncBrasileiraoFromFootballData();
+
+    console.log('[CRON] Fixtures sync summary:', {
+      championshipId: summary.championshipId,
+      rounds: summary.rounds,
+      matches: summary.matches,
+    });
+  } catch (err) {
+    console.error('[CRON] Fixtures sync error:', err);
+  } finally {
+    fixturesSyncRunning = false;
+  }
+}
+
+export function startFixturesSyncCron() {
+  void runFixturesSync();
+
+  cron.schedule('0 */6 * * *', async () => {
+    await runFixturesSync();
+  });
+}
+
