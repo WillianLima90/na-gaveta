@@ -38,7 +38,7 @@ export async function getPool(req: AuthRequest, res: Response): Promise<void> {
       where: { id },
       include: {
         owner: { select: { id: true, name: true, avatarUrl: true } },
-        championship: { select: { id: true, name: true, slug: true, season: true } },
+        championship: { select: { id: true, name: true, slug: true, season: true, logoUrl: true } },
         scoreRule: true,
         members: {
           include: { user: { select: { id: true, name: true, avatarUrl: true } } },
