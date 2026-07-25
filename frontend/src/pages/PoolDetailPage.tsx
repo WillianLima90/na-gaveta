@@ -185,19 +185,33 @@ export default function PoolDetailPage() {
       ]);
       setPool(poolData);
       setFavoriteTeamState((poolData as Pool & { myFavoriteTeam?: string | null }).myFavoriteTeam ?? "");
-      setRounds(roundsData);
 
-      // Priorizar rodada atual/próxima; não forçar rodada bônus na entrada
-      if (roundsData.length > 0) {
-        const liveRound = roundsData.find((r) => r.matches.some((m) => m.status === 'LIVE'));
-        const openRound = roundsData.find((r) =>
+      const startingRound = roundsData.find(
+        (round) => round.id === poolData.startingRoundId
+      );
+
+      const visibleRounds = startingRound
+        ? roundsData.filter((round) => round.number >= startingRound.number)
+        : roundsData;
+
+      setRounds(visibleRounds);
+
+      // Priorizar rodada atual/próxima dentro das rodadas válidas do bolão
+      if (visibleRounds.length > 0) {
+        const liveRound = visibleRounds.find((r) =>
+          r.matches.some((m) => m.status === 'LIVE')
+        );
+        const openRound = visibleRounds.find((r) =>
           r.matches.some((m) => !isMatchLocked(m.matchDate, m.status))
         );
-        const lastRound = roundsData[roundsData.length - 1];
+        const lastRound = visibleRounds[visibleRounds.length - 1];
 
         setSelectedRoundId((prev) => {
-          const prevStillExists = prev && roundsData.some((r) => r.id === prev);
+          const prevStillExists =
+            prev && visibleRounds.some((r) => r.id === prev);
+
           if (prevStillExists) return prev;
+
           return (liveRound ?? openRound ?? lastRound).id;
         });
       }
@@ -843,7 +857,21 @@ const rightColumn = (
       </Link>
 
       {/* ── CABEÇALHO DO BOLÃO ──────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
+      <div className="flex items-start gap-3 mb-5">
+        {pool.championship?.logoUrl && (
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
+            <img
+              src={pool.championship.logoUrl}
+              alt={pool.championship.name || 'Campeonato'}
+              className="w-11 h-11 object-contain"
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+
         <div className="flex-1 min-w-0 w-full">
           {pool.championship && (
             <p className="text-xs text-zinc-500 uppercase tracking-wider truncate">
