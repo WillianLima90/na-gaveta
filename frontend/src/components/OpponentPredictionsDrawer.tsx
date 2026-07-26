@@ -274,6 +274,9 @@ export function OpponentPredictionsDrawer({
       home: Math.round((homeWins / total) * 100),
       draw: Math.round((draws / total) * 100),
       away: Math.round((awayWins / total) * 100),
+      homeCount: homeWins,
+      drawCount: draws,
+      awayCount: awayWins,
     };
   })();
 
@@ -356,33 +359,38 @@ export function OpponentPredictionsDrawer({
                   {
                     label: getTeamName(data.homeTeam),
                     percentage: predictionMap.home,
+                    count: predictionMap.homeCount,
                   },
                   {
                     label: 'Empate',
                     percentage: predictionMap.draw,
+                    count: predictionMap.drawCount,
                   },
                   {
                     label: getTeamName(data.awayTeam),
                     percentage: predictionMap.away,
+                    count: predictionMap.awayCount,
                   },
                 ].map((item) => (
                   <div
                     key={item.label}
-                    className="grid grid-cols-[88px_1fr_34px] items-center gap-2"
+                    className="grid grid-cols-[88px_1fr_auto] items-center gap-2"
                   >
                     <span className="truncate text-[11px] font-medium text-zinc-400">
                       {item.label}
                     </span>
 
-                    <div className="h-2.5 overflow-hidden rounded-full bg-zinc-800">
+                    <div className="h-2.5 overflow-hidden rounded-full border border-zinc-700 bg-transparent">
                       <div
                         className="h-full rounded-full bg-brand transition-[width] duration-300"
                         style={{ width: `${item.percentage}%` }}
                       />
                     </div>
 
-                    <span className="text-right text-xs font-black tabular-nums text-white">
-                      {item.percentage}%
+                    <span className="whitespace-nowrap text-right text-[11px] font-bold tabular-nums text-zinc-300">
+                      <span className="font-black text-white">{item.percentage}%</span>
+                      <span className="text-zinc-600"> · </span>
+                      {item.count} {item.count === 1 ? 'palpite' : 'palpites'}
                     </span>
                   </div>
                 ))}
