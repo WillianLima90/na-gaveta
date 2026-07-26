@@ -227,7 +227,7 @@ export function OpponentPredictionsDrawer({
 
   if (!matchId) return null;
 
-  const hasResults = homeScore !== null && homeScore !== undefined;
+  const hasResults = typeof homeScore === 'number' && typeof awayScore === 'number';
 
   // Ordenar por maior pontuação atual; desempate por qualidade do acerto
   const sorted = data
@@ -251,6 +251,31 @@ export function OpponentPredictionsDrawer({
         return a.userName.localeCompare(b.userName, 'pt-BR');
       })
     : [];
+
+  const predictionMap = (() => {
+    if (!data || data.predictions.length === 0) return null;
+
+    const total = data.predictions.length;
+    let homeWins = 0;
+    let draws = 0;
+    let awayWins = 0;
+
+    data.predictions.forEach((prediction) => {
+      if (prediction.homeScoreTip > prediction.awayScoreTip) {
+        homeWins += 1;
+      } else if (prediction.homeScoreTip < prediction.awayScoreTip) {
+        awayWins += 1;
+      } else {
+        draws += 1;
+      }
+    });
+
+    return {
+      home: Math.round((homeWins / total) * 100),
+      draw: Math.round((draws / total) * 100),
+      away: Math.round((awayWins / total) * 100),
+    };
+  })();
 
   return (
     <>
@@ -282,14 +307,19 @@ export function OpponentPredictionsDrawer({
           </button>
         </div>
 
-        {/* Placar válido para pontuação */}
-        {hasResults && data && (
+        {/* Partida e inteligência dos palpites */}
+        {data && (
           <div className="px-4 py-3 bg-zinc-900/50 border-b border-zinc-800">
             <p className="text-xs text-zinc-500 mb-1">
-              {hasDifferentFinalScore(homeScore, awayScore, finalHomeScore, finalAwayScore) ? "Placar do Bolão" : "Placar da partida"}
+              {hasResults
+                ? hasDifferentFinalScore(homeScore, awayScore, finalHomeScore, finalAwayScore)
+                  ? 'Placar do Bolão'
+                  : 'Placar da partida'
+                : 'Partida'}
             </p>
+
             <div className="flex items-center justify-center gap-3">
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center justify-end gap-2 min-w-0 flex-1">
                 <span className="text-sm font-semibold text-zinc-300 truncate">
                   {getTeamName(data.homeTeam)}
                 </span>
@@ -303,10 +333,10 @@ export function OpponentPredictionsDrawer({
               </div>
 
               <span className="text-2xl font-black text-white tabular-nums shrink-0">
-                {homeScore} – {awayScore}
+                {hasResults ? `${homeScore} – ${awayScore}` : '×'}
               </span>
 
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
                 {getTeamLogo(data.awayTeam) && (
                   <img
                     src={getTeamLogo(data.awayTeam)!}
@@ -320,7 +350,46 @@ export function OpponentPredictionsDrawer({
               </div>
             </div>
 
-            {hasDifferentFinalScore(homeScore, awayScore, finalHomeScore, finalAwayScore) && (
+            {predictionMap && (
+              <div className="mt-3 space-y-2 border-t border-zinc-800/80 pt-3">
+                {[
+                  {
+                    label: getTeamName(data.homeTeam),
+                    percentage: predictionMap.home,
+                  },
+                  {
+                    label: 'Empate',
+                    percentage: predictionMap.draw,
+                  },
+                  {
+                    label: getTeamName(data.awayTeam),
+                    percentage: predictionMap.away,
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="grid grid-cols-[88px_1fr_34px] items-center gap-2"
+                  >
+                    <span className="truncate text-[11px] font-medium text-zinc-400">
+                      {item.label}
+                    </span>
+
+                    <div className="h-2.5 overflow-hidden rounded-full bg-zinc-800">
+                      <div
+                        className="h-full rounded-full bg-brand transition-[width] duration-300"
+                        style={{ width: `${item.percentage}%` }}
+                      />
+                    </div>
+
+                    <span className="text-right text-xs font-black tabular-nums text-white">
+                      {item.percentage}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {hasResults && hasDifferentFinalScore(homeScore, awayScore, finalHomeScore, finalAwayScore) && (
               <div className="mt-2 flex justify-center">
                 <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-bold text-amber-300">
                   {decisionLabel(decisionType, finalHomeScore, finalAwayScore)}
