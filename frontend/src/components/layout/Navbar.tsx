@@ -95,17 +95,16 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-bg-primary/90 backdrop-blur-md border-b border-border-subtle">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16">
+      <div className="max-w-6xl mx-auto px-5 sm:px-7">
+        <div className="flex items-center justify-between h-18">
 
           {/* ── Logo ─────────────────────────────────────────── */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center shadow-brand">
-              <Trophy className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-lg text-text-primary group-hover:text-brand transition-colors">
-              Na Gaveta
-            </span>
+          <Link to="/" className="flex items-center group">
+            <img
+              src="/logo.png"
+              alt="Na Gaveta"
+              className="h-16 w-16 object-contain transition-all duration-200 group-hover:scale-105 group-hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.45)]"
+            />
           </Link>
 
           {/* ── Nav Desktop ──────────────────────────────────── */}
