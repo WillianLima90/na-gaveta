@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Trophy, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Button, Input } from '../components/ui';
 import toast from 'react-hot-toast';
@@ -56,23 +56,25 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md animate-slide-up">
+    <div className="min-h-[calc(100svh-3.5rem)] flex items-start justify-center px-4 pt-2 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:items-start sm:pt-10">
+      <div className="w-full max-w-sm animate-slide-up">
 
         {/* ── Logo ─────────────────────────────────────────── */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-brand/10 border border-brand/20 mb-4">
-            <Trophy className="w-7 h-7 text-brand" />
-          </div>
+        <div className="text-center mb-5">
+          <img
+            src="/logo.png"
+            alt="Na Gaveta"
+            className="mx-auto h-16 w-16 object-contain mb-2"
+          />
           <h1 className="text-2xl font-black text-text-primary">Entrar na conta</h1>
-          <p className="text-text-secondary text-sm mt-2">
+          <p className="text-text-secondary text-sm mt-1">
             Bem-vindo de volta! Acesse seus bolões.
           </p>
         </div>
 
         {/* ── Formulário ───────────────────────────────────── */}
-        <div className="bg-bg-card border border-border-subtle rounded-2xl p-6 shadow-elevated">
-          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        <div className="bg-bg-card border border-border-subtle rounded-2xl p-5 shadow-elevated">
+          <form onSubmit={handleSubmit} className="space-y-3.5" noValidate>
 
             <Input
               name="email"
@@ -109,7 +111,7 @@ export function LoginPage() {
             </div>
 
             {/* TODO: implementar "Esqueci a senha" */}
-            <div className="flex justify-end">
+            <div className="flex justify-end -mt-1">
               <button type="button" className="text-xs text-brand hover:text-brand-light transition-colors">
                 Esqueci minha senha
               </button>
@@ -123,7 +125,7 @@ export function LoginPage() {
         </div>
 
         {/* ── Link para cadastro ───────────────────────────── */}
-        <p className="text-center text-text-secondary text-sm mt-6">
+        <p className="text-center text-text-secondary text-sm mt-4 pb-1">
           Não tem conta?{' '}
           <Link
             to="/register"

@@ -95,15 +95,15 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-bg-primary/90 backdrop-blur-md border-b border-border-subtle">
-      <div className="max-w-6xl mx-auto px-5 sm:px-7">
-        <div className="flex items-center justify-between h-18">
+      <div className="max-w-6xl mx-auto px-3 sm:px-5">
+        <div className="flex items-center justify-between h-15 sm:h-16">
 
           {/* ── Logo ─────────────────────────────────────────── */}
           <Link to="/" className="flex items-center group">
             <img
               src="/logo.png"
               alt="Na Gaveta"
-              className="h-16 w-16 object-contain transition-all duration-200 group-hover:scale-105 group-hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.45)]"
+              className="h-13 w-13 sm:h-14 sm:w-14 object-contain transition-all duration-200 group-hover:scale-105 group-hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.45)]"
             />
           </Link>
 
@@ -126,13 +126,13 @@ export function Navbar() {
           </nav>
 
           {/* ── Ações Desktop ────────────────────────────────── */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
                 <div className="relative" ref={notificationsRef}>
                   <button
                     onClick={() => setNotificationsOpen((prev) => !prev)}
-                    className="relative flex items-center justify-center w-10 h-10 rounded-lg bg-bg-elevated border border-border-subtle hover:border-zinc-600 transition-colors"
+                    className="relative flex items-center justify-center w-9 h-9 rounded-lg bg-bg-elevated border border-border-subtle hover:border-zinc-600 transition-colors"
                   >
                     <Bell className="w-4 h-4 text-text-primary" />
                     {unreadCount > 0 && (
@@ -238,7 +238,7 @@ export function Navbar() {
 
                 <Link
                   to="/profile"
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-bg-elevated border border-border-subtle hover:border-brand/40 transition-colors"
+                  className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-bg-elevated border border-border-subtle hover:border-brand/40 transition-colors"
                 >
                   <div className="w-6 h-6 rounded-full bg-brand/20 flex items-center justify-center">
                     <User className="w-3 h-3 text-brand" />
@@ -252,7 +252,7 @@ export function Navbar() {
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm text-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
                   Sair
@@ -272,7 +272,7 @@ export function Navbar() {
 
           {/* ── Botão Mobile ─────────────────────────────────── */}
           <button
-            className="md:hidden p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors"
+            className="md:hidden p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Menu"
           >
@@ -284,13 +284,13 @@ export function Navbar() {
       {/* ── Menu Mobile ──────────────────────────────────────── */}
       {mobileOpen && (
         <div className="md:hidden border-t border-border-subtle bg-bg-primary animate-fade-in">
-          <div className="px-4 py-3 space-y-1">
+          <div className="px-3 py-2 space-y-1">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-2 px-3 py-3 rounded-xl text-sm font-medium transition-colors ${
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive(link.to)
                     ? 'text-brand bg-brand/10'
                     : 'text-text-secondary hover:text-text-primary hover:bg-bg-elevated'
@@ -307,14 +307,14 @@ export function Navbar() {
                   <Link
                     to="/profile"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-text-secondary hover:text-white hover:bg-bg-elevated transition-colors"
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:text-white hover:bg-bg-elevated transition-colors"
                   >
                     <User className="w-4 h-4" />
                     {user?.name}
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-3 py-3 rounded-xl text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-red-400 hover:bg-red-500/10 transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                     Sair
