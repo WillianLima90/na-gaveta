@@ -9,6 +9,7 @@ interface Props {
   homeScore: number | null;
   awayScore: number | null;
   status: string;
+  isManualOverride?: boolean;
   onSuccess: () => void;
 }
 
@@ -19,6 +20,7 @@ export function AdminEditResultModal({
   homeScore,
   awayScore,
   status,
+  isManualOverride = false,
   onSuccess,
 }: Props) {
   const [home, setHome] = useState(String(homeScore ?? 0));
@@ -28,7 +30,7 @@ export function AdminEditResultModal({
 
   if (!isOpen) return null;
 
-  async function handleSave() {
+  async function saveResult(manualOverride: boolean) {
     const h = Number(home);
     const a = Number(away);
 
@@ -37,7 +39,7 @@ export function AdminEditResultModal({
       return;
     }
 
-    if (h === homeScore && a === awayScore) {
+    if (h === homeScore && a === awayScore && manualOverride === isManualOverride) {
       setError('Resultado não alterado');
       return;
     }
@@ -46,13 +48,11 @@ export function AdminEditResultModal({
     setError(null);
 
     try {
-      const isLiveCorrection = status === 'LIVE';
-
       await api.patch(`/matches/${matchId}/result`, {
         homeScore: h,
         awayScore: a,
-        status: isLiveCorrection ? 'LIVE' : 'FINISHED',
-        isManualOverride: !isLiveCorrection,
+        status: status === 'LIVE' ? 'LIVE' : 'FINISHED',
+        isManualOverride: manualOverride,
       });
 
       onSuccess();
@@ -64,16 +64,46 @@ export function AdminEditResultModal({
     }
   }
 
+  async function handleReturnToApi() {
+    const h = Number(home);
+    const a = Number(away);
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      await api.patch(`/matches/${matchId}/result`, {
+        homeScore: h,
+        awayScore: a,
+        status,
+        isManualOverride: false,
+      });
+
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      setError(err?.response?.data?.error || 'Erro ao liberar sincronização');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
       <div className="bg-zinc-900 rounded-2xl p-6 w-[320px] border border-zinc-800">
         <h2 className="text-lg font-bold text-white mb-1">
-          {status === 'LIVE' ? 'Atualizar placar ao vivo' : 'Corrigir resultado final'}
+          {isManualOverride
+            ? '🔒 Correção manual ativa'
+            : status === 'LIVE'
+              ? 'Corrigir placar ao vivo'
+              : 'Corrigir resultado final'}
         </h2>
         <p className="text-xs text-zinc-400 mb-4">
-          {status === 'LIVE'
-            ? 'Não trava a API. O placar automático poderá continuar atualizando depois.'
-            : 'Trava o resultado como correção manual definitiva.'}
+          {isManualOverride
+            ? 'Esta partida está protegida contra atualizações automáticas da API.'
+            : status === 'LIVE'
+              ? 'Escolha entre uma atualização temporária ou bloquear a sincronização automática.'
+              : 'Esta correção bloqueará futuras atualizações automáticas da API.'}
         </p>
 
         <div className="flex gap-2 mb-4">
@@ -83,13 +113,38 @@ export function AdminEditResultModal({
 
         {error && <p className="text-xs text-red-400 mb-2">{error}</p>}
 
-        <Button onClick={handleSave} isLoading={loading} fullWidth>
-          {status === 'LIVE' ? 'Atualizar ao vivo' : 'Salvar correção final'}
-        </Button>
+        <div className="space-y-2">
+          {status === 'LIVE' && !isManualOverride && (
+            <button
+              type="button"
+              onClick={() => saveResult(false)}
+              disabled={loading}
+              className="w-full rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-sm font-bold text-emerald-300 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Atualizar SEM bloquear API
+            </button>
+          )}
+
+          <Button onClick={() => saveResult(true)} isLoading={loading} fullWidth>
+            {isManualOverride ? 'Salvar correção' : 'Atualizar e BLOQUEAR API'}
+          </Button>
+
+          {isManualOverride && (
+            <button
+              type="button"
+              onClick={handleReturnToApi}
+              disabled={loading}
+              className="w-full rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-sm font-bold text-emerald-300 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Liberar sincronização da API
+            </button>
+          )}
+        </div>
 
         <button
           onClick={onClose}
-          className="mt-3 text-sm text-zinc-400 hover:text-white w-full"
+          disabled={loading}
+          className="mt-3 text-sm text-zinc-400 hover:text-white w-full disabled:opacity-50"
         >
           Cancelar
         </button>

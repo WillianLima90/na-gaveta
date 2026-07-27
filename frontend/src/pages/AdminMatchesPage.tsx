@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, Search, Save, Trophy } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Search, ShieldCheck, Trophy, Unlock } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 type MatchStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED' | 'POSTPONED' | 'CANCELED';
@@ -82,17 +82,21 @@ export function AdminMatchesPage() {
     });
   }
 
-  async function saveMatch(match: AdminMatch) {
+  async function saveMatch(match: AdminMatch, manualOverride: boolean) {
     const homeScore = Number(match.homeScore ?? 0);
     const awayScore = Number(match.awayScore ?? 0);
 
-    if (homeScore < 0 || awayScore < 0) {
-      setError('Placar não pode ser negativo.');
+    if (
+      !Number.isInteger(homeScore) ||
+      !Number.isInteger(awayScore) ||
+      homeScore < 0 ||
+      awayScore < 0 ||
+      homeScore > 20 ||
+      awayScore > 20
+    ) {
+      setError('Use placares inteiros entre 0 e 20.');
       return;
     }
-
-    const confirmMessage =
-      `Salvar alteração manual?\n\n${match.homeTeam} ${homeScore} x ${awayScore} ${match.awayTeam}\nStatus: ${match.status}`;
 
     if (
       match.status === 'FINISHED' &&
@@ -102,6 +106,13 @@ export function AdminMatchesPage() {
     ) {
       return;
     }
+
+    const actionLabel = manualOverride
+      ? 'ATUALIZAR E BLOQUEAR A API'
+      : 'ATUALIZAR SEM BLOQUEAR A API';
+
+    const confirmMessage =
+      `${actionLabel}?\n\n${match.homeTeam} ${homeScore} x ${awayScore} ${match.awayTeam}\nStatus: ${match.status}`;
 
     if (!window.confirm(confirmMessage)) return;
 
@@ -115,7 +126,7 @@ export function AdminMatchesPage() {
           homeScore,
           awayScore,
           status: match.status,
-          isManualOverride: true,
+          isManualOverride: manualOverride,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -125,9 +136,48 @@ export function AdminMatchesPage() {
         next.delete(match.id);
         return next;
       });
+
       await loadMatches();
     } catch (err: any) {
       setError(err?.response?.data?.error || 'Erro ao salvar jogo.');
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  async function releaseApi(match: AdminMatch) {
+    if (
+      !window.confirm(
+        `Liberar sincronização automática?\n\n${match.homeTeam} x ${match.awayTeam}\n\nA API poderá voltar a alterar o placar e o status desta partida.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setSavingId(match.id);
+      setError('');
+
+      await axios.patch(
+        `/api/matches/${match.id}/result`,
+        {
+          homeScore: Number(match.homeScore ?? 0),
+          awayScore: Number(match.awayScore ?? 0),
+          status: match.status,
+          isManualOverride: false,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setDirtyMatchIds((current) => {
+        const next = new Set(current);
+        next.delete(match.id);
+        return next;
+      });
+
+      await loadMatches();
+    } catch (err: any) {
+      setError(err?.response?.data?.error || 'Erro ao liberar sincronização.');
     } finally {
       setSavingId(null);
     }
@@ -204,7 +254,7 @@ export function AdminMatchesPage() {
               <h1 className="text-2xl font-black">Admin de Jogos</h1>
             </div>
             <p className="mt-1 text-sm text-zinc-400">
-              Controle manual de status e placar das partidas.
+              Gerencie placares, status e o controle da sincronização automática da API.
             </p>
           </div>
 
@@ -273,75 +323,179 @@ export function AdminMatchesPage() {
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/60">
-          <div className="hidden grid-cols-[1fr_150px_160px_150px] gap-3 border-b border-zinc-800 px-4 py-3 text-xs font-black uppercase tracking-wide text-zinc-400 md:grid">
+          <div className="hidden grid-cols-[minmax(260px,1fr)_150px_160px_150px_250px] gap-3 border-b border-zinc-800 px-4 py-3 text-xs font-black uppercase tracking-wide text-zinc-400 lg:grid">
             <span>Jogo</span>
             <span>Placar</span>
             <span>Status</span>
-            <span className="text-right">Ação</span>
+            <span>Controle</span>
+            <span className="text-right">Ações</span>
           </div>
 
           <div className="divide-y divide-zinc-800">
-            {filteredMatches.map((match) => (
-              <div
-                key={match.id}
-                className="grid gap-3 px-4 py-4 md:grid-cols-[1fr_150px_160px_150px] md:items-center"
-              >
-                <div className="min-w-0">
-                  <div className="font-bold text-white">
-                    {match.homeTeam} x {match.awayTeam}
-                  </div>
-                  <div className="mt-1 text-xs text-zinc-500">
-                    {match.round?.championship?.name ?? 'Campeonato'} · {match.round?.name ?? 'Rodada'} ·{' '}
-                    {new Date(match.matchDate).toLocaleString('pt-BR')}
-                  </div>
-                  {match.isManualOverride && (
-                    <div className="mt-1 text-xs font-bold text-orange-400">
-                      Ajuste manual ativo
+            {filteredMatches.map((match) => {
+              const isSaving = savingId === match.id;
+              const isManual = Boolean(match.isManualOverride);
+              const canUseTemporaryUpdate = match.status === 'LIVE';
+
+              return (
+                <div
+                  key={match.id}
+                  className={`grid gap-4 px-4 py-4 transition lg:grid-cols-[minmax(260px,1fr)_150px_160px_150px_250px] lg:items-center ${
+                    isManual
+                      ? 'border-l-2 border-l-amber-500 bg-amber-500/[0.04]'
+                      : 'border-l-2 border-l-transparent'
+                  }`}
+                >
+                  <div className="min-w-0">
+                    <div className="font-bold text-white">
+                      {match.homeTeam} x {match.awayTeam}
                     </div>
-                  )}
+
+                    <div className="mt-1 text-xs text-zinc-500">
+                      {match.round?.championship?.name ?? 'Campeonato'} · {match.round?.name ?? 'Rodada'} ·{' '}
+                      {new Date(match.matchDate).toLocaleString('pt-BR')}
+                    </div>
+
+                    {isManual && (
+                      <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-300">
+                        <ShieldCheck size={13} />
+                        🔒 Controle Manual
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <div className="mb-1 text-[10px] font-black uppercase tracking-wide text-zinc-600 lg:hidden">
+                      Placar
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min={0}
+                        max={20}
+                        value={match.homeScore ?? 0}
+                        onChange={(e) =>
+                          updateLocalMatch(match.id, { homeScore: Number(e.target.value) })
+                        }
+                        className="h-10 w-16 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-center font-black outline-none focus:border-orange-500"
+                      />
+                      <span className="text-zinc-500">x</span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={20}
+                        value={match.awayScore ?? 0}
+                        onChange={(e) =>
+                          updateLocalMatch(match.id, { awayScore: Number(e.target.value) })
+                        }
+                        className="h-10 w-16 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-center font-black outline-none focus:border-orange-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="mb-1 text-[10px] font-black uppercase tracking-wide text-zinc-600 lg:hidden">
+                      Status
+                    </div>
+
+                    <select
+                      value={match.status}
+                      onChange={(e) =>
+                        updateLocalMatch(match.id, { status: e.target.value as MatchStatus })
+                      }
+                      className={`h-10 w-full rounded-lg border px-3 text-sm font-bold outline-none ${getStatusStyle(match.status)}`}
+                    >
+                      <option value="SCHEDULED">SCHEDULED</option>
+                      <option value="LIVE">LIVE</option>
+                      <option value="FINISHED">FINISHED</option>
+                      <option value="POSTPONED">POSTPONED</option>
+                      <option value="CANCELED">CANCELED</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <div className="mb-1 text-[10px] font-black uppercase tracking-wide text-zinc-600 lg:hidden">
+                      Sincronização
+                    </div>
+
+                    {isManual ? (
+                      <div className="inline-flex h-10 items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 text-sm font-bold text-amber-300">
+                        <ShieldCheck size={15} />
+                        Manual
+                      </div>
+                    ) : (
+                      <div className="inline-flex h-10 items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 text-sm font-bold text-emerald-300">
+                        <RefreshCw size={15} />
+                        API
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <div className="mb-1 text-[10px] font-black uppercase tracking-wide text-zinc-600 lg:hidden">
+                      Ações
+                    </div>
+
+                    {isManual ? (
+                      <div className="grid gap-2">
+                        <button
+                          type="button"
+                          onClick={() => saveMatch(match, true)}
+                          disabled={isSaving}
+                          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-orange-600 px-3 text-xs font-black text-white hover:bg-orange-500 disabled:opacity-60"
+                        >
+                          <ShieldCheck size={14} />
+                          {isSaving ? 'Salvando...' : 'Salvar correção'}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => releaseApi(match)}
+                          disabled={isSaving}
+                          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 text-xs font-black text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-60"
+                        >
+                          <Unlock size={14} />
+                          Liberar API
+                        </button>
+                      </div>
+                    ) : canUseTemporaryUpdate ? (
+                      <div className="grid gap-2">
+                        <button
+                          type="button"
+                          onClick={() => saveMatch(match, false)}
+                          disabled={isSaving}
+                          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 text-xs font-black text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-60"
+                        >
+                          <RefreshCw size={14} />
+                          {isSaving ? 'Salvando...' : 'Correção temporária'}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => saveMatch(match, true)}
+                          disabled={isSaving}
+                          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-orange-600 px-3 text-xs font-black text-white hover:bg-orange-500 disabled:opacity-60"
+                        >
+                          <ShieldCheck size={14} />
+                          Assumir controle manual
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => saveMatch(match, true)}
+                        disabled={isSaving}
+                        className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-orange-600 px-3 text-xs font-black text-white hover:bg-orange-500 disabled:opacity-60"
+                      >
+                        <ShieldCheck size={14} />
+                        {isSaving ? 'Salvando...' : 'Salvar em controle manual'}
+                      </button>
+                    )}
+                  </div>
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min={0}
-                    value={match.homeScore ?? 0}
-                    onChange={(e) => updateLocalMatch(match.id, { homeScore: Number(e.target.value) })}
-                    className="h-10 w-16 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-center font-black outline-none"
-                  />
-                  <span className="text-zinc-500">x</span>
-                  <input
-                    type="number"
-                    min={0}
-                    value={match.awayScore ?? 0}
-                    onChange={(e) => updateLocalMatch(match.id, { awayScore: Number(e.target.value) })}
-                    className="h-10 w-16 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-center font-black outline-none"
-                  />
-                </div>
-
-                <select
-                  value={match.status}
-                  onChange={(e) => updateLocalMatch(match.id, { status: e.target.value as MatchStatus })}
-                  className={`h-10 rounded-lg border px-3 text-sm font-bold outline-none ${getStatusStyle(match.status)}`}
-                >
-                  <option value="SCHEDULED">SCHEDULED</option>
-                  <option value="LIVE">LIVE</option>
-                  <option value="FINISHED">FINISHED</option>
-                  <option value="POSTPONED">POSTPONED</option>
-                  <option value="CANCELED">CANCELED</option>
-                </select>
-
-                <button
-                  type="button"
-                  onClick={() => saveMatch(match)}
-                  disabled={savingId === match.id}
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 text-sm font-black text-white hover:bg-orange-500 disabled:opacity-60"
-                >
-                  <Save size={14} />
-                  {savingId === match.id ? 'Salvando...' : 'Salvar'}
-                </button>
-              </div>
-            ))}
+              );
+            })}
 
             {filteredMatches.length === 0 && (
               <div className="px-4 py-10 text-center text-sm text-zinc-500">

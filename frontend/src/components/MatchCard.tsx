@@ -813,6 +813,7 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
           homeScore={match.homeScore}
           awayScore={match.awayScore}
           status={match.status}
+          isManualOverride={match.isManualOverride}
           onSuccess={() => window.location.reload()}
         />
       </div>
@@ -935,6 +936,7 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
           homeScore={match.homeScore}
           awayScore={match.awayScore}
           status={match.status}
+          isManualOverride={match.isManualOverride}
           onSuccess={() => window.location.reload()}
         />
 
@@ -1031,6 +1033,7 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
           homeScore={match.homeScore}
           awayScore={match.awayScore}
           status={match.status}
+          isManualOverride={match.isManualOverride}
           onSuccess={() => window.location.reload()}
         />
         <AdminMatchHistoryModal
