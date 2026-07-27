@@ -64,7 +64,7 @@ export function LoginPage() {
           <img
             src="/logo.png"
             alt="Na Gaveta"
-            className="mx-auto h-16 w-16 object-contain mb-2"
+            className="mx-auto h-20 w-20 object-contain mb-3"
           />
           <h1 className="text-2xl font-black text-text-primary">Entrar na conta</h1>
           <p className="text-text-secondary text-sm mt-1">

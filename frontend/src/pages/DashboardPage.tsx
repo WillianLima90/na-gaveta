@@ -103,18 +103,18 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 animate-fade-in">
+    <div className="max-w-2xl mx-auto px-4 py-5 animate-fade-in overflow-x-hidden">
 
       {/* ── Header compacto ──────────────────────────────────── */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-start justify-between gap-3 mb-5">
         <div>
           <p className="text-zinc-500 text-sm">{greeting()},</p>
-          <h1 className="text-2xl font-black text-white">
+          <h1 className="text-xl font-black text-white leading-tight">
             {user?.displayName?.split(' ')[0] || user?.name.split(' ')[0]} 👋
           </h1>
         </div>
         <Link to="/pools">
-          <button className="flex items-center gap-1.5 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-xl transition-colors">
+          <button className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-semibold rounded-xl transition-colors shrink-0">
             <Plus size={15} />
             Novo bolão
           </button>

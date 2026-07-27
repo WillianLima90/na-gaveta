@@ -96,14 +96,14 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-bg-primary/90 backdrop-blur-md border-b border-border-subtle">
       <div className="max-w-6xl mx-auto px-3 sm:px-5">
-        <div className="flex items-center justify-between h-15 sm:h-16">
+        <div className="flex items-center justify-between h-12 sm:h-16">
 
           {/* ── Logo ─────────────────────────────────────────── */}
           <Link to="/" className="flex items-center group">
             <img
               src="/logo.png"
               alt="Na Gaveta"
-              className="h-13 w-13 sm:h-14 sm:w-14 object-contain transition-all duration-200 group-hover:scale-105 group-hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.45)]"
+              className={`${isAuthenticated ? "h-10 w-10" : "h-12 w-12"} sm:h-14 sm:w-14 object-contain transition-all duration-200 group-hover:scale-105 group-hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.45)]`}
             />
           </Link>
 
