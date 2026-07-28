@@ -128,6 +128,7 @@ function getLockTime(matchDate: string): Date {
 }
 
 export function isMatchLocked(matchDate: string, status: string): boolean {
+  if (status === 'POSTPONED') return false;
   if (status === 'LIVE' || status === 'FINISHED' || status === 'CANCELLED') return true;
   return getLockTime(matchDate).getTime() <= Date.now();
 }
@@ -324,6 +325,7 @@ export function MatchCard({
   autoFocusFirst, onPredictionSaved, onPredictionChange, onSingleSaveSuccess, onViewOpponentPredictions, jokerEnabled = true, jokerLockedByAnotherMatch = false, roundStanding, scoreRule,
 }: MatchCardProps) {
   const locked = isMatchLocked(match.matchDate, match.status);
+  const isPostponed = match.status === 'POSTPONED';
   const hasPrediction = !!match.myPrediction;
 
   const [homeInput, setHomeInput] = useState(hasPrediction ? String(match.myPrediction!.homeScoreTip) : '');
@@ -428,7 +430,10 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
   // ── STAGING: enviar mudanças em tempo real ─────────────────
   useEffect(() => {
     if (!onPredictionChange) return;
-    if (locked || match.status !== 'SCHEDULED') return;
+    if (
+      locked ||
+      (match.status !== 'SCHEDULED' && match.status !== 'POSTPONED')
+    ) return;
     if (homeInput === '' || awayInput === '') return;
 
     onPredictionChange(match.id, {
@@ -529,12 +534,42 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
 
   // ── Prazo de fechamento ───────────────────────────────────────
   function LockInfo() {
+    if (isPostponed) {
+      return (
+        <span className="text-xs font-semibold text-emerald-400">
+          Palpites continuam abertos
+        </span>
+      );
+    }
+
     if (locked) return null;
     if (minsUntilLock !== null && minsUntilLock <= 30 && minsUntilLock > 0) {
       return <span className="text-xs text-orange-400 font-medium">Fecha em {minsUntilLock} min</span>;
     }
     const lockTime = new Date(new Date(match.matchDate).getTime() - 10 * 60 * 1000).toISOString();
     return <span className="text-xs text-zinc-600">Fecha às <span className="text-zinc-300 font-semibold">{formatTime(lockTime)}</span></span>;
+  }
+
+  function MatchDateInfo() {
+    if (isPostponed) {
+      return (
+        <div className="flex min-w-0 flex-col leading-tight">
+          <span className="text-xs font-bold tracking-wide text-amber-400">
+            ⚠️ Jogo adiado
+          </span>
+          <span className="text-[10px] text-zinc-500 sm:text-[11px]">
+            Nova data será definida pela organização.
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <span className="flex items-center gap-1 text-xs text-zinc-600">
+        <Clock size={9} />
+        <span dangerouslySetInnerHTML={{ __html: formatCompact(match.matchDate) }} />
+      </span>
+    );
   }
 
   // ── CARD: PALPITE EM ABERTO (sem palpite salvo) ───────────────
@@ -624,9 +659,7 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
 
         {/* Linha secundária: data + prazo + badges */}
         <div className="flex items-center justify-between px-4 pb-2 gap-2">
-          <span className="text-xs text-zinc-600 flex items-center gap-1">
-            <Clock size={9} /> <span dangerouslySetInnerHTML={{ __html: formatCompact(match.matchDate) }} />
-          </span>
+          <MatchDateInfo />
           <div className="flex items-center gap-1.5">
             {match.myPrediction?.isJoker && <ModBadge type="joker" />}
             {round.isBonusRound && <ModBadge type="bonus" />}
@@ -674,9 +707,7 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
           </button>
         </div>
         <div className="flex items-center justify-between px-4 pb-2 gap-2">
-          <span className="text-xs text-zinc-600 flex items-center gap-1">
-            <Clock size={9} /> <span dangerouslySetInnerHTML={{ __html: formatCompact(match.matchDate) }} />
-          </span>
+          <MatchDateInfo />
           <div className="flex items-center gap-1.5">
             {match.myPrediction?.isJoker && <ModBadge type="joker" />}
             {round.isBonusRound && <ModBadge type="bonus" />}
@@ -719,9 +750,7 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
           </button>
         </div>
         <div className="flex items-center justify-between px-4 pb-2 gap-2">
-          <span className="text-xs text-zinc-600 flex items-center gap-1">
-            <Clock size={9} /> <span dangerouslySetInnerHTML={{ __html: formatCompact(match.matchDate) }} />
-          </span>
+          <MatchDateInfo />
           <span className="text-xs text-brand italic font-medium">Editando...</span>
         </div>
         {error && <p className="text-xs text-red-400 text-center pb-2">{error}</p>}
@@ -909,9 +938,7 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
         </div>
 
         <div className="flex items-center justify-between px-4 pb-2 gap-2">
-          <span className="text-xs text-zinc-600 flex items-center gap-1">
-            <Clock size={9} /> <span dangerouslySetInnerHTML={{ __html: formatCompact(match.matchDate) }} />
-          </span>
+          <MatchDateInfo />
 
           <div className="flex items-center gap-1.5">
             {match.myPrediction?.isJoker && <ModBadge type="joker" />}
@@ -1015,9 +1042,7 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
           </div>
         </div>
         <div className="flex items-center justify-between px-4 pb-2 gap-2">
-          <span className="text-xs text-zinc-700 flex items-center gap-1">
-            <Clock size={9} /> <span dangerouslySetInnerHTML={{ __html: formatCompact(match.matchDate) }} />
-          </span>
+          <MatchDateInfo />
           <div className="flex items-center gap-1.5">
             {isLive && <span className="flex items-center gap-1 text-xs text-green-500"><Radio size={9} /> Ao vivo</span>}
             {isFinished && <span className="text-xs text-zinc-700">Encerrado</span>}

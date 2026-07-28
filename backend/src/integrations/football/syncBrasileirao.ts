@@ -9,6 +9,8 @@ import {
 function mapStatus(status: string): MatchStatus {
   if (status === 'FINISHED') return MatchStatus.FINISHED;
   if (status === 'IN_PLAY' || status === 'PAUSED') return MatchStatus.LIVE;
+  if (status === 'POSTPONED') return MatchStatus.POSTPONED;
+  if (status === 'CANCELLED') return MatchStatus.CANCELLED;
   return MatchStatus.SCHEDULED;
 }
 

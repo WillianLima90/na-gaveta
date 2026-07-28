@@ -22,6 +22,10 @@ const LOCK_MINUTES_BEFORE = 10;
 function isPredictionOpen(matchDate: Date, status: string): { open: boolean; reason?: string } {
   const now = new Date();
 
+  if (status === 'POSTPONED') {
+    return { open: true };
+  }
+
   if (status === 'FINISHED') {
     return { open: false, reason: 'Esta partida já foi encerrada.' };
   }

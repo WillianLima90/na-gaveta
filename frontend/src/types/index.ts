@@ -73,7 +73,7 @@ export interface Pool {
 }
 
 // ── Partida ──────────────────────────────────────────────────
-export type MatchStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED' | 'CANCELLED';
+export type MatchStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED' | 'POSTPONED' | 'CANCELLED';
 
 export interface Match {
   id: string;

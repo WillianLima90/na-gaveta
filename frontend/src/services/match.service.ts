@@ -5,7 +5,7 @@
 
 import api from './api';
 
-export type MatchStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED' | 'CANCELLED';
+export type MatchStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED' | 'POSTPONED' | 'CANCELLED';
 
 // Palpite do usuário logado em uma partida
 export interface MyPrediction {

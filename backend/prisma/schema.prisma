@@ -424,5 +424,6 @@ enum MatchStatus {
   SCHEDULED // agendada
   LIVE // ao vivo
   FINISHED // encerrada
+  POSTPONED // adiada
   CANCELLED // cancelada
 }
