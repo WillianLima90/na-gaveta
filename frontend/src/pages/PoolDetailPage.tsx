@@ -28,6 +28,7 @@ import {
 import { getPool, joinPoolById, joinPoolByCode, setFavoriteTeam, leavePool, cancelJoinRequest, deletePool, type Pool } from '../services/pool.service';
 import {
   getPoolMatches,
+  getPoolRanking,
   savePrediction,
   type Round,
   type Match,
@@ -87,6 +88,12 @@ export default function PoolDetailPage() {
 
   // Rodada selecionada para palpites
   const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null);
+
+  // Posição atual do usuário na classificação geral
+  const [currentGeneralStanding, setCurrentGeneralStanding] = useState<{
+    position: number;
+    trend: 'up' | 'down' | 'same';
+  } | null>(null);
 
   // Regras colapsado
   const [showRulesModal, setShowRulesModal] = useState(false);
@@ -421,6 +428,49 @@ export default function PoolDetailPage() {
 
   }
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCurrentGeneralStanding() {
+      if (!id || !isAuthenticated || !pool?.isMember) {
+        if (!cancelled) {
+          setCurrentGeneralStanding(null);
+        }
+        return;
+      }
+
+      try {
+        const data = await getPoolRanking(id);
+        const currentUserEntry = data.ranking.find(
+          (entry) => entry.isCurrentUser
+        );
+
+        if (!cancelled) {
+          setCurrentGeneralStanding(
+            currentUserEntry
+              ? {
+                  position: currentUserEntry.position,
+                  trend: 'same',
+                }
+              : null
+          );
+        }
+      } catch (error) {
+        console.error('[PoolDetailPage] general standing error', error);
+
+        if (!cancelled) {
+          setCurrentGeneralStanding(null);
+        }
+      }
+    }
+
+    loadCurrentGeneralStanding();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, rounds, isAuthenticated, pool?.isMember]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
@@ -679,6 +729,7 @@ export default function PoolDetailPage() {
                       key={match.id}
                       match={match}
                       round={round}
+                      roundStanding={currentGeneralStanding}
                       poolId={id!}
                       isAuthenticated={isAuthenticated}
                       isMember={isMember}
@@ -716,6 +767,7 @@ export default function PoolDetailPage() {
                       key={match.id}
                       match={match}
                       round={round}
+                      roundStanding={currentGeneralStanding}
                       poolId={id!}
                       isAuthenticated={isAuthenticated}
                       isMember={isMember}
@@ -766,6 +818,7 @@ export default function PoolDetailPage() {
                       key={match.id}
                       match={match}
                       round={round}
+                      roundStanding={currentGeneralStanding}
                       poolId={id!}
                       isAuthenticated={isAuthenticated}
                       isMember={isMember}
@@ -796,6 +849,7 @@ export default function PoolDetailPage() {
                       key={match.id}
                       match={match}
                       round={round}
+                      roundStanding={currentGeneralStanding}
                       poolId={id!}
                       isAuthenticated={isAuthenticated}
                       isMember={isMember}

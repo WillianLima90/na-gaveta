@@ -38,6 +38,10 @@ export interface MatchCardProps {
   onViewOpponentPredictions?: (matchId: string) => void;
   jokerEnabled?: boolean;
   jokerLockedByAnotherMatch?: boolean;
+  roundStanding?: {
+    position: number;
+    trend: 'up' | 'down' | 'same';
+  } | null;
   scoreRule?: {
     pointsForOutcome: number;
     pointsForHomeGoals: number;
@@ -317,7 +321,7 @@ function ModBadge({ type }: { type: 'joker' | 'bonus' }) {
 export function MatchCard({
   match, round, poolId, isAuthenticated, isMember,
   bracketLabel,
-  autoFocusFirst, onPredictionSaved, onPredictionChange, onSingleSaveSuccess, onViewOpponentPredictions, jokerEnabled = true, jokerLockedByAnotherMatch = false, scoreRule,
+  autoFocusFirst, onPredictionSaved, onPredictionChange, onSingleSaveSuccess, onViewOpponentPredictions, jokerEnabled = true, jokerLockedByAnotherMatch = false, roundStanding, scoreRule,
 }: MatchCardProps) {
   const locked = isMatchLocked(match.matchDate, match.status);
   const hasPrediction = !!match.myPrediction;
@@ -759,6 +763,25 @@ const awayLogoUrl = teamLogo(match.awayTeam, match.awayTeamCrest);
               <span className={`text-base font-black tabular-nums px-2 py-1 rounded-lg ${cfg?.ptsBg ?? 'bg-zinc-800'} ${cfg?.ptsText ?? 'text-zinc-400'}`}>
                 {pts > 0 ? `+${pts}` : '0'}
               </span>
+
+              {roundStanding && (
+                <span
+                  className={`text-[10px] font-black whitespace-nowrap ${
+                    roundStanding.trend === 'up'
+                      ? 'text-emerald-400'
+                      : roundStanding.trend === 'down'
+                        ? 'text-red-400'
+                        : 'text-zinc-400'
+                  }`}
+                >
+                  {roundStanding.trend === 'up'
+                    ? '▲'
+                    : roundStanding.trend === 'down'
+                      ? '▼'
+                      : '•'}{' '}
+                  {roundStanding.position}º lugar
+                </span>
+              )}
 
               {isLivePts && (
                 <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide">
